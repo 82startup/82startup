@@ -7,7 +7,10 @@ import { createClient } from "@/lib/supabase/server";
 export function SiteHeader() {
   return (
     <header className="flex items-center justify-between border-b p-4">
-      <Link href="/" className="font-semibold">{copy.siteName}</Link>
+      <div className="flex items-center gap-6">
+        <Link href="/" className="font-semibold">{copy.siteName}</Link>
+        <Link href="/events">{copy.nav.events}</Link>
+      </div>
       <Suspense fallback={<span className="w-24" aria-hidden />}>
         <AuthNav />
       </Suspense>
