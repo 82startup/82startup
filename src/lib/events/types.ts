@@ -11,4 +11,5 @@ export type PublicEvent = {
   venue_address: string | null;
   cover_url: string | null;
   luma_url: string;
+  featured: boolean;
 };

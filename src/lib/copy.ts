@@ -57,6 +57,14 @@ export const copy = {
     notFoundTitle: "Event not found",
     cover: "Event cover image",
   },
+  home: {
+    tagline: "Events and community for Korean founders, investors and builders.",
+    browse: "Browse events",
+    featured: "Featured events",
+    upcoming: "Upcoming events",
+    seeAll: "See all events",
+    empty: "No upcoming events yet. Check back soon.",
+  },
 } as const;
 
 export function loginErrorText(code: string | null): string | null {
