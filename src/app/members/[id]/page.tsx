@@ -6,6 +6,7 @@ import { Avatar } from "@/components/avatar";
 import { copy } from "@/lib/copy";
 import type { MemberType } from "@/lib/profile/schema";
 import { createClient } from "@/lib/supabase/server";
+import { ConnectionPanel } from "@/app/connections/connection-panel";
 import { MemberEvents, type MemberEvent } from "./member-events";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -53,6 +54,20 @@ async function MemberDetail({ params }: { params: PageProps<"/members/[id]">["pa
 
   const { data: events } = await supabase.rpc("member_events", { p_member: id });
 
+  // The connect button depends on the relation; an open request also needs its id (and the note, if it is for the viewer).
+  const { data: stateData } = await supabase.rpc("connection_state", { p_member: id });
+  const state = typeof stateData === "string" ? stateData : "unavailable";
+  let connectionId: string | null = null;
+  let note = "";
+  if (state === "sent" || state === "received") {
+    const { data: lists } = await supabase.rpc("my_connection_lists");
+    const open = ((lists ?? []) as Array<{ kind: string; connection_id: string | null; member_id: string; note: string }>).find(
+      (r) => r.member_id === id && (r.kind === "sent" || r.kind === "received"),
+    );
+    connectionId = open?.connection_id ?? null;
+    note = open?.note ?? "";
+  }
+
   return (
     <article className="flex flex-col gap-4">
       <Link href="/members" className="text-sm text-zinc-600 dark:text-zinc-400">← {copy.members.allMembers}</Link>
@@ -81,6 +96,7 @@ async function MemberDetail({ params }: { params: PageProps<"/members/[id]">["pa
         </p>
       )}
       <MemberEvents events={(events ?? []) as MemberEvent[]} />
+      <ConnectionPanel memberId={id} state={state} connectionId={connectionId} note={note} />
       {member.id === viewer && (
         <p>
           <Link href="/profile" className="underline">{copy.members.edit}</Link>

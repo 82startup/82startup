@@ -1,6 +1,6 @@
 export const copy = {
   siteName: "82 Startup",
-  nav: { signIn: "Sign in", profile: "Profile", signOut: "Sign out", events: "Events", members: "Members", admin: "Admin" },
+  nav: { signIn: "Sign in", profile: "Profile", signOut: "Sign out", events: "Events", members: "Members", connections: "Connections", admin: "Admin" },
   login: {
     title: "Sign in to 82 Startup",
     emailLabel: "Email",
@@ -105,6 +105,30 @@ export const copy = {
     attending: "Attending",
     loading: "Loading members…",
     notFoundTitle: "Member not found",
+  },
+  connections: {
+    title: "Connections",
+    loading: "Loading connections…",
+    connect: "Connect",
+    notePlaceholder: "Add a short note (optional)",
+    requestSent: "Request sent",
+    cancel: "Cancel request",
+    accept: "Accept",
+    decline: "Decline",
+    connected: "Connected",
+    disconnect: "Disconnect",
+    block: "Block",
+    unblock: "Unblock",
+    blocked: "You blocked this member.",
+    wantsToConnect: "wants to connect",
+    sections: { received: "Requests received", sent: "Requests sent", connected: "Your connections", blocked: "Blocked members" },
+    empty: "Nothing here yet.",
+    noteFrom: "Note",
+    errors: {
+      save: "Could not save. Try again.",
+      wait: "You can send a new request to this member later.",
+      unavailable: "This member is not available.",
+    },
   },
   attendance: {
     count: "attending",
