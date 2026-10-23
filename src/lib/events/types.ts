@@ -3,6 +3,7 @@ export type PublicEvent = {
   slug: string;
   title: string;
   description: string;
+  description_md: string;
   start_at: string;
   end_at: string | null;
   timezone: string;

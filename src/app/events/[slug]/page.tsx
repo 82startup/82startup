@@ -6,6 +6,7 @@ import { connection } from "next/server";
 import { copy } from "@/lib/copy";
 import { getEvent } from "@/lib/events/queries";
 import { formatEventTime, venueDetail } from "@/lib/events/format";
+import { EventDescription } from "@/components/event-description";
 import { AttendanceActions, AttendanceCount } from "./attendance";
 
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
@@ -59,7 +60,7 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
       </a>
       {!ended && <p className="text-sm text-zinc-600 dark:text-zinc-400">{copy.attendance.note}</p>}
       <AttendanceActions event={event} />
-      {event.description && <p className="whitespace-pre-line">{event.description}</p>}
+      <EventDescription markdown={event.description_md} fallback={event.description} />
     </article>
   );
 }
