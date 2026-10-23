@@ -20,8 +20,13 @@ export async function updateProfile(_prev: ProfileFormState, formData: FormData)
   const parsed = parseProfileForm(formData);
   if (!parsed.ok) return { errors: parsed.errors };
 
-  const { error } = await supabase.from("profiles").update(parsed.value).eq("id", userId);
-  if (error) return { errors: { save: copy.profile.errors.save } };
+  const { data: updated, error } = await supabase
+    .from("profiles")
+    .update(parsed.value)
+    .eq("id", userId)
+    .select("id")
+    .maybeSingle();
+  if (error || !updated) return { errors: { save: copy.profile.errors.save } };
 
   revalidatePath("/profile");
   return { saved: true };
