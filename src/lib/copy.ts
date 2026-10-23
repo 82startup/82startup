@@ -1,6 +1,6 @@
 export const copy = {
   siteName: "82 Startup",
-  nav: { signIn: "Sign in", profile: "Profile", signOut: "Sign out" },
+  nav: { signIn: "Sign in", profile: "Profile", signOut: "Sign out", events: "Events" },
   login: {
     title: "Sign in to 82 Startup",
     emailLabel: "Email",
@@ -44,6 +44,18 @@ export const copy = {
       member_type: "Pick one of the options.",
       save: "We could not save your profile. Try again.",
     },
+  },
+  events: {
+    title: "Events",
+    upcoming: "Upcoming",
+    past: "Past",
+    emptyUpcoming: "No upcoming events.",
+    emptyPast: "No past events.",
+    loading: "Loading events…",
+    getTickets: "Get tickets",
+    allEvents: "All events",
+    notFoundTitle: "Event not found",
+    cover: "Event cover image",
   },
 } as const;
 
