@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseProfileForm } from "./schema";
+import { parseProfileForm, submittedValues } from "./schema";
 
 function form(values: Record<string, string>) {
   const data = new FormData();
@@ -82,5 +82,19 @@ describe("parseProfileForm", () => {
   it("rejects an unknown member type", () => {
     const result = parseProfileForm(form({ name: "Ada", member_type: "wizard" }));
     expect(result).toMatchObject({ ok: false, errors: { member_type: expect.any(String) } });
+  });
+});
+
+describe("submittedValues", () => {
+  it("returns the six raw strings untrimmed, with missing keys as empty strings", () => {
+    const values = submittedValues(form({ name: "  Ada ", bio: "x", member_type: "wizard", extra: "ignored" }));
+    expect(values).toEqual({
+      name: "  Ada ",
+      headline: "",
+      company_name: "",
+      bio: "x",
+      linkedin_url: "",
+      member_type: "wizard",
+    });
   });
 });

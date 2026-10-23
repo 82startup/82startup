@@ -4,11 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { copy } from "@/lib/copy";
 import { createClient } from "@/lib/supabase/server";
-import { parseProfileForm, type ProfileInput } from "@/lib/profile/schema";
+import { parseProfileForm, submittedValues, type ProfileInput, type SubmittedValues } from "@/lib/profile/schema";
 
 export type ProfileFormState = {
   errors?: Partial<Record<keyof ProfileInput | "save", string>>;
   saved?: boolean;
+  values?: SubmittedValues;
 };
 
 export async function updateProfile(_prev: ProfileFormState, formData: FormData): Promise<ProfileFormState> {
@@ -18,7 +19,7 @@ export async function updateProfile(_prev: ProfileFormState, formData: FormData)
   if (!userId) redirect("/login?next=/profile");
 
   const parsed = parseProfileForm(formData);
-  if (!parsed.ok) return { errors: parsed.errors };
+  if (!parsed.ok) return { errors: parsed.errors, values: submittedValues(formData) };
 
   const { data: updated, error } = await supabase
     .from("profiles")
@@ -26,7 +27,7 @@ export async function updateProfile(_prev: ProfileFormState, formData: FormData)
     .eq("id", userId)
     .select("id")
     .maybeSingle();
-  if (error || !updated) return { errors: { save: copy.profile.errors.save } };
+  if (error || !updated) return { errors: { save: copy.profile.errors.save }, values: submittedValues(formData) };
 
   revalidatePath("/profile");
   return { saved: true };

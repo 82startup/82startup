@@ -22,6 +22,15 @@ function text(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
+const SUBMITTED_KEYS = ["name", "headline", "company_name", "bio", "linkedin_url", "member_type"] as const;
+export type SubmittedValues = Record<(typeof SUBMITTED_KEYS)[number], string>;
+
+export function submittedValues(formData: FormData): SubmittedValues {
+  return Object.fromEntries(
+    SUBMITTED_KEYS.map((key) => [key, String(formData.get(key) ?? "")]),
+  ) as SubmittedValues;
+}
+
 export function parseProfileForm(formData: FormData): ParseResult {
   const errors: Partial<Record<keyof ProfileInput, string>> = {};
 
