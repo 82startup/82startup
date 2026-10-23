@@ -4,7 +4,7 @@ import { supabaseEnv } from "@/lib/supabase/env";
 import type { PublicEvent } from "./types";
 
 const COLUMNS =
-  "id, slug, title, description, start_at, end_at, timezone, location_type, venue_name, venue_city, venue_address, cover_url, luma_url, featured";
+  "id, slug, title, description, description_md, start_at, end_at, timezone, location_type, venue_name, venue_city, venue_address, cover_url, luma_url, featured";
 
 // Public data, read with the publishable key and no cookies so the result can be cached for everyone.
 // Row-level security already limits this to published, visible events.

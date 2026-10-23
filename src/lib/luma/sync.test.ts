@@ -26,6 +26,7 @@ type LumaOptions = {
   approvedCounts?: Record<string, number | undefined>;
   guestEmails?: Record<string, string[]>;
   guestErrors?: string[];
+  markdown?: Record<string, string>;
 };
 
 function fakeLuma(events: LumaCalendarEvent[], opts: LumaOptions = {}) {
@@ -43,6 +44,7 @@ function fakeLuma(events: LumaCalendarEvent[], opts: LumaOptions = {}) {
       return {
         ...lumaEvent(id),
         description: `About ${id}`,
+        ...(opts.markdown?.[id] === undefined ? {} : { description_md: opts.markdown[id] }),
         ...(count === undefined ? {} : { guest_counts: { approved: { guests: count } } }),
       };
     },
@@ -284,5 +286,41 @@ describe("runSync attendees", () => {
     await runSync(reader, store, NOW);
     expect(guestCalls).toEqual([]);
     expect(log.attendees).toEqual([]);
+  });
+});
+
+describe("runSync description_md", () => {
+  it("stores Luma's markdown description for a new event and for an unfinished existing one", async () => {
+    const { reader } = fakeLuma([lumaEvent("evt-new1"), lumaEvent("evt-a")], {
+      markdown: { "evt-new1": "# Hello\n\n![pic](https://images.lumacdn.com/x.jpg)", "evt-a": "**Bold**" },
+    });
+    const { store, log } = fakeStore([stored("evt-a")]);
+    await runSync(reader, store, NOW);
+    expect(log.inserts[0]).toMatchObject({ luma_event_id: "evt-new1", description_md: "# Hello\n\n![pic](https://images.lumacdn.com/x.jpg)" });
+    expect(log.updates[0].fields).toMatchObject({ description_md: "**Bold**" });
+  });
+
+  it("stores an empty string when the details carry no markdown", async () => {
+    const { reader } = fakeLuma([lumaEvent("evt-a")]);
+    const { store, log } = fakeStore([stored("evt-a")]);
+    await runSync(reader, store, NOW);
+    expect(log.updates[0].fields).toMatchObject({ description_md: "" });
+  });
+
+  it("cuts a very long description at 20,000 characters without splitting an emoji", async () => {
+    const { reader } = fakeLuma([lumaEvent("evt-a")], { markdown: { "evt-a": "😀".repeat(20005) } });
+    const { store, log } = fakeStore([stored("evt-a")]);
+    await runSync(reader, store, NOW);
+    const saved = log.updates[0].fields.description_md as string;
+    expect(Array.from(saved)).toHaveLength(20000);
+    expect(saved).toBe("😀".repeat(20000));
+  });
+
+  it("does not send it for an event that already ended (it keeps what it had)", async () => {
+    const past = lumaEvent("evt-old", { start_at: "2026-10-01T18:00:00.000Z", end_at: "2026-10-01T20:00:00.000Z" });
+    const { reader } = fakeLuma([past], { markdown: { "evt-old": "ignored" } });
+    const { store, log } = fakeStore([stored("evt-old", { start_at: past.start_at, end_at: past.end_at ?? null })]);
+    await runSync(reader, store, NOW);
+    expect(log.updates[0].fields).not.toHaveProperty("description_md");
   });
 });

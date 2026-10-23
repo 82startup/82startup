@@ -25,6 +25,7 @@ export type LumaCalendarEvent = {
 
 export type LumaEventDetail = LumaCalendarEvent & {
   description?: string;
+  description_md?: string;
   guest_counts?: { approved?: { guests?: number } };
 };
 

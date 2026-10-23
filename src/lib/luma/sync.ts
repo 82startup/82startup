@@ -8,11 +8,11 @@ export type StoredEvent = {
   removed_from_luma: boolean;
 };
 
-export type EventWrite = EventFields & { description?: string; luma_approved_count?: number };
+export type EventWrite = EventFields & { description?: string; description_md?: string; luma_approved_count?: number };
 
 export interface EventStore {
   listStored(): Promise<StoredEvent[]>;
-  insert(row: EventFields & { slug: string; description: string; luma_approved_count?: number }): Promise<void>;
+  insert(row: EventFields & { slug: string; description: string; description_md?: string; luma_approved_count?: number }): Promise<void>;
   // Also sets removed_from_luma = false and the sync columns. Never touches slug, hidden or status.
   update(lumaId: string, fields: EventWrite): Promise<void>;
   markError(lumaId: string, message: string): Promise<void>;
@@ -21,6 +21,9 @@ export interface EventStore {
   // so it must only be called with a complete list.
   syncAttendees(lumaEventId: string, emails: string[]): Promise<{ matched: number }>;
 }
+
+// Luma's formatted description is cut here (in whole characters) so one huge description cannot bloat a row.
+const MAX_DESCRIPTION_MD = 20_000;
 
 export type SyncResult = { created: number; updated: number; removed: number; errors: number; attendees: number };
 
@@ -47,10 +50,13 @@ export async function runSync(luma: LumaReader, store: EventStore, now: Date = n
 
     let written = false;
     try {
-      let extra: { description?: string; luma_approved_count?: number } = {};
+      let extra: { description?: string; description_md?: string; luma_approved_count?: number } = {};
       if (!existing || !ended) {
         const detail = await luma.getEvent(fields.luma_event_id);
-        extra = { description: detail.description ?? "" };
+        extra = {
+          description: detail.description ?? "",
+          description_md: [...(detail.description_md ?? "")].slice(0, MAX_DESCRIPTION_MD).join(""),
+        };
         const approved = detail.guest_counts?.approved?.guests;
         if (typeof approved === "number") extra.luma_approved_count = approved;
       }
