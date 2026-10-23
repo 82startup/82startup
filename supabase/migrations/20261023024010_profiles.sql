@@ -40,7 +40,7 @@ begin
   insert into public.profiles (id, name, avatar_url)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name', ''),
+    left(coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name', ''), 100),
     coalesce(new.raw_user_meta_data ->> 'avatar_url', new.raw_user_meta_data ->> 'picture')
   );
   return new;
@@ -50,6 +50,9 @@ $$;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
+
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function public.set_updated_at() from public, anon, authenticated;
 
 create policy "members read all profiles" on public.profiles
   for select to authenticated using (true);
