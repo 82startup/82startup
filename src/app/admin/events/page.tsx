@@ -30,6 +30,9 @@ async function AdminEventsContent() {
   const { data, error } = await supabase.rpc("admin_events");
   if (error) throw new Error(error.message);
   const events = (data ?? []) as AdminEvent[];
+  // Luma and self-reported attendee counts. If this call fails the list still works, without the counts.
+  const { data: attendance } = await supabase.rpc("admin_attendance");
+  const counts = new Map(((attendance ?? []) as { event_id: string; luma: number; self: number }[]).map((row) => [row.event_id, row]));
   const last = lastSyncedAt(events);
 
   return (
@@ -59,6 +62,11 @@ async function AdminEventsContent() {
                   <span className="text-sm text-zinc-600 dark:text-zinc-400">
                     {formatEventTime(event.start_at, event.end_at, event.timezone)}
                   </span>
+                  {counts.has(event.id) && (
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                      {copy.admin.attendance.luma}: {counts.get(event.id)?.luma} · {copy.admin.attendance.self}: {counts.get(event.id)?.self}
+                    </span>
+                  )}
                   {flags.length > 0 && (
                     <ul className="flex flex-wrap gap-2 text-xs">
                       {flags.map((flag) => (

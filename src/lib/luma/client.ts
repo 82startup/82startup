@@ -1,12 +1,14 @@
-import type { LumaCalendarEvent, LumaEventDetail } from "./types";
+import type { LumaCalendarEvent, LumaEventDetail, LumaGuest } from "./types";
 
 export interface LumaReader {
   listCalendarEvents(): Promise<LumaCalendarEvent[]>;
   getEvent(eventId: string): Promise<LumaEventDetail>;
+  // Emails of the guests Luma lists as approved for one event. Read in full or not at all.
+  listApprovedGuestEmails(eventId: string): Promise<string[]>;
 }
 
 // The only Luma endpoints this app may call. Every request goes through get() below, which only sends GET.
-export const READ_PATHS = ["/v1/calendars/events/list", "/v1/events/get"] as const;
+export const READ_PATHS = ["/v1/calendars/events/list", "/v1/events/get", "/v1/events/guests/list"] as const;
 
 const BASE_URL = "https://public-api.luma.com";
 const PAGE_SIZE = 100;
@@ -22,9 +24,10 @@ export class LumaError extends Error {
 }
 
 type Options = { apiKey: string; fetch?: typeof fetch };
+type ReadPath = (typeof READ_PATHS)[number];
 
 export function createLumaClient({ apiKey, fetch: fetchImpl = fetch }: Options): LumaReader {
-  async function get(path: (typeof READ_PATHS)[number], params: Record<string, string>): Promise<unknown> {
+  async function get(path: ReadPath, params: Record<string, string>): Promise<unknown> {
     const url = new URL(path, BASE_URL);
     for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
 
@@ -42,25 +45,26 @@ export function createLumaClient({ apiKey, fetch: fetchImpl = fetch }: Options):
     return res.json();
   }
 
+  // Follows next_cursor until has_more is false. Throws rather than return a partial list.
+  async function listAll<T>(path: ReadPath, params: Record<string, string>): Promise<T[]> {
+    const items: T[] = [];
+    let cursor: string | undefined;
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const query: Record<string, string> = { ...params, pagination_limit: String(PAGE_SIZE) };
+      if (cursor) query.pagination_cursor = cursor;
+      const body = (await get(path, query)) as { entries?: T[]; has_more?: boolean; next_cursor?: string };
+      if (!body || !Array.isArray(body.entries)) throw new LumaError(`Luma ${path} response had an unexpected shape`);
+      items.push(...body.entries);
+      if (!body.has_more) return items;
+      if (!body.next_cursor) throw new LumaError(`Luma ${path} said there is more but sent no cursor`);
+      cursor = body.next_cursor;
+    }
+    throw new LumaError(`Luma ${path} did not end after ${MAX_PAGES} pages`);
+  }
+
   return {
-    async listCalendarEvents() {
-      const events: LumaCalendarEvent[] = [];
-      let cursor: string | undefined;
-      for (let page = 0; page < MAX_PAGES; page++) {
-        const params: Record<string, string> = { pagination_limit: String(PAGE_SIZE) };
-        if (cursor) params.pagination_cursor = cursor;
-        const body = (await get("/v1/calendars/events/list", params)) as {
-          entries?: LumaCalendarEvent[];
-          has_more?: boolean;
-          next_cursor?: string;
-        };
-        if (!body || !Array.isArray(body.entries)) throw new LumaError("Luma list response had an unexpected shape");
-        events.push(...body.entries);
-        if (!body.has_more) return events;
-        if (!body.next_cursor) throw new LumaError("Luma list said there is more but sent no cursor");
-        cursor = body.next_cursor;
-      }
-      throw new LumaError(`Luma list did not end after ${MAX_PAGES} pages`);
+    listCalendarEvents() {
+      return listAll<LumaCalendarEvent>("/v1/calendars/events/list", {});
     },
 
     async getEvent(eventId) {
@@ -69,6 +73,11 @@ export function createLumaClient({ apiKey, fetch: fetchImpl = fetch }: Options):
         throw new LumaError("Luma event response had an unexpected shape");
       }
       return body;
+    },
+
+    async listApprovedGuestEmails(eventId) {
+      const guests = await listAll<LumaGuest>("/v1/events/guests/list", { event_id: eventId, approval_status: "approved" });
+      return guests.map((g) => g.user_email).filter((email): email is string => typeof email === "string" && email.length > 0);
     },
   };
 }

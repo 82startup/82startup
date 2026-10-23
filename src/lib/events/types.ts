@@ -1,4 +1,5 @@
 export type PublicEvent = {
+  id: string;
   slug: string;
   title: string;
   description: string;
