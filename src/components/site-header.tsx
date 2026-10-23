@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export function SiteHeader() {
   return (
-    <header className="flex items-center justify-between border-b p-4">
+    <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b p-4">
       <div className="flex items-center gap-6">
         <Link href="/" className="font-semibold">{copy.siteName}</Link>
         <Link href="/events">{copy.nav.events}</Link>
@@ -29,7 +29,7 @@ async function AuthNav() {
   }
   const { data: isAdmin } = await supabase.rpc("is_admin");
   return (
-    <nav className="flex items-center gap-4">
+    <nav className="flex flex-wrap items-center gap-x-4 gap-y-1">
       <Link href="/members">{copy.nav.members}</Link>
       {isAdmin === true && <Link href="/admin/events">{copy.nav.admin}</Link>}
       <Link href="/profile">{copy.nav.profile}</Link>
