@@ -102,6 +102,7 @@ export const copy = {
     linkedin: "LinkedIn",
     company: "Company",
     about: "About",
+    attending: "Attending",
     loading: "Loading members…",
     notFoundTitle: "Member not found",
   },
