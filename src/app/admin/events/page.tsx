@@ -8,6 +8,7 @@ import { copy } from "@/lib/copy";
 import { formatEventTime } from "@/lib/events/format";
 import { setFeatured, setHidden } from "./actions";
 import { AdminSwitch } from "./admin-switch";
+import { AdminNav } from "../admin-nav";
 import { SyncButton } from "./sync-button";
 
 export default function AdminEventsPage() {
@@ -37,6 +38,7 @@ async function AdminEventsContent() {
 
   return (
     <>
+      <AdminNav current="events" />
       <h1 className="mb-4 text-2xl font-semibold">{copy.admin.title}</h1>
       <section className="mb-6 flex flex-col gap-2">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
