@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { copy, loginErrorText } from "@/lib/copy";
 import { safeNextPath } from "@/lib/auth/safe-next";
-import { signInWithEmail, signInWithGoogle, signInWithLinkedIn } from "./actions";
+import { signInWithEmail, signInWithGoogle } from "./actions";
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
@@ -37,10 +37,6 @@ async function LoginForms({ searchParams }: { searchParams: PageProps<"/login">[
         <form action={signInWithGoogle}>
           <input type="hidden" name="next" value={next} />
           <button type="submit" className="w-full rounded border p-2">{copy.login.google}</button>
-        </form>
-        <form action={signInWithLinkedIn}>
-          <input type="hidden" name="next" value={next} />
-          <button type="submit" className="w-full rounded border p-2">{copy.login.linkedin}</button>
         </form>
       </div>
     </div>

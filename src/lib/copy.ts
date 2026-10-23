@@ -6,7 +6,6 @@ export const copy = {
     emailLabel: "Email",
     emailButton: "Email me a sign-in link",
     google: "Continue with Google",
-    linkedin: "Continue with LinkedIn",
     sent: "Check your email for a sign-in link. Open it in this browser.",
     errors: {
       email: "Enter your email address.",

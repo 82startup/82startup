@@ -23,7 +23,7 @@ export async function signInWithEmail(formData: FormData) {
   redirect(error ? `/login?error=send&next=${encodeURIComponent(next)}` : "/login?sent=1");
 }
 
-async function signInWithProvider(provider: "google" | "linkedin_oidc", formData: FormData) {
+async function signInWithProvider(provider: "google", formData: FormData) {
   const next = safeNextPath(String(formData.get("next") ?? ""));
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -36,8 +36,4 @@ async function signInWithProvider(provider: "google" | "linkedin_oidc", formData
 
 export async function signInWithGoogle(formData: FormData) {
   await signInWithProvider("google", formData);
-}
-
-export async function signInWithLinkedIn(formData: FormData) {
-  await signInWithProvider("linkedin_oidc", formData);
 }

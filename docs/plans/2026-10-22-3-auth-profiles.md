@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Visitors can sign up and sign in (email magic link, Google, LinkedIn). Every member gets a profile row that only logged-in members can read, can edit their own profile (including choosing a member type), and cannot change their own role.
+**Goal:** Visitors can sign up and sign in (email magic link, Google; LinkedIn sign-in is deferred). Every member gets a profile row that only logged-in members can read, can edit their own profile (including choosing a member type), and cannot change their own role.
 
 **Architecture:** Supabase Auth with `@supabase/ssr` cookies. A Next.js `proxy.ts` refreshes the session on every request. Session reads happen only behind `<Suspense>` because this project runs with `cacheComponents: true`. Access rules live in Postgres (row-level security plus column-level grants), proven by pgTAP tests; pure logic (redirect safety, form parsing, env reading) is unit-tested with Vitest.
 
@@ -404,6 +404,8 @@ git commit -m "Add profiles table, signup trigger and access rules"
 
 ### Task 3: Sign-in flows (magic link, Google, LinkedIn) and sign out
 
+Note: LinkedIn sign-in was removed from this release (see Task 5 Step 4).
+
 **Files:**
 - Create: `src/lib/copy.ts`, `src/app/login/page.tsx`, `src/app/login/actions.ts`, `src/app/auth/callback/route.ts`, `src/app/auth/signout/route.ts`
 - Modify: `supabase/config.toml` (auth URLs)
@@ -419,7 +421,7 @@ In `supabase/config.toml` under `[auth]` set:
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:3000/auth/callback"]
 ```
-Leave the external providers disabled locally (Google and LinkedIn need real client credentials and are tested on the deployed site in Task 5). Magic links are testable locally through Mailpit at `http://127.0.0.1:55324`.
+Leave the external providers disabled locally (Google needs real client credentials and are tested on the deployed site in Task 5). Magic links are testable locally through Mailpit at `http://127.0.0.1:55324`.
 
 - [ ] **Step 2: Write the UI strings**
 
@@ -1002,11 +1004,11 @@ Run, after the owner agrees: `supabase link --project-ref htqkxezswbduzwgycftx` 
 
 Authentication → URL Configuration: Site URL `https://82startup.vercel.app`; Redirect URLs add the globs `https://82startup.vercel.app/**` and `https://*-82-startup.vercel.app/**` (the callback URL carries `?next=`). Also confirm in the dashboard (Authentication → Sign In / Providers) that "Allow anonymous sign-ins" is OFF and "Confirm email" is ON.
 
-- [ ] **Step 4: Create the Google and LinkedIn OAuth apps (owner)**
+- [ ] **Step 4: Create the Google OAuth app (owner); LinkedIn deferred**
 
 Walk the owner through each; they enter the values in the Supabase dashboard (Authentication → Providers), never in chat.
 - Google: Google Cloud Console → APIs & Services → Credentials → OAuth client ID (Web). Authorized redirect URI: `https://htqkxezswbduzwgycftx.supabase.co/auth/v1/callback`. Needs the OAuth consent screen set up. Paste client ID and secret into Supabase → Providers → Google.
-- LinkedIn: LinkedIn Developers → Create app (needs a LinkedIn company page) → add product "Sign In with LinkedIn using OpenID Connect" → Auth → Authorized redirect URL `https://htqkxezswbduzwgycftx.supabase.co/auth/v1/callback`. Paste client ID and secret into Supabase → Providers → LinkedIn (OIDC).
+- LinkedIn: deferred, not part of this release (no LinkedIn developer app yet). To add later: create the LinkedIn app, enable the LinkedIn (OIDC) provider in Supabase, and re-add the button and the `signInWithLinkedIn` action.
 
 - [ ] **Step 5: Email delivery**
 
@@ -1022,7 +1024,7 @@ Push the branch, open the pull request, wait for `checks` to pass, then QA local
 
 - Spec "Data model → profiles" (name, avatar, headline, company, bio, LinkedIn URL, `member_type` empty until chosen, `role`): Task 2.
 - Spec access rules for profiles (logged-out none, members read all and edit own, role not changeable, admin set by migration or seed): Task 2 policies, grants and tests. No admin screen, as the spec says.
-- Spec sign-in methods (magic link, Google, LinkedIn), profile created at first sign-in by trigger, member type chosen when filling the profile: Tasks 2, 3, 4.
+- Spec sign-in methods (magic link, Google; LinkedIn deferred), profile created at first sign-in by trigger, member type chosen when filling the profile: Tasks 2, 3, 4.
 - Spec screens `/login` and `/profile`: Tasks 3 and 4. `/members` is Phase 5, events are Phase 2.
 - Spec environments: local Supabase (Tasks 1–4), production (Task 5); preview Supabase project is not created yet, so preview deployments get no Supabase env until one exists.
-- Known limits recorded: the magic link must be opened in the same browser that requested it (PKCE); Google and LinkedIn are tested only on the deployed site; custom SMTP is required before real launch.
+- Known limits recorded: the magic link must be opened in the same browser that requested it (PKCE); Google is tested only on the deployed site; custom SMTP is required before real launch.
