@@ -17,6 +17,9 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:55321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
       - uses: supabase/setup-cli@v1
         with:
           version: 2.120.0
