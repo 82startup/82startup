@@ -8,8 +8,9 @@ import { updateProfile, type ProfileFormState } from "./actions";
 type Props = {
   profile: {
     name: string;
-    headline: string;
+    job_title: string;
     company_name: string;
+    company_website: string | null;
     bio: string;
     linkedin_url: string | null;
     member_type: MemberType | null;
@@ -38,11 +39,14 @@ export function ProfileForm({ profile }: Props) {
       <Field label={copy.profile.name} error={err.name}>
         <input name="name" defaultValue={v?.name ?? profile.name} required maxLength={100} className="rounded border p-2" />
       </Field>
-      <Field label={copy.profile.headline} error={err.headline}>
-        <input name="headline" defaultValue={v?.headline ?? profile.headline} maxLength={120} className="rounded border p-2" />
+      <Field label={copy.profile.jobTitle} error={err.job_title}>
+        <input name="job_title" defaultValue={v?.job_title ?? profile.job_title} maxLength={120} className="rounded border p-2" />
       </Field>
       <Field label={copy.profile.company} error={err.company_name}>
         <input name="company_name" defaultValue={v?.company_name ?? profile.company_name} maxLength={100} className="rounded border p-2" />
+      </Field>
+      <Field label={copy.profile.companyWebsite} error={err.company_website}>
+        <input name="company_website" type="url" defaultValue={v?.company_website ?? profile.company_website ?? ""} maxLength={200} className="rounded border p-2" />
       </Field>
       <Field label={copy.profile.bio} error={err.bio}>
         <textarea name="bio" defaultValue={v?.bio ?? profile.bio} maxLength={1000} rows={5} className="rounded border p-2" />
