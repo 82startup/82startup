@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Avatar } from "@/components/avatar";
 import { copy } from "@/lib/copy";
 import { getAttendanceTotal } from "@/lib/events/queries";
 import type { PublicEvent } from "@/lib/events/types";
@@ -7,7 +8,7 @@ import { setAttending, setListVisibility } from "./actions";
 import { EventSwitch } from "./event-switch";
 
 type Mine = { status: "registered" | "cancelled"; source: "luma" | "self"; show_in_list: boolean };
-type Attendee = { member_id: string; name: string; job_title: string; company_name: string };
+type Attendee = { member_id: string; name: string; job_title: string; company_name: string; avatar_url: string | null };
 
 // "N attending", for everyone. If the attendance functions are not available (for example the database update has not
 // been applied yet), the event page still works and simply shows no count.
@@ -85,9 +86,12 @@ export async function AttendanceActions({ event }: { event: PublicEvent }) {
             {attendees.map((a) => {
               const detail = [a.job_title, a.company_name].filter(Boolean).join(", ");
               return (
-                <li key={a.member_id}>
-                  <span className="font-medium">{a.name || copy.attendance.member}</span>
-                  {detail && <span className="text-zinc-600 dark:text-zinc-400"> · {detail}</span>}
+                <li key={a.member_id} className="flex items-center gap-2">
+                  <Avatar name={a.name} url={a.avatar_url} size={28} />
+                  <span>
+                    <span className="font-medium">{a.name || copy.attendance.member}</span>
+                    {detail && <span className="text-zinc-600 dark:text-zinc-400"> · {detail}</span>}
+                  </span>
                 </li>
               );
             })}
