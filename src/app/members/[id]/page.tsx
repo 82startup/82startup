@@ -6,6 +6,7 @@ import { Avatar } from "@/components/avatar";
 import { copy } from "@/lib/copy";
 import type { MemberType } from "@/lib/profile/schema";
 import { createClient } from "@/lib/supabase/server";
+import { MemberEvents, type MemberEvent } from "./member-events";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -50,6 +51,8 @@ async function MemberDetail({ params }: { params: PageProps<"/members/[id]">["pa
   const member = data as Member | null;
   if (!member) notFound();
 
+  const { data: events } = await supabase.rpc("member_events", { p_member: id });
+
   return (
     <article className="flex flex-col gap-4">
       <Link href="/members" className="text-sm text-zinc-600 dark:text-zinc-400">← {copy.members.allMembers}</Link>
@@ -77,6 +80,7 @@ async function MemberDetail({ params }: { params: PageProps<"/members/[id]">["pa
           <a href={member.linkedin_url} target="_blank" rel="noopener noreferrer" className="underline">{copy.members.linkedin}</a>
         </p>
       )}
+      <MemberEvents events={(events ?? []) as MemberEvent[]} />
       {member.id === viewer && (
         <p>
           <Link href="/profile" className="underline">{copy.members.edit}</Link>
