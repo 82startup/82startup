@@ -1,7 +1,7 @@
-// An avatar address comes from the sign-in provider's data, and a person can put anything there when they sign up by
-// email. Showing an arbitrary address would tell its owner who looks at the directory, so only Google's picture host is
-// accepted; everything else shows initials.
-export function safeAvatarUrl(url: string | null | undefined): string | null {
+// An avatar address comes from the sign-in provider's data (or is a photo the member uploaded), and a person can put anything
+// there when they sign up by email. Showing an arbitrary address would tell its owner who looks at the directory, so only two
+// places are accepted: Google's picture host, and this project's own public avatars bucket. Everything else shows initials.
+export function safeAvatarUrl(url: string | null | undefined, ownUrl: string | undefined = process.env.NEXT_PUBLIC_SUPABASE_URL): string | null {
   if (!url) return null;
   let parsed: URL;
   try {
@@ -9,7 +9,17 @@ export function safeAvatarUrl(url: string | null | undefined): string | null {
   } catch {
     return null;
   }
-  if (parsed.protocol !== "https:" || parsed.username || parsed.password) return null;
+  if (parsed.username || parsed.password) return null;
+
+  if (ownUrl) {
+    try {
+      if (parsed.origin === new URL(ownUrl).origin && parsed.pathname.startsWith("/storage/v1/object/public/avatars/")) return parsed.href;
+    } catch {
+      // an unreadable own address just means no bucket pictures are accepted
+    }
+  }
+
+  if (parsed.protocol !== "https:") return null;
   const host = parsed.hostname.toLowerCase();
   if (host !== "googleusercontent.com" && !host.endsWith(".googleusercontent.com")) return null;
   return parsed.href;

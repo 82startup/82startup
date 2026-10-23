@@ -27,6 +27,45 @@ describe("safeAvatarUrl", () => {
   });
 });
 
+describe("safeAvatarUrl with this project's own bucket", () => {
+  const own = "https://proj.supabase.co";
+
+  it("accepts a photo in the avatars bucket of this project", () => {
+    const url = `${own}/storage/v1/object/public/avatars/u/p.jpg`;
+    expect(safeAvatarUrl(url, own)).toBe(url);
+  });
+
+  it("rejects other buckets, other hosts, look-alikes, credentials and paths that only start the same", () => {
+    for (const url of [
+      `${own}/storage/v1/object/public/other/u/p.jpg`,
+      `${own}/storage/v1/object/public/avatars-evil/u/p.jpg`,
+      `${own}/storage/v1/object/sign/avatars/u/p.jpg`,
+      `${own}/rest/v1/profiles`,
+      "https://proj.supabase.co.evil.example/storage/v1/object/public/avatars/u/p.jpg",
+      "https://evilproj.supabase.co/storage/v1/object/public/avatars/u/p.jpg",
+      "http://proj.supabase.co/storage/v1/object/public/avatars/u/p.jpg",
+      "https://u:p@proj.supabase.co/storage/v1/object/public/avatars/u/p.jpg",
+    ]) {
+      expect(safeAvatarUrl(url, own)).toBeNull();
+    }
+  });
+
+  it("accepts its own bucket on a local http address (development)", () => {
+    const local = "http://127.0.0.1:55321";
+    const url = `${local}/storage/v1/object/public/avatars/u/p.jpg`;
+    expect(safeAvatarUrl(url, local)).toBe(url);
+  });
+
+  it("does not accept the bucket path when no own address is configured", () => {
+    expect(safeAvatarUrl(`${own}/storage/v1/object/public/avatars/u/p.jpg`, undefined)).toBeNull();
+    expect(safeAvatarUrl(`${own}/storage/v1/object/public/avatars/u/p.jpg`, "")).toBeNull();
+  });
+
+  it("still accepts Google pictures", () => {
+    expect(safeAvatarUrl("https://lh3.googleusercontent.com/a/x", own)).toBe("https://lh3.googleusercontent.com/a/x");
+  });
+});
+
 describe("initials", () => {
   it("uses the first letter of the first and last word, upper-cased", () => {
     expect(initials("Ada Lovelace")).toBe("AL");

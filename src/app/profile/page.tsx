@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { copy } from "@/lib/copy";
 import { createClient } from "@/lib/supabase/server";
+import { PhotoSection } from "./photo-section";
 import { ProfileForm } from "./profile-form";
 
 export default function ProfilePage() {
@@ -25,10 +26,15 @@ async function ProfileContent() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name, job_title, company_name, company_website, bio, linkedin_url, member_type, show_in_directory")
+    .select("name, avatar_url, job_title, company_name, company_website, bio, linkedin_url, member_type, show_in_directory")
     .eq("id", userId)
     .single();
   if (!profile) redirect("/login?next=/profile");
 
-  return <ProfileForm profile={profile} />;
+  return (
+    <>
+      <PhotoSection userId={userId} name={profile.name} avatarUrl={profile.avatar_url} />
+      <ProfileForm profile={profile} />
+    </>
+  );
 }
