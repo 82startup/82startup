@@ -18,4 +18,12 @@ describe("safeNextPath", () => {
   it("rejects paths that do not start with a slash", () => {
     expect(safeNextPath("events")).toBe("/");
   });
+  it("rejects ASCII control characters", () => {
+    for (const bad of ["/\t/evil.com", "/\n/evil.com", "/\r/evil.com", "/a\u0000b"]) {
+      expect(safeNextPath(bad)).toBe("/");
+    }
+  });
+  it("still keeps a normal path with a query", () => {
+    expect(safeNextPath("/profile?x=1&y=2")).toBe("/profile?x=1&y=2");
+  });
 });
