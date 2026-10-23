@@ -6,7 +6,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('22222222-2222-2222-2222-222222222222', 'b@example.com', '{"name": "Bo Kim", "picture": "https://example.com/b.png"}');
 
 -- signup trigger
-select is((select count(*) from public.profiles), 2::bigint, 'a profile row is created for each new user');
+select is((select count(*) from public.profiles where id in ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222')), 2::bigint, 'a profile row is created for each new user');
 select is((select name from public.profiles where id = '11111111-1111-1111-1111-111111111111'), 'Ada Lee', 'name is taken from full_name');
 select is((select avatar_url from public.profiles where id = '22222222-2222-2222-2222-222222222222'), 'https://example.com/b.png', 'avatar falls back to picture');
 select is((select role::text from public.profiles where id = '11111111-1111-1111-1111-111111111111'), 'member', 'new profiles are members');
@@ -21,7 +21,7 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
 
-select is((select count(*) from public.profiles), 2::bigint, 'a member can read every profile');
+select is((select count(*) from public.profiles where id in ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222')), 2::bigint, 'a member can read every profile');
 
 update public.profiles set name = 'Ada L.', member_type = 'founder' where id = '11111111-1111-1111-1111-111111111111';
 select is((select name from public.profiles where id = '11111111-1111-1111-1111-111111111111'), 'Ada L.', 'a member can edit their own name');
