@@ -1,6 +1,6 @@
 export const copy = {
   siteName: "82 Startup",
-  nav: { signIn: "Sign in", profile: "Profile", signOut: "Sign out", events: "Events" },
+  nav: { signIn: "Sign in", profile: "Profile", signOut: "Sign out", events: "Events", admin: "Admin" },
   login: {
     title: "Sign in to 82 Startup",
     emailLabel: "Email",
@@ -64,6 +64,27 @@ export const copy = {
     upcoming: "Upcoming events",
     seeAll: "See all events",
     empty: "No upcoming events yet. Check back soon.",
+  },
+  admin: {
+    title: "Manage events",
+    syncNow: "Sync now",
+    syncing: "Syncing…",
+    lastSync: "Last sync",
+    never: "never",
+    synced: "Sync finished:",
+    counts: { created: "created", updated: "updated", removed: "removed", errors: "errors" },
+    flags: { hidden: "Hidden", removed: "Removed from Luma", "sync-error": "Sync error" },
+    featured: "Featured",
+    hidden: "Hidden",
+    on: "on",
+    off: "off",
+    empty: "No events yet.",
+    errors: {
+      forbidden: "You are not allowed to do that.",
+      save: "Could not save. Try again.",
+      notConfigured: "Luma sync is not configured.",
+      syncFailed: "Sync failed.",
+    },
   },
 } as const;
 
