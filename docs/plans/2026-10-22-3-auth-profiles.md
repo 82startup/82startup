@@ -984,11 +984,15 @@ git commit -m "Add profile page, profile form and site header"
 
 These touch the owner's accounts and production. Do not paste any key or secret into chat or commits. Each step needs the owner's go-ahead.
 
+**The app throws on every request when `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is missing, so Steps 1-3 must be done BEFORE the pull request is merged, and production must be redeployed (or the merge deploy picks it up) after the variable is set.**
+
+Preview deployments are NOT pointed at the production Supabase project (a sign-in on a preview would create production users). The preview for this PR therefore has no Supabase env and its pages that need it will error. Do the QA locally in a browser and on production after merge, and tell the owner. A preview Supabase project is a later decision.
+
 **Files:** none.
 
 - [ ] **Step 1: Put the Supabase keys under the new names in Vercel (Production)**
 
-Production environment variables `NEXT_PUBLIC_SUPABASE_URL` (unchanged) and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Read the publishable key with `supabase projects api-keys --project-ref htqkxezswbduzwgycftx -o json` (the entry whose type is `publishable`) and pipe it into `vercel env add NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY production --scope 82-startup` without printing it. The old `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` stay for now and are removed in a later phase if unused.
+Production environment variables `NEXT_PUBLIC_SUPABASE_URL` (unchanged) and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Read the publishable key with `supabase projects api-keys --project-ref htqkxezswbduzwgycftx -o json` (the entry whose type is `publishable`) and pipe it into `vercel env add NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY production --scope 82-startup` without printing it. The old `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` stay for now and are removed in a later phase if unused. Production must be redeployed (or the merge deploy picks it up) after the variable is set.
 
 - [ ] **Step 2: Apply the migration to the production database (owner approval)**
 
@@ -996,7 +1000,7 @@ Run, after the owner agrees: `supabase link --project-ref htqkxezswbduzwgycftx` 
 
 - [ ] **Step 3: Configure Auth URLs in Supabase (owner, dashboard)**
 
-Authentication → URL Configuration: Site URL `https://82startup.vercel.app`; Redirect URLs add `https://82startup.vercel.app/auth/callback` and `https://*-82-startup.vercel.app/auth/callback` for preview deployments.
+Authentication → URL Configuration: Site URL `https://82startup.vercel.app`; Redirect URLs add the globs `https://82startup.vercel.app/**` and `https://*-82-startup.vercel.app/**` (the callback URL carries `?next=`). Also confirm in the dashboard (Authentication → Sign In / Providers) that "Allow anonymous sign-ins" is OFF and "Confirm email" is ON.
 
 - [ ] **Step 4: Create the Google and LinkedIn OAuth apps (owner)**
 
@@ -1010,7 +1014,7 @@ Supabase's built-in email sender is rate-limited and meant for testing. Before r
 
 - [ ] **Step 6: Release**
 
-Push the branch, open the pull request, wait for `checks` to pass, then QA the preview and production URLs with the owner: sign up with each method that is configured, edit the profile, sign out. Merge only after the owner says "ship it". After merge, confirm the production deployment is Ready and `https://82startup.vercel.app/login` returns 200. Close issue #3, remove the worktree and delete the branch.
+Push the branch, open the pull request, wait for `checks` to pass, then QA locally in a browser and on production after merge (not on the preview, which has no Supabase env) with the owner: sign up with each method that is configured, edit the profile, sign out. Merge only after the owner says "ship it". After merge, confirm the production deployment is Ready and `https://82startup.vercel.app/login` returns 200. Close issue #3, remove the worktree and delete the branch.
 
 ---
 
