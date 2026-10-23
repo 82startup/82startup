@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { copy } from "@/lib/copy";
+import { copy, loginErrorText } from "@/lib/copy";
 import { safeNextPath } from "@/lib/auth/safe-next";
 import { signInWithEmail, signInWithGoogle, signInWithLinkedIn } from "./actions";
 
@@ -19,9 +19,7 @@ async function LoginForms({ searchParams }: { searchParams: PageProps<"/login">[
   const next = safeNextPath(typeof params.next === "string" ? params.next : null);
   const error = typeof params.error === "string" ? params.error : null;
   const sent = params.sent === "1";
-  const errorText = error && error in copy.login.errors
-    ? copy.login.errors[error as keyof typeof copy.login.errors]
-    : null;
+  const errorText = loginErrorText(error);
 
   return (
     <div className="flex flex-col gap-6">

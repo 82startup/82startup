@@ -38,3 +38,8 @@ export const copy = {
     },
   },
 } as const;
+
+export function loginErrorText(code: string | null): string | null {
+  if (code === null || !Object.hasOwn(copy.login.errors, code)) return null;
+  return copy.login.errors[code as keyof typeof copy.login.errors];
+}
