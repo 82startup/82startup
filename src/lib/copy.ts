@@ -1,6 +1,6 @@
 export const copy = {
   siteName: "82 Startup",
-  nav: { signIn: "Sign in", profile: "Profile", signOut: "Sign out", events: "Events", admin: "Admin" },
+  nav: { signIn: "Sign in", profile: "Profile", signOut: "Sign out", events: "Events", members: "Members", admin: "Admin" },
   login: {
     title: "Sign in to 82 Startup",
     emailLabel: "Email",
@@ -32,6 +32,8 @@ export const copy = {
       institution: "Institution",
       other: "Other",
     },
+    showInDirectory: "Show me in the member directory",
+    showInDirectoryHint: "You appear in the directory only once you have entered a name. Turning this off also removes your name from event attendee lists.",
     save: "Save profile",
     saved: "Profile saved.",
     errors: {
@@ -64,6 +66,26 @@ export const copy = {
     upcoming: "Upcoming events",
     seeAll: "See all events",
     empty: "No upcoming events yet. Check back soon.",
+  },
+  members: {
+    title: "Members",
+    search: "Search by name or company",
+    type: "Type",
+    allTypes: "All types",
+    submit: "Search",
+    clear: "Clear",
+    previous: "Previous",
+    next: "Next",
+    emptyResults: "No members found.",
+    emptyDirectory: "No members yet.",
+    backToFirst: "Back to the first page",
+    allMembers: "All members",
+    edit: "Edit profile",
+    linkedin: "LinkedIn",
+    company: "Company",
+    about: "About",
+    loading: "Loading members…",
+    notFoundTitle: "Member not found",
   },
   attendance: {
     count: "attending",

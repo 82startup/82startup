@@ -25,7 +25,7 @@ async function ProfileContent() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name, job_title, company_name, company_website, bio, linkedin_url, member_type")
+    .select("name, job_title, company_name, company_website, bio, linkedin_url, member_type, show_in_directory")
     .eq("id", userId)
     .single();
   if (!profile) redirect("/login?next=/profile");
