@@ -14,6 +14,7 @@ type Props = {
     bio: string;
     linkedin_url: string | null;
     member_type: MemberType | null;
+    show_in_directory: boolean;
   };
 };
 
@@ -54,6 +55,18 @@ export function ProfileForm({ profile }: Props) {
       <Field label={copy.profile.linkedin} error={err.linkedin_url}>
         <input name="linkedin_url" type="url" defaultValue={v?.linkedin_url ?? profile.linkedin_url ?? ""} className="rounded border p-2" />
       </Field>
+
+      <label className="flex flex-col gap-1 text-sm">
+        <span className="flex items-center gap-2 font-medium">
+          <input
+            type="checkbox"
+            name="show_in_directory"
+            defaultChecked={v ? v.show_in_directory === "on" : profile.show_in_directory}
+          />
+          {copy.profile.showInDirectory}
+        </span>
+        <span className="font-normal text-zinc-600 dark:text-zinc-400">{copy.profile.showInDirectoryHint}</span>
+      </label>
 
       <button type="submit" disabled={pending} className="rounded bg-black p-2 text-white disabled:opacity-50">
         {copy.profile.save}

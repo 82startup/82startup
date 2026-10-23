@@ -18,6 +18,7 @@ describe("parseProfileForm", () => {
         bio: "Hello",
         linkedin_url: "https://www.linkedin.com/in/ada",
         member_type: "startup",
+        show_in_directory: "on",
       }),
     );
     expect(result).toEqual({
@@ -30,8 +31,15 @@ describe("parseProfileForm", () => {
         bio: "Hello",
         linkedin_url: "https://www.linkedin.com/in/ada",
         member_type: "startup",
+        show_in_directory: true,
       },
     });
+  });
+
+  it("reads the directory checkbox: on means shown, absent means left out", () => {
+    expect(parseProfileForm(form({ name: "Ada", show_in_directory: "on" }))).toMatchObject({ ok: true, value: { show_in_directory: true } });
+    expect(parseProfileForm(form({ name: "Ada" }))).toMatchObject({ ok: true, value: { show_in_directory: false } });
+    expect(parseProfileForm(form({ name: "Ada", show_in_directory: "yes" }))).toMatchObject({ ok: true, value: { show_in_directory: false } });
   });
 
   it("treats an empty LinkedIn URL, company website and member type as null", () => {
@@ -133,8 +141,8 @@ describe("parseProfileForm", () => {
 });
 
 describe("submittedValues", () => {
-  it("returns the seven raw strings untrimmed, with missing keys as empty strings", () => {
-    const values = submittedValues(form({ name: "  Ada ", bio: "x", member_type: "wizard", extra: "ignored" }));
+  it("returns the eight raw strings untrimmed, with missing keys as empty strings", () => {
+    const values = submittedValues(form({ name: "  Ada ", bio: "x", member_type: "wizard", show_in_directory: "on", extra: "ignored" }));
     expect(values).toEqual({
       name: "  Ada ",
       job_title: "",
@@ -143,6 +151,7 @@ describe("submittedValues", () => {
       bio: "x",
       linkedin_url: "",
       member_type: "wizard",
+      show_in_directory: "on",
     });
   });
 });

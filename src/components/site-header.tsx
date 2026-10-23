@@ -30,6 +30,7 @@ async function AuthNav() {
   const { data: isAdmin } = await supabase.rpc("is_admin");
   return (
     <nav className="flex items-center gap-4">
+      <Link href="/members">{copy.nav.members}</Link>
       {isAdmin === true && <Link href="/admin/events">{copy.nav.admin}</Link>}
       <Link href="/profile">{copy.nav.profile}</Link>
       <form action="/auth/signout" method="post">
