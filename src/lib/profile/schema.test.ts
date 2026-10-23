@@ -57,6 +57,21 @@ describe("parseProfileForm", () => {
     });
   });
 
+  it("accepts values exactly at the limits", () => {
+    const result = parseProfileForm(
+      form({ name: "x".repeat(100), headline: "h".repeat(120), company_name: "c".repeat(100), bio: "b".repeat(1000) }),
+    );
+    expect(result).toMatchObject({ ok: true });
+  });
+
+  it("rejects each field one character over its limit", () => {
+    const base = { name: "x".repeat(100), headline: "h".repeat(120), company_name: "c".repeat(100), bio: "b".repeat(1000) };
+    for (const [field, max] of [["name", 100], ["headline", 120], ["company_name", 100], ["bio", 1000]] as const) {
+      const result = parseProfileForm(form({ ...base, [field]: "z".repeat(max + 1) }));
+      expect(result).toMatchObject({ ok: false, errors: { [field]: expect.any(String) } });
+    }
+  });
+
   it("rejects a LinkedIn URL that is not on linkedin.com over https", () => {
     for (const bad of ["http://www.linkedin.com/in/a", "https://evil.com/in/a", "linkedin.com/in/a"]) {
       const result = parseProfileForm(form({ name: "Ada", linkedin_url: bad }));
