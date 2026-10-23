@@ -1,9 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { revalidateTag } from "next/cache";
-import { createEventStore } from "@/lib/events/store";
-import { createLumaClient } from "@/lib/luma/client";
-import { runSync } from "@/lib/luma/sync";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { MissingConfigError, runLumaSync } from "@/lib/luma/run";
 
 function isAuthorized(header: string | null, secret: string): boolean {
   const expected = Buffer.from(`Bearer ${secret}`);
@@ -17,14 +14,13 @@ export async function GET(request: Request) {
   if (!isAuthorized(request.headers.get("authorization"), secret)) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
-  const apiKey = process.env.LUMA_API_KEY;
-  if (!apiKey) return Response.json({ error: "not configured" }, { status: 500 });
 
   try {
-    const result = await runSync(createLumaClient({ apiKey }), createEventStore(createAdminClient()));
+    const result = await runLumaSync();
     revalidateTag("events", "max");
     return Response.json(result);
   } catch (error) {
+    if (error instanceof MissingConfigError) return Response.json({ error: "not configured" }, { status: 500 });
     // Log the kind of failure only; messages could carry request details.
     console.error("luma-sync failed:", error instanceof Error ? error.name : "unknown");
     return Response.json({ error: "sync failed" }, { status: 502 });

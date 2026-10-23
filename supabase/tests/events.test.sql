@@ -1,5 +1,5 @@
 begin;
-select plan(13);
+select plan(14);
 
 insert into public.events (luma_event_id, slug, title, start_at, timezone, luma_url, hidden, removed_from_luma, status) values
   ('evt-visible',   'visible-aaaa',   'Visible',   now() + interval '1 day', 'America/Los_Angeles', 'https://luma.com/aaaa', false, false, 'published'),
@@ -21,7 +21,8 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
 select is((select count(*) from public.events where slug in ('visible-aaaa', 'hidden-bbbb', 'removed-cccc', 'cancelled-dddd')), 1::bigint, 'a member also reads only the visible event of ours');
 select throws_ok($$insert into public.events (luma_event_id, slug, title, start_at, timezone, luma_url) values ('evt-y', 'y', 'Y', now(), 'UTC', 'https://luma.com/y')$$, '42501', null, 'a member cannot insert');
-select throws_ok($$update public.events set hidden = false$$, '42501', null, 'a member cannot update');
+select lives_ok($$update public.events set hidden = false$$, 'a member update does not error');
+select is((select count(*) from public.events where slug in ('visible-aaaa', 'hidden-bbbb', 'removed-cccc', 'cancelled-dddd')), 1::bigint, 'but it changes nothing: hidden events stay hidden from members');
 select throws_ok($$delete from public.events$$, '42501', null, 'a member cannot delete');
 
 -- constraints (as the superuser, like the sync's service role)
