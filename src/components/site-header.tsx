@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { copy } from "@/lib/copy";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,6 +16,7 @@ export function SiteHeader() {
 }
 
 async function AuthNav() {
+  await connection();
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const signedIn = Boolean(data?.claims.sub);

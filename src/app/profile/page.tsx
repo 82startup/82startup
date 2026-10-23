@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { copy } from "@/lib/copy";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileForm } from "./profile-form";
@@ -16,6 +17,7 @@ export default function ProfilePage() {
 }
 
 async function ProfileContent() {
+  await connection();
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims.sub;
