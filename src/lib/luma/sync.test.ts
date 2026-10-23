@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { LumaReader } from "./client";
-import { runSync, type EventStore, type StoredEvent } from "./sync";
+import { cancelEvent, refreshEvent, runSync, type EventStore, type StoredEvent } from "./sync";
 import type { LumaCalendarEvent, LumaEventDetail } from "./types";
 
 const NOW = new Date("2026-11-01T00:00:00.000Z");
@@ -322,5 +322,82 @@ describe("runSync description_md", () => {
     const { store, log } = fakeStore([stored("evt-old", { start_at: past.start_at, end_at: past.end_at ?? null })]);
     await runSync(reader, store, NOW);
     expect(log.updates[0].fields).not.toHaveProperty("description_md");
+  });
+});
+
+describe("refreshEvent", () => {
+  it("inserts an event that is not stored yet, with description, count and attendees", async () => {
+    const { reader, detailCalls, guestCalls } = fakeLuma([], { approvedCounts: { "evt-n": 4 }, guestEmails: { "evt-n": ["a@x.test"] } });
+    const { store, log } = fakeStore([], { matched: 1 });
+    const result = await refreshEvent(reader, store, "evt-n", NOW);
+    expect(result).toEqual({ ...ZERO, created: 1, attendees: 1 });
+    expect(detailCalls).toEqual(["evt-n"]);
+    expect(guestCalls).toEqual(["evt-n"]);
+    expect(log.inserts[0]).toMatchObject({ luma_event_id: "evt-n", description: "About evt-n", luma_approved_count: 4 });
+    expect(log.order).toEqual(["insert:evt-n", "attendees:evt-n"]);
+  });
+
+  it("updates a stored event and keeps its slug, hidden and status untouched", async () => {
+    const { reader } = fakeLuma([]);
+    const { store, log } = fakeStore([stored("evt-a")]);
+    const result = await refreshEvent(reader, store, "evt-a", NOW);
+    expect(result).toEqual({ ...ZERO, updated: 1 });
+    expect(log.updates[0].fields).toMatchObject({ title: "Event evt-a", description: "About evt-a" });
+    for (const key of ["slug", "hidden", "status"]) expect(log.updates[0].fields).not.toHaveProperty(key);
+  });
+
+  it("marks a stored event removed when it is no longer public, and stores nothing for an unknown non-public one", async () => {
+    const reader = fakeLuma([]).reader;
+    const notPublic: LumaReader = { ...reader, getEvent: async (id) => ({ ...lumaEvent(id), visibility: "private" }) };
+    const a = fakeStore([stored("evt-a")]);
+    expect(await refreshEvent(notPublic, a.store, "evt-a", NOW)).toEqual({ ...ZERO, removed: 1 });
+    expect(a.log.removed).toEqual([["evt-a"]]);
+    const b = fakeStore();
+    expect(await refreshEvent(notPublic, b.store, "evt-z", NOW)).toEqual(ZERO);
+    expect(b.log.inserts).toEqual([]);
+    expect(b.log.removed).toEqual([]);
+  });
+
+  it("does not mark an already-removed event again", async () => {
+    const notPublic: LumaReader = { ...fakeLuma([]).reader, getEvent: async (id) => ({ ...lumaEvent(id), visibility: "private" }) };
+    const { store, log } = fakeStore([stored("evt-a", { removed_from_luma: true })]);
+    await refreshEvent(notPublic, store, "evt-a", NOW);
+    expect(log.removed).toEqual([]);
+  });
+
+  it("leaves an event that already ended alone: no details are written, no guest read", async () => {
+    const past = { start_at: "2026-10-01T18:00:00.000Z", end_at: "2026-10-01T20:00:00.000Z" };
+    const base = fakeLuma([]).reader;
+    const reader: LumaReader = { ...base, getEvent: async (id) => ({ ...lumaEvent(id, past), description: "x" }) };
+    const { store, log } = fakeStore([stored("evt-old", { start_at: past.start_at, end_at: past.end_at })]);
+    await refreshEvent(reader, store, "evt-old", NOW);
+    expect(log.updates[0].fields).not.toHaveProperty("description");
+    expect(log.attendees).toEqual([]);
+  });
+
+  it("touches no attendees when the guest list cannot be read", async () => {
+    const { reader } = fakeLuma([], { guestErrors: ["evt-a"] });
+    const { store, log } = fakeStore([stored("evt-a")]);
+    const result = await refreshEvent(reader, store, "evt-a", NOW);
+    expect(result.errors).toBe(1);
+    expect(log.attendees).toEqual([]);
+    expect(log.errors[0].message).not.toContain("secret");
+  });
+
+  it("throws when Luma cannot give the event, and writes nothing", async () => {
+    const { reader } = fakeLuma([], { detailErrors: ["evt-a"] });
+    const { store, log } = fakeStore([stored("evt-a")]);
+    await expect(refreshEvent(reader, store, "evt-a", NOW)).rejects.toThrow();
+    expect(log.updates).toEqual([]);
+  });
+});
+
+describe("cancelEvent", () => {
+  it("marks a stored, not-yet-removed event removed and nothing else", async () => {
+    const { store, log } = fakeStore([stored("evt-a"), stored("evt-b", { removed_from_luma: true })]);
+    expect(await cancelEvent(store, "evt-a")).toBe(1);
+    expect(await cancelEvent(store, "evt-b")).toBe(0);
+    expect(await cancelEvent(store, "evt-zzz")).toBe(0);
+    expect(log.removed).toEqual([["evt-a"]]);
   });
 });
