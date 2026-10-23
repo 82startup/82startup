@@ -23,4 +23,10 @@ export type LumaCalendarEvent = {
   geo_address_json?: LumaAddress | null;
 };
 
-export type LumaEventDetail = LumaCalendarEvent & { description?: string };
+export type LumaEventDetail = LumaCalendarEvent & {
+  description?: string;
+  guest_counts?: { approved?: { guests?: number } };
+};
+
+// One entry of an event's guest list. We read the email only to match it to a member; it is never stored.
+export type LumaGuest = { user_email?: string; approval_status?: string };

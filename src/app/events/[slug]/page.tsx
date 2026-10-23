@@ -6,6 +6,7 @@ import { connection } from "next/server";
 import { copy } from "@/lib/copy";
 import { getEvent } from "@/lib/events/queries";
 import { formatEventTime, venueDetail } from "@/lib/events/format";
+import { AttendanceActions, AttendanceCount } from "./attendance";
 
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
   const { slug } = await params;
@@ -35,6 +36,7 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
   const event = await getEvent(slug);
   if (!event) notFound();
   const where = venueDetail(event);
+  const ended = new Date(event.end_at ?? event.start_at) < new Date();
 
   return (
     <article className="flex flex-col gap-4">
@@ -46,6 +48,7 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
       <h1 className="text-2xl font-semibold">{event.title}</h1>
       <p>{formatEventTime(event.start_at, event.end_at, event.timezone)}</p>
       {where && <p>{where}</p>}
+      <AttendanceCount eventId={event.id} />
       <a
         href={event.luma_url}
         target="_blank"
@@ -54,6 +57,8 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
       >
         {copy.events.getTickets}
       </a>
+      {!ended && <p className="text-sm text-zinc-600 dark:text-zinc-400">{copy.attendance.note}</p>}
+      <AttendanceActions event={event} />
       {event.description && <p className="whitespace-pre-line">{event.description}</p>}
     </article>
   );

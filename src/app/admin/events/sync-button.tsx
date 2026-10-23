@@ -15,7 +15,8 @@ export function SyncButton() {
       {sync && (
         <p role="status" className="text-sm">
           {copy.admin.synced} {sync.created} {copy.admin.counts.created}, {sync.updated} {copy.admin.counts.updated},{" "}
-          {sync.removed} {copy.admin.counts.removed}, {sync.errors} {copy.admin.counts.errors}
+          {sync.removed} {copy.admin.counts.removed}, {sync.errors} {copy.admin.counts.errors}, {sync.attendees}{" "}
+          {copy.admin.counts.attendees}
         </p>
       )}
       {state.error && <p role="alert" className="text-sm text-red-700">{state.error}</p>}

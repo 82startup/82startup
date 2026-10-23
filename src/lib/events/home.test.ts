@@ -5,7 +5,7 @@ import type { PublicEvent } from "./types";
 const NOW = new Date("2026-11-10T12:00:00.000Z");
 
 const ev = (slug: string, start: string, end: string | null, featured = false): PublicEvent => ({
-  slug, title: slug, description: "", start_at: start, end_at: end, timezone: "UTC", location_type: "offline",
+  id: `id-${slug}`, slug, title: slug, description: "", start_at: start, end_at: end, timezone: "UTC", location_type: "offline",
   venue_name: null, venue_city: null, venue_address: null, cover_url: null, luma_url: "https://luma.com/x", featured,
 });
 

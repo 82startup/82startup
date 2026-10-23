@@ -34,5 +34,10 @@ export function createEventStore(db: SupabaseClient): EventStore {
     async markRemoved(lumaIds) {
       fail((await db.from("events").update({ removed_from_luma: true }).in("luma_event_id", lumaIds)).error);
     },
+    async syncAttendees(lumaEventId, emails) {
+      const { data, error } = await db.rpc("sync_luma_attendees", { p_luma_event_id: lumaEventId, p_emails: emails });
+      fail(error);
+      return { matched: Number(data?.[0]?.matched ?? 0) };
+    },
   };
 }
