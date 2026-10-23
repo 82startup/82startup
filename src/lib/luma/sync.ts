@@ -1,5 +1,6 @@
 import type { LumaReader } from "./client";
 import { makeSlug, mapEvent, type EventFields } from "./map";
+import type { LumaEventDetail } from "./types";
 
 export type StoredEvent = {
   luma_event_id: string;
@@ -31,6 +32,61 @@ function hasEnded(fields: Pick<EventFields, "start_at" | "end_at">, now: Date): 
   return new Date(fields.end_at ?? fields.start_at) < now;
 }
 
+// The per-event step shared by the hourly sync and the webhook refresh: write the event, then its attendees.
+// `detail` is passed when the caller already read the event's details.
+async function syncEvent(
+  luma: LumaReader,
+  store: EventStore,
+  fields: EventFields,
+  existing: StoredEvent | undefined,
+  now: Date,
+  result: SyncResult,
+  detail?: LumaEventDetail,
+): Promise<void> {
+  const ended = hasEnded(fields, now);
+
+  let written = false;
+  try {
+    let extra: { description?: string; description_md?: string; luma_approved_count?: number } = {};
+    if (!existing || !ended) {
+      const info = detail ?? (await luma.getEvent(fields.luma_event_id));
+      extra = {
+        description: info.description ?? "",
+        description_md: [...(info.description_md ?? "")].slice(0, MAX_DESCRIPTION_MD).join(""),
+      };
+      const approved = info.guest_counts?.approved?.guests;
+      if (typeof approved === "number") extra.luma_approved_count = approved;
+    }
+
+    if (existing) {
+      await store.update(fields.luma_event_id, { ...fields, ...extra });
+      result.updated++;
+    } else {
+      await store.insert({ ...fields, ...extra, slug: makeSlug(fields.title, fields.luma_event_id), description: extra.description ?? "" });
+      result.created++;
+    }
+    written = true;
+  } catch (error) {
+    result.errors++;
+    if (existing) {
+      const message = error instanceof Error ? error.message : "unknown error";
+      await store.markError(fields.luma_event_id, message).catch(() => {});
+    }
+  }
+
+  // Attendees, for events that have not ended and were written. A failure here never touches the attendees and
+  // never records the underlying text (it could hold an email).
+  if (!written || ended) return;
+  try {
+    const emails = await luma.listApprovedGuestEmails(fields.luma_event_id);
+    const { matched } = await store.syncAttendees(fields.luma_event_id, emails);
+    result.attendees += matched;
+  } catch {
+    result.errors++;
+    await store.markError(fields.luma_event_id, "guest list: could not read or match the attendees").catch(() => {});
+  }
+}
+
 export async function runSync(luma: LumaReader, store: EventStore, now: Date = new Date()): Promise<SyncResult> {
   // 1. Read everything first. If either read fails, nothing has been written yet.
   const listed = await luma.listCalendarEvents();
@@ -45,52 +101,10 @@ export async function runSync(luma: LumaReader, store: EventStore, now: Date = n
     const fields = mapEvent(entry);
     if (!fields) continue;
     seen.add(fields.luma_event_id);
-    const existing = storedById.get(fields.luma_event_id);
-    const ended = hasEnded(fields, now);
-
-    let written = false;
-    try {
-      let extra: { description?: string; description_md?: string; luma_approved_count?: number } = {};
-      if (!existing || !ended) {
-        const detail = await luma.getEvent(fields.luma_event_id);
-        extra = {
-          description: detail.description ?? "",
-          description_md: [...(detail.description_md ?? "")].slice(0, MAX_DESCRIPTION_MD).join(""),
-        };
-        const approved = detail.guest_counts?.approved?.guests;
-        if (typeof approved === "number") extra.luma_approved_count = approved;
-      }
-
-      if (existing) {
-        await store.update(fields.luma_event_id, { ...fields, ...extra });
-        result.updated++;
-      } else {
-        await store.insert({ ...fields, ...extra, slug: makeSlug(fields.title, fields.luma_event_id), description: extra.description ?? "" });
-        result.created++;
-      }
-      written = true;
-    } catch (error) {
-      result.errors++;
-      if (existing) {
-        const message = error instanceof Error ? error.message : "unknown error";
-        await store.markError(fields.luma_event_id, message).catch(() => {});
-      }
-    }
-
-    // 3. Attendees, for events that have not ended and were written. A failure here never touches the attendees and
-    // never records the underlying text (it could hold an email).
-    if (!written || ended) continue;
-    try {
-      const emails = await luma.listApprovedGuestEmails(fields.luma_event_id);
-      const { matched } = await store.syncAttendees(fields.luma_event_id, emails);
-      result.attendees += matched;
-    } catch {
-      result.errors++;
-      await store.markError(fields.luma_event_id, "guest list: could not read or match the attendees").catch(() => {});
-    }
+    await syncEvent(luma, store, fields, storedById.get(fields.luma_event_id), now, result);
   }
 
-  // 4. Only now that the whole listing was read: events no longer there (or no longer public) are marked removed.
+  // 3. Only now that the whole listing was read: events no longer there (or no longer public) are marked removed.
   const gone = stored.filter((row) => !row.removed_from_luma && !seen.has(row.luma_event_id)).map((row) => row.luma_event_id);
   if (gone.length > 0) {
     await store.markRemoved(gone);
@@ -98,4 +112,30 @@ export async function runSync(luma: LumaReader, store: EventStore, now: Date = n
   }
 
   return result;
+}
+
+// Webhook: refresh one event the same way the hourly sync would. Throws if Luma cannot give the event (nothing written).
+export async function refreshEvent(luma: LumaReader, store: EventStore, eventId: string, now: Date = new Date()): Promise<SyncResult> {
+  const detail = await luma.getEvent(eventId);
+  const existing = (await store.listStored()).find((row) => row.luma_event_id === eventId);
+  const result: SyncResult = { created: 0, updated: 0, removed: 0, errors: 0, attendees: 0 };
+
+  const fields = mapEvent(detail);
+  if (!fields || fields.luma_event_id !== eventId) {
+    if (existing && !existing.removed_from_luma) {
+      await store.markRemoved([eventId]);
+      result.removed = 1;
+    }
+    return result;
+  }
+  await syncEvent(luma, store, fields, existing, now, result, detail);
+  return result;
+}
+
+// Webhook: Luma says the event was canceled. Returns how many rows were marked removed (never deletes).
+export async function cancelEvent(store: EventStore, eventId: string): Promise<number> {
+  const existing = (await store.listStored()).find((row) => row.luma_event_id === eventId);
+  if (!existing || existing.removed_from_luma) return 0;
+  await store.markRemoved([eventId]);
+  return 1;
 }
