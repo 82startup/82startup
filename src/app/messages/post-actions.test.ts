@@ -5,10 +5,12 @@ const redirect = vi.fn((url: string) => {
   throw new Error(`NEXT_REDIRECT:${url}`);
 });
 const createClient = vi.fn();
+const triggerNotifications = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
+vi.mock("@/lib/notifications/trigger", () => ({ triggerNotifications }));
 
 const { createPost } = await import("./post-actions");
 
@@ -28,7 +30,7 @@ function fakeClient(opts: { sub?: string | null; error?: { code?: string } | nul
 }
 
 beforeEach(() => {
-  for (const fn of [revalidatePath, redirect, createClient]) fn.mockReset();
+  for (const fn of [revalidatePath, redirect, createClient, triggerNotifications]) fn.mockReset();
   redirect.mockImplementation((url: string) => {
     throw new Error(`NEXT_REDIRECT:${url}`);
   });
@@ -71,5 +73,17 @@ describe("createPost", () => {
       texts.add(state.error);
     }
     expect(texts.size).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe("sending notifications after a post", () => {
+  it("starts the email run after a post and not after a refusal", async () => {
+    fakeClient();
+    await createPost({}, form({ body: "news" }));
+    expect(triggerNotifications).toHaveBeenCalledTimes(1);
+    triggerNotifications.mockClear();
+    fakeClient({ error: { code: "P0001" } });
+    await createPost({}, form({ body: "news" }));
+    expect(triggerNotifications).not.toHaveBeenCalled();
   });
 });

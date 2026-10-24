@@ -8,7 +8,7 @@ import { getVisibleEvents } from "@/lib/events/queries";
 
 export default function Home() {
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
+    <main className="mx-auto w-full max-w-3xl p-6">
       <section className="mb-10 flex flex-col items-start gap-4">
         <h1 className="text-3xl font-semibold">{copy.siteName}</h1>
         <p className="text-lg text-zinc-600 dark:text-zinc-400">{copy.home.tagline}</p>
@@ -32,8 +32,8 @@ async function HomeEvents() {
       {featured.length > 0 && (
         <section className="mb-8">
           <h2 className="mb-3 text-xl font-semibold">{copy.home.featured}</h2>
-          <ul className="flex flex-col gap-3">
-            {featured.map((event) => <EventCard key={event.slug} event={event} />)}
+          <ul className="flex flex-col gap-4">
+            {featured.map((event) => <EventCard key={event.slug} event={event} highlight />)}
           </ul>
         </section>
       )}

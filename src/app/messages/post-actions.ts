@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { copy } from "@/lib/copy";
 import { parsePostForm } from "@/lib/posts/form";
+import { triggerNotifications } from "@/lib/notifications/trigger";
 import { createClient } from "@/lib/supabase/server";
 
 // sentAt changes after every successful post, so the form can clear its box; sentTo is how many people got it.
@@ -26,6 +27,7 @@ export async function createPost(_prev: PostState, formData: FormData): Promise<
     return { error: copy.posts.errors.save };
   }
   revalidatePath("/messages");
+  triggerNotifications();
   const sentTo = Array.isArray(data) ? Number(data[0]?.recipient_count ?? 0) : 0;
   return { sentTo, sentAt: Date.now() };
 }

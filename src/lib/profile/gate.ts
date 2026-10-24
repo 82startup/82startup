@@ -1,10 +1,10 @@
 // Keeps a signed-in member with an incomplete profile on the profile setup screen. These are the pure parts; the proxy does
 // the database check.
 
-// Addresses an incomplete member may still open: the setup screen itself, sign-out and the sign-in return, and API routes
+// Addresses an incomplete member may still open: the setup screen itself, the unsubscribe page (opened from an email), sign-out and the sign-in return, and API routes
 // (cron and webhooks are not member pages). Static files never reach the proxy.
 export function isGateOpenPath(pathname: string): boolean {
-  return pathname === "/profile" || pathname.startsWith("/auth/") || pathname.startsWith("/api/");
+  return pathname === "/profile" || pathname === "/unsubscribe" || pathname.startsWith("/auth/") || pathname.startsWith("/api/");
 }
 
 // Where to send an incomplete member, remembering the page they wanted (the setup screen reads it back through the safe-path check).

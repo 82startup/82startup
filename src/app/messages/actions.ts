@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { copy } from "@/lib/copy";
 import { parseMarkReadForm, parseSendMessageForm } from "@/lib/messages/form";
+import { triggerNotifications } from "@/lib/notifications/trigger";
 import { createClient } from "@/lib/supabase/server";
 
 // sentAt changes after every successful send, so the form can clear its box.
@@ -28,6 +29,7 @@ export async function sendMessage(_prev: MessageState, formData: FormData): Prom
   }
   revalidatePath(`/messages/${parsed.member}`);
   revalidatePath("/messages");
+  triggerNotifications();
   return { sentAt: Date.now() };
 }
 

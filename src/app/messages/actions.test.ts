@@ -5,10 +5,12 @@ const redirect = vi.fn((url: string) => {
   throw new Error(`NEXT_REDIRECT:${url}`);
 });
 const createClient = vi.fn();
+const triggerNotifications = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
+vi.mock("@/lib/notifications/trigger", () => ({ triggerNotifications }));
 
 const { sendMessage, markConversationRead } = await import("./actions");
 
@@ -29,7 +31,7 @@ function fakeClient(opts: { sub?: string | null; error?: { code?: string } | nul
 }
 
 beforeEach(() => {
-  for (const fn of [revalidatePath, redirect, createClient]) fn.mockReset();
+  for (const fn of [revalidatePath, redirect, createClient, triggerNotifications]) fn.mockReset();
   redirect.mockImplementation((url: string) => {
     throw new Error(`NEXT_REDIRECT:${url}`);
   });
@@ -89,5 +91,17 @@ describe("markConversationRead", () => {
     const rpc = fakeClient({ sub: null });
     await markConversationRead(form({ member: ID }));
     expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("sending notifications after a message", () => {
+  it("starts the email run after a sent message and not after a refusal", async () => {
+    fakeClient();
+    await sendMessage({}, form({ member: ID, body: "hi" }));
+    expect(triggerNotifications).toHaveBeenCalledTimes(1);
+    triggerNotifications.mockClear();
+    fakeClient({ error: { code: "P0002" } });
+    await sendMessage({}, form({ member: ID, body: "hi" }));
+    expect(triggerNotifications).not.toHaveBeenCalled();
   });
 });

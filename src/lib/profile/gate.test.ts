@@ -6,12 +6,12 @@ const SUB = "11111111-2222-3333-4444-555555555555";
 
 describe("isGateOpenPath", () => {
   it("keeps the setup screen, sign-out, the sign-in return and API routes open", () => {
-    for (const path of ["/profile", "/auth/callback", "/auth/signout", "/api/cron/luma-sync", "/api/webhooks/luma"]) {
+    for (const path of ["/profile", "/auth/callback", "/auth/signout", "/api/cron/luma-sync", "/api/webhooks/luma", "/unsubscribe", "/api/unsubscribe"]) {
       expect(isGateOpenPath(path)).toBe(true);
     }
   });
   it("gates every other page, including look-alikes", () => {
-    for (const path of ["/", "/events", "/events/summit-abc", "/members", "/connections", "/messages", "/login", "/admin/events", "/profiles", "/profile/x", "/apiary", "/authors", "//evil.example"]) {
+    for (const path of ["/", "/events", "/events/summit-abc", "/members", "/connections", "/messages", "/login", "/admin/events", "/profiles", "/profile/x", "/apiary", "/authors", "/unsubscribed", "/unsubscribe/x", "//evil.example"]) {
       expect(isGateOpenPath(path)).toBe(false);
     }
   });

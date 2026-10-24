@@ -8,7 +8,7 @@ import { splitEvents } from "@/lib/events/split";
 
 export default function EventsPage({ searchParams }: PageProps<"/events">) {
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
+    <main className="mx-auto w-full max-w-3xl p-6">
       <h1 className="mb-6 text-2xl font-semibold">{copy.events.title}</h1>
       <Suspense fallback={<p>{copy.events.loading}</p>}>
         <EventsContent searchParams={searchParams} />
@@ -37,7 +37,7 @@ async function EventsContent({ searchParams }: { searchParams: PageProps<"/event
         <p>{showPast ? copy.events.emptyPast : copy.events.emptyUpcoming}</p>
       ) : (
         <ul className="flex flex-col gap-3">
-          {events.map((event) => <EventCard key={event.slug} event={event} />)}
+          {events.map((event) => <EventCard key={event.slug} event={event} highlight={showPast ? false : undefined} />)}
         </ul>
       )}
     </>

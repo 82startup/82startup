@@ -5,10 +5,12 @@ const redirect = vi.fn((url: string) => {
   throw new Error(`NEXT_REDIRECT:${url}`);
 });
 const createClient = vi.fn();
+const triggerNotifications = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
+vi.mock("@/lib/notifications/trigger", () => ({ triggerNotifications }));
 
 const { sendConnectionRequest, respondToRequest, cancelRequest, disconnect, blockMember, unblockMember } = await import("./actions");
 
@@ -29,7 +31,7 @@ function fakeClient(opts: { sub?: string | null; error?: { code?: string } | nul
 }
 
 beforeEach(() => {
-  for (const fn of [revalidatePath, redirect, createClient]) fn.mockReset();
+  for (const fn of [revalidatePath, redirect, createClient, triggerNotifications]) fn.mockReset();
   redirect.mockImplementation((url: string) => {
     throw new Error(`NEXT_REDIRECT:${url}`);
   });
@@ -91,5 +93,25 @@ describe("respondToRequest value", () => {
     rpc.mockClear();
     expect((await respondToRequest({}, form({ id: ID, value: "maybe" }))).error).toBeTruthy();
     expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("sending notifications after an action", () => {
+  it("starts the email run after a request and after an answer, but not after cancel, disconnect or block", async () => {
+    fakeClient();
+    await sendConnectionRequest({}, form({ member: ID, note: "hi" }));
+    await respondToRequest({}, form({ id: ID, value: "true" }));
+    expect(triggerNotifications).toHaveBeenCalledTimes(2);
+    await cancelRequest({}, form({ id: ID }));
+    await disconnect({}, form({ member: ID }));
+    await blockMember({}, form({ member: ID }));
+    await unblockMember({}, form({ member: ID }));
+    expect(triggerNotifications).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not start it when the database refuses", async () => {
+    fakeClient({ error: { code: "P0002" } });
+    await sendConnectionRequest({}, form({ member: ID }));
+    expect(triggerNotifications).not.toHaveBeenCalled();
   });
 });
