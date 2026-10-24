@@ -5,6 +5,10 @@ import { EventCard } from "@/components/event-card";
 import { copy } from "@/lib/copy";
 import { pickHomeEvents } from "@/lib/events/home";
 import { getVisibleEvents } from "@/lib/events/queries";
+import { getSpeakers, getSponsorContact, getSponsors } from "@/lib/site/queries";
+import { SpeakersGrid } from "@/components/site/speakers-grid";
+import { SponsorsSection } from "@/components/site/sponsors-section";
+import { supabaseEnv } from "@/lib/supabase/env";
 
 export default function Home() {
   return (
@@ -18,6 +22,12 @@ export default function Home() {
       </section>
       <Suspense fallback={<p>{copy.events.loading}</p>}>
         <HomeEvents />
+      </Suspense>
+      <Suspense>
+        <HomeSpeakers />
+      </Suspense>
+      <Suspense>
+        <HomeSponsors />
       </Suspense>
     </main>
   );
@@ -51,5 +61,32 @@ async function HomeEvents() {
       )}
       <Link href="/events" className="underline">{copy.home.seeAll}</Link>
     </>
+  );
+}
+
+// Featured speakers and the sponsors, only when there is something to show.
+async function HomeSpeakers() {
+  await connection();
+  const speakers = (await getSpeakers()).slice(0, 8);
+  if (speakers.length === 0) return null;
+  return (
+    <section className="mt-10">
+      <h2 className="mb-3 text-xl font-semibold">{copy.site.featuredSpeakers}</h2>
+      <SpeakersGrid speakers={speakers} baseUrl={supabaseEnv().url} />
+      <Link href="/speakers" className="mt-4 inline-block underline">{copy.site.seeAll} →</Link>
+    </section>
+  );
+}
+
+async function HomeSponsors() {
+  await connection();
+  const [sponsors, contact] = await Promise.all([getSponsors(), getSponsorContact()]);
+  if (sponsors.length === 0) return null;
+  return (
+    <section className="mt-10">
+      <h2 className="mb-3 text-xl font-semibold">{copy.site.sponsors}</h2>
+      <SponsorsSection sponsors={sponsors} contact={contact} baseUrl={supabaseEnv().url} />
+      <Link href="/sponsors" className="mt-4 inline-block underline">{copy.site.seeAll} →</Link>
+    </section>
   );
 }
