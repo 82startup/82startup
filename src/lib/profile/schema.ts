@@ -34,6 +34,11 @@ export function submittedValues(formData: FormData): SubmittedValues {
   ) as SubmittedValues;
 }
 
+// The four fields every member must fill: I am, name, job title, company or where they are now.
+export function isProfileComplete(p: { name: string; job_title: string; company_name: string; member_type: MemberType | null }): boolean {
+  return p.member_type !== null && p.name.trim() !== "" && p.job_title.trim() !== "" && p.company_name.trim() !== "";
+}
+
 export function parseProfileForm(formData: FormData): ParseResult {
   const errors: Partial<Record<keyof ProfileInput, string>> = {};
 
@@ -46,12 +51,12 @@ export function parseProfileForm(formData: FormData): ParseResult {
   const type = text(formData, "member_type");
 
   if (name.length === 0 || name.length > 100) errors.name = copy.profile.errors.name;
-  if (job_title.length > 120) errors.job_title = copy.profile.errors.job_title;
-  if (company_name.length > 100) errors.company_name = copy.profile.errors.company_name;
+  if (job_title.length === 0 || job_title.length > 120) errors.job_title = copy.profile.errors.job_title;
+  if (company_name.length === 0 || company_name.length > 100) errors.company_name = copy.profile.errors.company_name;
   if (website && (website.length > 200 || !WEBSITE_URL.test(website))) errors.company_website = copy.profile.errors.company_website;
   if (bio.length > 1000) errors.bio = copy.profile.errors.bio;
   if (linkedin && !LINKEDIN_URL.test(linkedin)) errors.linkedin_url = copy.profile.errors.linkedin_url;
-  if (type && !(MEMBER_TYPES as readonly string[]).includes(type)) errors.member_type = copy.profile.errors.member_type;
+  if (!(MEMBER_TYPES as readonly string[]).includes(type)) errors.member_type = copy.profile.errors.member_type;
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
 
@@ -64,7 +69,7 @@ export function parseProfileForm(formData: FormData): ParseResult {
       company_website: website || null,
       bio,
       linkedin_url: linkedin || null,
-      member_type: (type || null) as MemberType | null,
+      member_type: type as MemberType,
       // A checkbox sends "on" when ticked and nothing when not.
       show_in_directory: formData.get("show_in_directory") === "on",
     },

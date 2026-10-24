@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { MEMBER_TYPES, parseProfileForm, submittedValues } from "./schema";
+import { MEMBER_TYPES, isProfileComplete, parseProfileForm, submittedValues } from "./schema";
+
+// The four required fields, filled.
+const REQ = { name: "Ada", job_title: "CEO", company_name: "Acme", member_type: "startup" };
 
 function form(values: Record<string, string>) {
   const data = new FormData();
@@ -37,24 +40,40 @@ describe("parseProfileForm", () => {
   });
 
   it("reads the directory checkbox: on means shown, absent means left out", () => {
-    expect(parseProfileForm(form({ name: "Ada", show_in_directory: "on" }))).toMatchObject({ ok: true, value: { show_in_directory: true } });
-    expect(parseProfileForm(form({ name: "Ada" }))).toMatchObject({ ok: true, value: { show_in_directory: false } });
-    expect(parseProfileForm(form({ name: "Ada", show_in_directory: "yes" }))).toMatchObject({ ok: true, value: { show_in_directory: false } });
+    expect(parseProfileForm(form({ ...REQ, name: "Ada", show_in_directory: "on" }))).toMatchObject({ ok: true, value: { show_in_directory: true } });
+    expect(parseProfileForm(form({ ...REQ, name: "Ada" }))).toMatchObject({ ok: true, value: { show_in_directory: false } });
+    expect(parseProfileForm(form({ ...REQ, name: "Ada", show_in_directory: "yes" }))).toMatchObject({ ok: true, value: { show_in_directory: false } });
   });
 
-  it("treats an empty LinkedIn URL, company website and member type as null", () => {
-    const result = parseProfileForm(
-      form({ name: "Ada", linkedin_url: "", company_website: "", member_type: "" }),
-    );
-    expect(result).toMatchObject({
-      ok: true,
-      value: { linkedin_url: null, company_website: null, member_type: null },
-    });
+  it("treats an empty LinkedIn URL and company website as null (they stay optional)", () => {
+    const result = parseProfileForm(form({ ...REQ, linkedin_url: "", company_website: "" }));
+    expect(result).toMatchObject({ ok: true, value: { linkedin_url: null, company_website: null } });
   });
 
   it("requires a name", () => {
     const result = parseProfileForm(form({ name: "   " }));
     expect(result).toMatchObject({ ok: false, errors: { name: expect.any(String) } });
+  });
+
+  it("requires I am, name, job title and company, each with its own error", () => {
+    for (const field of ["member_type", "name", "job_title", "company_name"] as const) {
+      const result = parseProfileForm(form({ ...REQ, [field]: "" }));
+      expect(result).toMatchObject({ ok: false, errors: { [field]: expect.any(String) } });
+      expect(Object.keys((result as { errors: object }).errors)).toEqual([field]);
+    }
+  });
+
+  it("counts a required field with only spaces as empty", () => {
+    for (const field of ["name", "job_title", "company_name"] as const) {
+      expect(parseProfileForm(form({ ...REQ, [field]: " \n\t " }))).toMatchObject({ ok: false, errors: { [field]: expect.any(String) } });
+    }
+  });
+
+  it("keeps the website, bio, LinkedIn and directory switch optional", () => {
+    expect(parseProfileForm(form(REQ))).toMatchObject({
+      ok: true,
+      value: { company_website: null, bio: "", linkedin_url: null, show_in_directory: false },
+    });
   });
 
   it("rejects too-long fields", () => {
@@ -82,6 +101,7 @@ describe("parseProfileForm", () => {
   it("accepts values exactly at the limits", () => {
     const result = parseProfileForm(
       form({
+        ...REQ,
         name: "x".repeat(100),
         job_title: "h".repeat(120),
         company_name: "c".repeat(100),
@@ -102,21 +122,21 @@ describe("parseProfileForm", () => {
 
   it("accepts an http or https company website", () => {
     for (const good of ["http://acme.example.com", "https://acme.example.com/about?x=1"]) {
-      const result = parseProfileForm(form({ name: "Ada", company_website: good }));
+      const result = parseProfileForm(form({ ...REQ, name: "Ada", company_website: good }));
       expect(result).toMatchObject({ ok: true, value: { company_website: good } });
     }
   });
 
   it("rejects a company website that is not an http or https address", () => {
     for (const bad of ["javascript:alert(1)", "ftp://acme.example.com", "acme.example.com", "https://", "http://exa mple.com"]) {
-      const result = parseProfileForm(form({ name: "Ada", company_website: bad }));
+      const result = parseProfileForm(form({ ...REQ, name: "Ada", company_website: bad }));
       expect(result).toMatchObject({ ok: false, errors: { company_website: expect.any(String) } });
     }
   });
 
   it("rejects a LinkedIn URL that is not on linkedin.com over https", () => {
     for (const bad of ["http://www.linkedin.com/in/a", "https://evil.com/in/a", "linkedin.com/in/a"]) {
-      const result = parseProfileForm(form({ name: "Ada", linkedin_url: bad }));
+      const result = parseProfileForm(form({ ...REQ, name: "Ada", linkedin_url: bad }));
       expect(result).toMatchObject({ ok: false, errors: { linkedin_url: expect.any(String) } });
     }
   });
@@ -127,14 +147,14 @@ describe("parseProfileForm", () => {
 
   it("accepts each member type", () => {
     for (const type of MEMBER_TYPES) {
-      const result = parseProfileForm(form({ name: "Ada", member_type: type }));
+      const result = parseProfileForm(form({ ...REQ, name: "Ada", member_type: type }));
       expect(result).toMatchObject({ ok: true, value: { member_type: type } });
     }
   });
 
   it("rejects an unknown or retired member type", () => {
     for (const bad of ["wizard", "founder", "talent", "attendee"]) {
-      const result = parseProfileForm(form({ name: "Ada", member_type: bad }));
+      const result = parseProfileForm(form({ ...REQ, name: "Ada", member_type: bad }));
       expect(result).toMatchObject({ ok: false, errors: { member_type: expect.any(String) } });
     }
   });
@@ -153,5 +173,19 @@ describe("submittedValues", () => {
       member_type: "wizard",
       show_in_directory: "on",
     });
+  });
+});
+
+describe("isProfileComplete", () => {
+  const done = { name: "Ada", job_title: "CEO", company_name: "Acme", member_type: "startup" as const };
+  it("is true when the member type is chosen and name, job title and company are filled", () => {
+    expect(isProfileComplete(done)).toBe(true);
+  });
+  it("is false when any of the four is missing or only spaces", () => {
+    expect(isProfileComplete({ ...done, member_type: null })).toBe(false);
+    for (const field of ["name", "job_title", "company_name"] as const) {
+      expect(isProfileComplete({ ...done, [field]: "" })).toBe(false);
+      expect(isProfileComplete({ ...done, [field]: "  \n " })).toBe(false);
+    }
   });
 });
