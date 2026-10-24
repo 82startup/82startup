@@ -31,7 +31,7 @@ beforeEach(() => {
 describe("setMemberRole", () => {
   it("sends a logged-out visitor to log in", async () => {
     getAdmin.mockResolvedValue({ supabase: {}, check: { status: "logged-out" } });
-    await expect(setMemberRole({}, form({ id: ID, role: "admin" }))).rejects.toThrow("NEXT_REDIRECT:/login?next=/admin/members");
+    await expect(setMemberRole({}, form({ id: ID, role: "admin" }))).rejects.toThrow("NEXT_REDIRECT:/login?next=/admin/admins");
   });
 
   it("refuses a member without calling the database", async () => {
@@ -43,7 +43,7 @@ describe("setMemberRole", () => {
     const rpc = asAdmin();
     expect(await setMemberRole({}, form({ id: ID, role: "admin" }))).toEqual({});
     expect(rpc).toHaveBeenCalledExactlyOnceWith("admin_set_role", { p_member: ID, p_role: "admin" });
-    expect(revalidatePath).toHaveBeenCalledWith("/admin/members");
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/admins");
   });
 
   it("refuses a bad id or role before calling the database", async () => {
