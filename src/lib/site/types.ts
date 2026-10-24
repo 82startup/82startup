@@ -19,11 +19,8 @@ export type Speaker = {
   name: string;
   job_title: string;
   company: string;
-  bio: string;
   photo_path: string | null;
-  linkedin_url: string | null;
-  website_url: string | null;
-  event_id: string | null;
+  event_ids: string[]; // the events the speaker speaks at
   sort_order: number;
   visible: boolean;
 };

@@ -16,6 +16,7 @@ const { saveSpeaker, deleteSpeaker, setSpeakerVisible, moveSpeaker } = await imp
 
 const ID = "11111111-2222-3333-4444-555555555555";
 const EVENT = "66666666-2222-3333-4444-555555555555";
+const EVENT2 = "77777777-2222-3333-4444-555555555555";
 const OLD_PHOTO = "speakers/99999999-2222-3333-4444-555555555555.jpg";
 const JPG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4]);
 const form = (values: Record<string, string | File>) => {
@@ -55,17 +56,38 @@ describe.each([
 });
 
 describe("saveSpeaker", () => {
-  it("adds a speaker with a page address made from the name, at the end of the order", async () => {
-    const db = asAdmin({ "speakers:select": { data: [{ slug: "ada-lee", sort_order: 3 }], error: null }, "speakers:insert": { error: null } });
-    expect(await saveSpeaker({}, form({ name: "Ada Lee", job_title: "CEO", company: "Acme", event_id: EVENT }))).toEqual({ saved: true });
-    expect(db.calls.find((c) => c.op === "insert")?.payload).toMatchObject({ name: "Ada Lee", slug: "ada-lee-2", sort_order: 4, event_id: EVENT, job_title: "CEO" });
+  it("adds a speaker with a page address made from the name, at the end of the order, then links its events", async () => {
+    const db = asAdmin({ "speakers:select": { data: [{ slug: "ada-lee", sort_order: 3 }], error: null }, "speakers:insert": { data: { id: ID }, error: null } });
+    const data = form({ name: "Ada Lee", job_title: "CEO", company: "Acme" });
+    data.append("event_ids", EVENT);
+    data.append("event_ids", EVENT2);
+    expect(await saveSpeaker({}, data)).toEqual({ saved: true });
+    expect(db.calls.find((c) => c.op === "insert")?.payload).toMatchObject({ name: "Ada Lee", slug: "ada-lee-2", sort_order: 4, job_title: "CEO" });
+    expect(db.calls.find((c) => c.op === "insert")?.payload).not.toHaveProperty("event_id");
+    expect(db.rpcCalls).toEqual([{ name: "admin_set_speaker_events", args: { p_speaker: ID, p_events: [EVENT, EVENT2] } }]);
     expect(updateTag).toHaveBeenCalledWith("speakers");
+  });
+
+  it("replaces the events of an existing speaker (an empty choice clears them)", async () => {
+    const db = asAdmin({ "speakers:select": { data: { photo_path: null }, error: null }, "speakers:update": { data: { id: ID }, error: null } });
+    await saveSpeaker({}, form({ id: ID, name: "Ada" }));
+    expect(db.rpcCalls).toEqual([{ name: "admin_set_speaker_events", args: { p_speaker: ID, p_events: [] } }]);
+  });
+
+  it("reports a failure to save the events, with a plain message, and does not refresh", async () => {
+    asAdmin({ "speakers:select": { data: { photo_path: null }, error: null }, "speakers:update": { data: { id: ID }, error: null }, "rpc:admin_set_speaker_events": { data: null, error: { code: "23503", message: "fk secret" } } });
+    const state = await saveSpeaker({}, form({ id: ID, name: "Ada" }));
+    expect(state.error).toBeTruthy();
+    expect(state.error).not.toContain("fk secret");
+    expect(updateTag).not.toHaveBeenCalled();
   });
 
   it("refuses bad fields without touching the database", async () => {
     const db = asAdmin();
-    const state = await saveSpeaker({}, form({ name: "", linkedin_url: "https://evil.test/in/a", event_id: "nope" }));
-    expect(state.errors).toMatchObject({ name: expect.any(String), linkedin_url: expect.any(String), event_id: expect.any(String) });
+    const data = form({ name: "" });
+    data.append("event_ids", "nope");
+    const state = await saveSpeaker({}, data);
+    expect(state.errors).toMatchObject({ name: expect.any(String), event_ids: expect.any(String) });
     expect(db.calls).toEqual([]);
   });
 

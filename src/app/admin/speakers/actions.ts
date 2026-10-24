@@ -63,22 +63,31 @@ export async function saveSpeaker(_prev: SpeakerState, formData: FormData): Prom
     photoPath = null;
   }
 
-  const values = { ...parsed.value, ...(photoPath === undefined ? {} : { photo_path: photoPath }), updated_at: new Date().toISOString() };
-  let failed: boolean;
+  const { event_ids: eventIds, ...fields } = parsed.value;
+  const values = { ...fields, ...(photoPath === undefined ? {} : { photo_path: photoPath }), updated_at: new Date().toISOString() };
+  let savedId: string | null = id;
   if (id) {
     const { data, error } = await supabase.from("speakers").update(values).eq("id", id).select("id").maybeSingle();
-    failed = Boolean(error) || !data;
+    if (error || !data) savedId = null;
   } else {
     const { data: rows } = await supabase.from("speakers").select("slug, sort_order");
     const taken = new Set((rows ?? []).map((row) => row.slug as string));
     const last = Math.max(0, ...(rows ?? []).map((row) => Number(row.sort_order) || 0));
-    const { error } = await supabase.from("speakers").insert({ ...values, slug: makeSpeakerSlug(parsed.value.name, taken), sort_order: last + 1 });
-    failed = Boolean(error);
+    const { data, error } = await supabase
+      .from("speakers")
+      .insert({ ...values, slug: makeSpeakerSlug(parsed.value.name, taken), sort_order: last + 1 })
+      .select("id")
+      .single();
+    savedId = error || !data ? null : (data as { id: string }).id;
   }
-  if (failed) {
+  if (!savedId) {
     if (photoPath) await removeSiteImage(supabase, photoPath);
     return { error: copy.sponsorsAdmin.errors.save };
   }
+
+  // The events the speaker speaks at are replaced all at once (an empty choice clears them).
+  const { error: linkError } = await supabase.rpc("admin_set_speaker_events", { p_speaker: savedId, p_events: eventIds });
+  if (linkError) return { error: copy.sponsorsAdmin.errors.save };
 
   if (oldPhoto && photoPath !== undefined && oldPhoto !== photoPath) await removeSiteImage(supabase, oldPhoto);
   refresh();

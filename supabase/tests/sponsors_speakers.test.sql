@@ -1,5 +1,5 @@
 begin;
-select plan(45);
+select plan(58);
 
 -- Admin A, member M. One event for linking a speaker.
 insert into auth.users (id, email) values
@@ -8,7 +8,10 @@ insert into auth.users (id, email) values
 update public.profiles set name = 'Ann Admin', role = 'admin' where id = 'ffffffff-aaaa-0000-0000-000000000001';
 update public.profiles set name = 'Mia Member' where id = 'ffffffff-aaaa-0000-0000-000000000002';
 insert into public.events (id, luma_event_id, slug, title, start_at, timezone, luma_url) values
-  ('eeeeeeee-aaaa-0000-0000-000000000001', 'evt-ss-1', 'ss-event', 'Summit', now() + interval '5 days', 'UTC', 'https://luma.com/ss');
+  ('eeeeeeee-aaaa-0000-0000-000000000001', 'evt-ss-1', 'ss-event', 'Summit', now() + interval '5 days', 'UTC', 'https://luma.com/ss'),
+  ('eeeeeeee-aaaa-0000-0000-000000000002', 'evt-ss-2', 'ss-event-2', 'Night', now() + interval '6 days', 'UTC', 'https://luma.com/ss2');
+insert into public.events (id, source, slug, title, start_at, timezone, luma_url, external_url, external_host) values
+  ('eeeeeeee-aaaa-0000-0000-000000000003', 'external', 'ss-external', 'Their Event', now() + interval '7 days', 'UTC', 'https://www.eventbrite.com/e/x', 'https://www.eventbrite.com/e/x', 'eventbrite.com');
 
 -- Seed rows as the owner role (bypasses the rules): one visible and one hidden of each.
 insert into public.sponsors (id, name, tier, sort_order, visible) values
@@ -48,7 +51,17 @@ select lives_ok($$insert into public.sponsors (name, tier, website_url, descript
 select lives_ok($$update public.sponsors set tier = 'silver', visible = false where name = 'Acme'$$, 'edits and hides it');
 select is((select tier from public.sponsors where name = 'Acme'), 'silver', 'the edit is saved');
 select lives_ok($$delete from public.sponsors where name = 'Acme'$$, 'and deletes it');
-select lives_ok($$insert into public.speakers (slug, name, job_title, company, bio, photo_path, linkedin_url, website_url, event_id) values ('ada-lee', 'Ada Lee', 'CEO', 'Acme', 'Bio', 'speakers/44444444-4444-4444-4444-444444444444.jpg', 'https://www.linkedin.com/in/ada', 'https://ada.test', 'eeeeeeee-aaaa-0000-0000-000000000001')$$, 'an admin adds a speaker linked to an event');
+select lives_ok($$insert into public.speakers (id, slug, name, job_title, company, photo_path) values ('22222222-aaaa-0000-0000-000000000009', 'ada-lee', 'Ada Lee', 'CEO', 'Acme', 'speakers/44444444-4444-4444-4444-444444444444.jpg')$$, 'an admin adds a speaker');
+select lives_ok($$select public.admin_set_speaker_events('22222222-aaaa-0000-0000-000000000009', array['eeeeeeee-aaaa-0000-0000-000000000001', 'eeeeeeee-aaaa-0000-0000-000000000002', 'eeeeeeee-aaaa-0000-0000-000000000002']::uuid[])$$, 'an admin links the speaker to two events (a repeated one counts once)');
+select is((select count(*) from public.speaker_events where speaker_id = '22222222-aaaa-0000-0000-000000000009'), 2::bigint, 'two links are saved');
+select lives_ok($$select public.admin_set_speaker_events('22222222-aaaa-0000-0000-000000000009', array['eeeeeeee-aaaa-0000-0000-000000000002']::uuid[])$$, 'and the set can be replaced');
+select is((select event_id from public.speaker_events where speaker_id = '22222222-aaaa-0000-0000-000000000009'), 'eeeeeeee-aaaa-0000-0000-000000000002'::uuid, 'only the new one is left');
+select lives_ok($$select public.admin_set_speaker_events('22222222-aaaa-0000-0000-000000000009', '{}'::uuid[])$$, 'an empty set clears them');
+select throws_ok($$select public.admin_set_speaker_events('22222222-aaaa-0000-0000-000000000009', array['eeeeeeee-aaaa-0000-0000-0000000000ff']::uuid[])$$, '23503', null, 'an event that does not exist is refused');
+select throws_ok($$select public.admin_set_speaker_events('22222222-aaaa-0000-0000-000000000009', array['eeeeeeee-aaaa-0000-0000-000000000001', 'eeeeeeee-aaaa-0000-0000-000000000003']::uuid[])$$, '22023', null, 'an event added from another site is refused');
+select is((select count(*) from public.speaker_events where speaker_id = '22222222-aaaa-0000-0000-000000000009'), 0::bigint, 'and nothing was linked by that refused call (the earlier empty set stays)');
+select throws_ok($$select public.admin_set_speaker_events('22222222-aaaa-0000-0000-0000000000ff', '{}'::uuid[])$$, 'P0002', null, 'and so is a speaker that does not exist');
+select lives_ok($$select public.admin_set_speaker_events('22222222-aaaa-0000-0000-000000000009', array['eeeeeeee-aaaa-0000-0000-000000000001', 'eeeeeeee-aaaa-0000-0000-000000000002']::uuid[])$$, 'the links are set again for the checks below');
 select throws_ok($$insert into public.speakers (slug, name) values ('ada-lee', 'Other Ada')$$, '23505', null, 'a slug is unique');
 select lives_ok($$insert into public.site_settings (key, value) values ('sponsor_contact_url', 'mailto:sponsors@x.test')$$, 'an admin sets the sponsor contact link');
 select lives_ok($$update public.site_settings set value = 'https://x.test/contact' where key = 'sponsor_contact_url'$$, 'and changes it');
@@ -62,17 +75,28 @@ select throws_ok($$insert into public.sponsors (name, tier, website_url) values 
 select throws_ok($$insert into public.sponsors (name, tier, description) values ('X', 'gold', repeat('d', 601))$$, '23514', null, 'a description over 600 characters is refused');
 select throws_ok($$insert into public.sponsors (name, tier, logo_path) values ('X', 'gold', 'https://evil.test/logo.png')$$, '23514', null, 'a logo must be a file in our own folder, not an address');
 select throws_ok($$insert into public.sponsors (name, tier, logo_path) values ('X', 'gold', 'sponsors/../avatars/x.png')$$, '23514', null, 'and not a path that climbs out of it');
-select throws_ok($$insert into public.speakers (slug, name, bio) values ('b1', 'X', repeat('b', 1001))$$, '23514', null, 'a bio over 1000 characters is refused');
-select throws_ok($$insert into public.speakers (slug, name, linkedin_url) values ('b2', 'X', 'https://evil.test/in/a')$$, '23514', null, 'a LinkedIn link must be on linkedin.com');
+select is((select count(*) from information_schema.columns where table_schema = 'public' and table_name = 'speakers' and column_name in ('bio', 'linkedin_url', 'website_url', 'event_id')), 0::bigint, 'a speaker no longer has a bio, LinkedIn, website or single event');
 select throws_ok($$insert into public.speakers (slug, name) values ('Bad Slug', 'X')$$, '23514', null, 'a slug is lower-case words and dashes only');
 select throws_ok($$insert into public.speakers (slug, name, photo_path) values ('b3', 'X', 'sponsors/44444444-4444-4444-4444-444444444444.jpg')$$, '23514', null, 'a speaker photo must be in the speakers folder');
 select throws_ok($$insert into public.site_settings (key, value) values ('anything_else', 'x')$$, '23514', null, 'only known settings keys exist');
 select throws_ok($$update public.site_settings set value = 'javascript:alert(1)' where key = 'sponsor_contact_url'$$, '23514', null, 'the contact link must be https or mailto');
 
--- ===== a speaker keeps working when its event goes
+-- ===== what visitors and members see of the links, and who can change them
+reset role;
+set local role anon;
+select is((select count(*) from public.speaker_events where speaker_id = '22222222-aaaa-0000-0000-000000000009'), 2::bigint, 'visitors see a visible speaker''s events');
+select throws_ok($$select public.admin_set_speaker_events('22222222-aaaa-0000-0000-000000000009', '{}'::uuid[])$$, '42501', null, 'visitors cannot change them');
+reset role;
+insert into public.speaker_events (speaker_id, event_id) values ('22222222-aaaa-0000-0000-000000000002', 'eeeeeeee-aaaa-0000-0000-000000000001');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"ffffffff-aaaa-0000-0000-000000000002","role":"authenticated"}', true);
+select is((select count(*) from public.speaker_events where speaker_id = '22222222-aaaa-0000-0000-000000000002'), 0::bigint, 'members do not see the events of a hidden speaker');
+select throws_ok($$select public.admin_set_speaker_events('22222222-aaaa-0000-0000-000000000009', '{}'::uuid[])$$, '42501', null, 'members cannot change them');
+
+-- ===== a speaker keeps working when an event goes
 reset role;
 delete from public.events where id = 'eeeeeeee-aaaa-0000-0000-000000000001';
-select is((select event_id from public.speakers where slug = 'ada-lee'), null, 'deleting the event clears the speaker''s link');
+select is((select count(*) from public.speaker_events where speaker_id = '22222222-aaaa-0000-0000-000000000009'), 1::bigint, 'deleting an event removes only that link');
 
 -- ===== the picture bucket
 select is((select file_size_limit from storage.buckets where id = 'site-images'), 512000::bigint, 'pictures are limited to 500 KB');

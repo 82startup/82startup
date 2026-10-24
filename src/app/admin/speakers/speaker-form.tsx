@@ -38,23 +38,24 @@ export function SpeakerForm({ speaker, events }: { speaker?: Speaker; events: { 
       <Field label={copy.speakersAdmin.company} error={err.company}>
         <input name="company" maxLength={100} defaultValue={speaker?.company} className={input} />
       </Field>
-      <Field label={copy.speakersAdmin.bio} error={err.bio}>
-        <textarea name="bio" rows={4} maxLength={1000} defaultValue={speaker?.bio} className={input} />
-      </Field>
-      <Field label={copy.speakersAdmin.linkedin} error={err.linkedin_url}>
-        <input name="linkedin_url" type="url" maxLength={200} defaultValue={speaker?.linkedin_url ?? ""} className={input} />
-      </Field>
-      <Field label={copy.speakersAdmin.website} error={err.website_url}>
-        <input name="website_url" type="url" maxLength={200} defaultValue={speaker?.website_url ?? ""} className={input} />
-      </Field>
-      <Field label={copy.speakersAdmin.event} error={err.event_id}>
-        <select name="event_id" defaultValue={speaker?.event_id ?? ""} className={input}>
-          <option value="">{copy.speakersAdmin.noEvent}</option>
-          {events.map((event) => (
-            <option key={event.id} value={event.id}>{event.title}</option>
-          ))}
-        </select>
-      </Field>
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-1 text-sm font-medium">{copy.speakersAdmin.event}</legend>
+        {events.length === 0 ? (
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">{copy.speakersAdmin.noEvents}</p>
+        ) : (
+          <ul className="flex max-h-56 flex-col gap-1 overflow-y-auto rounded border p-2">
+            {events.map((event) => (
+              <li key={event.id}>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="event_ids" value={event.id} defaultChecked={speaker?.event_ids.includes(event.id) ?? false} />
+                  <span className="min-w-0 break-words">{event.title}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
+        {err.event_ids && <span role="alert" className="text-sm text-red-700">{err.event_ids}</span>}
+      </fieldset>
       <PictureInput name="photo" kind="speakers" label={copy.speakersAdmin.photo} serverError={err.photo} />
       {speaker?.photo_path && (
         <label className="flex items-center gap-2 text-sm">

@@ -6,7 +6,6 @@ const form = (values: Record<string, string>) => {
   for (const [k, v] of Object.entries(values)) data.set(k, v);
   return data;
 };
-const EVENT = "11111111-2222-3333-4444-555555555555";
 
 describe("parseSponsorForm", () => {
   it("accepts a complete sponsor and trims text, with empty optional fields as null or empty", () => {
@@ -42,34 +41,45 @@ describe("parseSponsorForm", () => {
 
 describe("parseSpeakerForm", () => {
   const base = { name: "Ada Lee" };
-  it("accepts a speaker with only a name, and a complete one", () => {
-    expect(parseSpeakerForm(form(base))).toEqual({
+  const E1 = "11111111-2222-3333-4444-555555555555";
+  const E2 = "66666666-2222-3333-4444-555555555555";
+  const multi = (values: Record<string, string>, events: string[] = []) => {
+    const data = form(values);
+    for (const id of events) data.append("event_ids", id);
+    return data;
+  };
+
+  it("accepts a speaker with only a name, and one with a title, company and several events", () => {
+    expect(parseSpeakerForm(multi(base))).toEqual({ ok: true, value: { name: "Ada Lee", job_title: "", company: "", event_ids: [] } });
+    expect(parseSpeakerForm(multi({ ...base, job_title: " CEO ", company: " Acme " }, [E1, E2]))).toEqual({
       ok: true,
-      value: { name: "Ada Lee", job_title: "", company: "", bio: "", linkedin_url: null, website_url: null, event_id: null },
+      value: { name: "Ada Lee", job_title: "CEO", company: "Acme", event_ids: [E1, E2] },
     });
-    expect(
-      parseSpeakerForm(form({ ...base, job_title: "CEO", company: "Acme", bio: "Hi", linkedin_url: "https://www.linkedin.com/in/ada", website_url: "https://ada.test", event_id: EVENT })),
-    ).toMatchObject({ ok: true, value: { job_title: "CEO", company: "Acme", bio: "Hi", linkedin_url: "https://www.linkedin.com/in/ada", website_url: "https://ada.test", event_id: EVENT } });
   });
 
-  it("requires a name and enforces the limits", () => {
-    expect(parseSpeakerForm(form({ name: "" }))).toMatchObject({ ok: false, errors: { name: expect.any(String) } });
-    expect(parseSpeakerForm(form({ ...base, job_title: "j".repeat(121) }))).toMatchObject({ ok: false, errors: { job_title: expect.any(String) } });
-    expect(parseSpeakerForm(form({ ...base, company: "c".repeat(101) }))).toMatchObject({ ok: false, errors: { company: expect.any(String) } });
-    expect(parseSpeakerForm(form({ ...base, bio: "b".repeat(1001) }))).toMatchObject({ ok: false, errors: { bio: expect.any(String) } });
-    expect(parseSpeakerForm(form({ ...base, bio: "b".repeat(1000), job_title: "j".repeat(120), company: "c".repeat(100) }))).toMatchObject({ ok: true });
+  it("counts a repeated event once", () => {
+    expect(parseSpeakerForm(multi(base, [E1, E1, E2, E1]))).toMatchObject({ ok: true, value: { event_ids: [E1, E2] } });
   });
 
-  it("accepts only a https linkedin.com address for LinkedIn and an https address for the website", () => {
-    for (const bad of ["http://www.linkedin.com/in/a", "https://evil.test/in/a", "linkedin.com/in/a", "https://notlinkedin.com/in/a"]) {
-      expect(parseSpeakerForm(form({ ...base, linkedin_url: bad }))).toMatchObject({ ok: false, errors: { linkedin_url: expect.any(String) } });
-    }
-    expect(parseSpeakerForm(form({ ...base, website_url: "http://x.test" }))).toMatchObject({ ok: false, errors: { website_url: expect.any(String) } });
+  it("requires a name and enforces the limits exactly", () => {
+    expect(parseSpeakerForm(multi({ name: "" }))).toMatchObject({ ok: false, errors: { name: expect.any(String) } });
+    expect(parseSpeakerForm(multi({ name: "n".repeat(101) }))).toMatchObject({ ok: false, errors: { name: expect.any(String) } });
+    expect(parseSpeakerForm(multi({ ...base, job_title: "j".repeat(121) }))).toMatchObject({ ok: false, errors: { job_title: expect.any(String) } });
+    expect(parseSpeakerForm(multi({ ...base, company: "c".repeat(101) }))).toMatchObject({ ok: false, errors: { company: expect.any(String) } });
+    expect(parseSpeakerForm(multi({ name: "n".repeat(100), job_title: "j".repeat(120), company: "c".repeat(100) }))).toMatchObject({ ok: true });
   });
 
-  it("accepts an event that is a UUID or empty, and nothing else", () => {
-    expect(parseSpeakerForm(form({ ...base, event_id: "" }))).toMatchObject({ ok: true, value: { event_id: null } });
-    expect(parseSpeakerForm(form({ ...base, event_id: "nope" }))).toMatchObject({ ok: false, errors: { event_id: expect.any(String) } });
+  it("accepts only event ids that are UUIDs, and at most 50", () => {
+    expect(parseSpeakerForm(multi(base, [E1, "nope"]))).toMatchObject({ ok: false, errors: { event_ids: expect.any(String) } });
+    const many = Array.from({ length: 51 }, (_, n) => `00000000-0000-0000-0000-${String(n).padStart(12, "0")}`);
+    expect(parseSpeakerForm(multi(base, many))).toMatchObject({ ok: false, errors: { event_ids: expect.any(String) } });
+    expect(parseSpeakerForm(multi(base, many.slice(0, 50)))).toMatchObject({ ok: true });
+  });
+
+  it("ignores the fields speakers no longer have (bio, LinkedIn, website)", () => {
+    const result = parseSpeakerForm(multi({ ...base, bio: "Long bio", linkedin_url: "https://www.linkedin.com/in/ada", website_url: "https://ada.test" }));
+    expect(result).toMatchObject({ ok: true });
+    for (const key of ["bio", "linkedin_url", "website_url"]) expect((result as { value: object }).value).not.toHaveProperty(key);
   });
 });
 
