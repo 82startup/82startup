@@ -9,6 +9,7 @@ const msg = (over: Partial<ThreadMessage> = {}): ThreadMessage => ({
   created_at: "2027-03-17T16:00:00.000Z",
   is_mine: false,
   is_unread: false,
+  is_post: false,
   ...over,
 });
 const render = (messages: ThreadMessage[], name = "Bo B") => renderToStaticMarkup(createElement(MessageList, { messages, name }));
@@ -31,6 +32,11 @@ describe("MessageList", () => {
     expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
     expect(html).not.toContain("<b>");
     expect(html).not.toContain("<a ");
+  });
+
+  it("shows a Post label only on messages that came from a post", () => {
+    const html = render([msg({ id: "a", is_post: true, body: "news" }), msg({ id: "b", body: "chat" })]);
+    expect(html.match(/>Post</g)?.length).toBe(1);
   });
 
   it("breaks a very long unbroken word instead of overflowing", () => {
