@@ -5,6 +5,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAdmin } from "@/lib/admin/guard";
 import { copy } from "@/lib/copy";
+import { triggerNotifications } from "@/lib/notifications/trigger";
 import { fetchEventPage } from "@/lib/external/fetch";
 import { makeExternalSlug, parseExternalForm, toPreview, type ExternalErrors, type Preview } from "@/lib/external/form";
 import { parseEventPage } from "@/lib/external/parse";
@@ -93,6 +94,9 @@ export async function saveExternalEvent(_prev: SaveState, formData: FormData): P
     if (found === "external") return { error: E.duplicate };
   }
 
+  const rawRequest = String(formData.get("request_id") ?? "");
+  const requestId = !id && UUID.test(rawRequest) ? rawRequest : null;
+
   const { error } = await supabase.rpc("admin_save_external_event", {
     p_id: id,
     p_slug: id ? null : makeExternalSlug(v.title, randomBytes(3).toString("hex")),
@@ -109,10 +113,12 @@ export async function saveExternalEvent(_prev: SaveState, formData: FormData): P
     p_external_url: v.url,
     p_external_host: v.host,
     p_hidden: v.hidden,
+    p_request_id: requestId,
   });
-  if (error) return { error: error.code === "23505" ? E.duplicate : E.save };
+  if (error) return { error: error.code === "23505" ? E.duplicate : error.code === "P0002" && requestId ? E.requestDecided : E.save };
 
   refresh();
+  if (requestId) triggerNotifications();
   return { saved: true };
 }
 

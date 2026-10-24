@@ -116,4 +116,21 @@ describe("processNotifications", () => {
     const t = setup([]);
     expect(await t.run()).toEqual({ sent: 0, skipped: 0, retried: 0 });
   });
+
+  it("always sends event request emails, even when the admin has every email setting off", async () => {
+    const t = setup([event({ kind: "event_request", kind_enabled_at: null, on_requests: false, on_accepted: false, on_messages: false, preview: "Demo Night" })]);
+    const result = await t.run();
+    expect(result).toMatchObject({ sent: 1, skipped: 0 });
+    expect(t.sent[0].subject).toBe("Ann A suggested an event for 82 Startup");
+  });
+
+  it("always sends the decision to the member, and does not throttle repeats", async () => {
+    const t = setup([event({ kind: "event_request_approved", kind_enabled_at: null, last_sent_at: ago(1), preview: "Demo Night" })]);
+    expect((await t.run()).sent).toBe(1);
+  });
+
+  it("still drops an event request email that waited more than a day", async () => {
+    const t = setup([event({ kind: "event_request", created_at: ago(25 * 60) })]);
+    expect((await t.run()).skipped).toBe(1);
+  });
 });

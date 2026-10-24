@@ -122,3 +122,48 @@ describe("buildEmail headers", () => {
     expect(headers["List-Unsubscribe-Post"]).toBe("List-Unsubscribe=One-Click");
   });
 });
+
+describe("buildEmail for event requests", () => {
+  const request = { ...base, kind: "event_request" as const, actorName: "Mia M", preview: "Demo Night\nplease add" };
+
+  it("tells an admin who asked, shows the title and note, and links to the requests", () => {
+    const mail = buildEmail(request);
+    expect(mail.subject).toBe("Mia M suggested an event for 82 Startup");
+    expect(mail.text).toContain("Demo Night");
+    expect(mail.text).toContain("> please add");
+    expect(mail.text).toContain("https://82startup.vercel.app/admin/events");
+    expect(mail.html).toContain('href="https://82startup.vercel.app/admin/events"');
+  });
+
+  it("has no Unsubscribe link and says why admins get it, with a link to the email settings", () => {
+    const mail = buildEmail(request);
+    expect(mail.text).not.toMatch(/unsubscribe/i);
+    expect(mail.html).not.toMatch(/unsubscribe/i);
+    expect(mail.text).toContain("because you are an admin");
+    expect(mail.text).toContain("https://82startup.vercel.app/settings");
+    expect(mail.headers).toEqual({});
+  });
+
+  it("tells the member the event was added, with the event title, and links to their requests", () => {
+    const mail = buildEmail({ ...base, kind: "event_request_approved", preview: "Demo Night" });
+    expect(mail.subject).toBe("Your event suggestion was added to 82 Startup");
+    expect(mail.text).toContain("Demo Night");
+    expect(mail.text).toContain("https://82startup.vercel.app/events/submit");
+    expect(mail.text).not.toMatch(/unsubscribe/i);
+    expect(mail.headers).toEqual({});
+  });
+
+  it("tells the member it was not added, with the reason when there is one", () => {
+    const withReason = buildEmail({ ...base, kind: "event_request_rejected", preview: "Not our kind of event" });
+    expect(withReason.subject).toBe("Your event suggestion was not added");
+    expect(withReason.text).toContain("> Not our kind of event");
+    const without = buildEmail({ ...base, kind: "event_request_rejected", preview: "" });
+    expect(without.text).not.toContain(">");
+  });
+
+  it("shows text from members only as text in the HTML", () => {
+    const mail = buildEmail({ ...request, preview: "<script>x</script>" });
+    expect(mail.html).not.toContain("<script>");
+    expect(mail.html).toContain("&lt;script&gt;");
+  });
+});

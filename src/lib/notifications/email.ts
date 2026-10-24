@@ -1,4 +1,16 @@
-export type NotificationKind = "connection_request" | "connection_accepted" | "message" | "post";
+export type NotificationKind =
+  | "connection_request"
+  | "connection_accepted"
+  | "message"
+  | "post"
+  | "event_request"
+  | "event_request_approved"
+  | "event_request_rejected";
+
+// Event request emails are not optional: no setting turns them off and they carry no Unsubscribe link.
+const ALWAYS_SENT = ["event_request", "event_request_approved", "event_request_rejected"] as const;
+export type RequestKind = (typeof ALWAYS_SENT)[number];
+export const isAlwaysSent = (kind: NotificationKind): kind is RequestKind => (ALWAYS_SENT as readonly string[]).includes(kind);
 
 export type EmailInput = {
   kind: NotificationKind;
@@ -12,21 +24,23 @@ export type EmailInput = {
   siteUrl: string;
 };
 
-const SUBJECT: Record<NotificationKind, (name: string) => string> = {
+type MemberKind = Exclude<NotificationKind, RequestKind>;
+
+const SUBJECT: Record<MemberKind, (name: string) => string> = {
   connection_request: (name) => `${name} wants to connect on 82 Startup`,
   connection_accepted: (name) => `${name} accepted your connection request`,
   message: (name) => `New message from ${name}`,
   post: (name) => `${name} shared a post`,
 };
 
-const HEADLINE: Record<NotificationKind, (name: string) => string> = {
+const HEADLINE: Record<MemberKind, (name: string) => string> = {
   connection_request: (name) => `${name} wants to connect with you on 82 Startup.`,
   connection_accepted: (name) => `${name} accepted your connection request on 82 Startup.`,
   message: (name) => `${name} sent you a message on 82 Startup.`,
   post: (name) => `${name} shared a post with their connections on 82 Startup.`,
 };
 
-const KIND_LABEL: Record<NotificationKind, string> = {
+const KIND_LABEL: Record<MemberKind, string> = {
   connection_request: "Connect emails",
   connection_accepted: "Connect emails",
   message: "messages and posts",
@@ -34,7 +48,7 @@ const KIND_LABEL: Record<NotificationKind, string> = {
 };
 
 // Requests and accepted connections share the Connect choice; posts are emailed under the Messages choice.
-const UNSUBSCRIBE_KIND: Record<NotificationKind, string> = {
+const UNSUBSCRIBE_KIND: Record<MemberKind, string> = {
   connection_request: "connect",
   connection_accepted: "connect",
   message: "message",
@@ -49,6 +63,7 @@ const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
 // A plain-text email and the same email as HTML. Everything from other members is shown as text; the only links are ours.
 export function buildEmail(i: EmailInput): { subject: string; text: string; html: string; headers: Record<string, string> } {
   const name = oneLine(i.actorName) || "A member";
+  if (isAlwaysSent(i.kind)) return buildRequestEmail({ ...i, kind: i.kind }, name);
   const page = i.kind === "connection_request" || i.kind === "connection_accepted" ? "members" : "messages";
   const unsubscribe = (kind: string) => `${i.siteUrl}/unsubscribe?code=${i.unsubscribeCode}&kind=${kind}`;
   const state = (on: boolean) => (on ? "On" : "Off");
@@ -104,4 +119,63 @@ export function buildEmail(i: EmailInput): { subject: string; text: string; html
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     },
   };
+}
+
+const REQUEST = {
+  event_request: {
+    subject: (name: string) => `${name} suggested an event for 82 Startup`,
+    headline: (name: string) => `${name} suggested an event for 82 Startup. It waits for an admin to add it or turn it down.`,
+    page: "/admin/events",
+    open: "Review the request",
+    reason: "You get this email because you are an admin of 82 Startup.",
+  },
+  event_request_approved: {
+    subject: () => "Your event suggestion was added to 82 Startup",
+    headline: () => "Thank you. Your event suggestion was added to the 82 Startup events.",
+    page: "/events/submit",
+    open: "See your suggestions",
+    reason: "You get this email because it answers an event you suggested on 82 Startup.",
+  },
+  event_request_rejected: {
+    subject: () => "Your event suggestion was not added",
+    headline: () => "Thank you for the suggestion. The admins did not add this event to 82 Startup.",
+    page: "/events/submit",
+    open: "See your suggestions",
+    reason: "You get this email because it answers an event you suggested on 82 Startup.",
+  },
+} as const;
+
+// Event request emails: always sent, so no Unsubscribe link; the footer says why and links to the email settings.
+function buildRequestEmail(i: EmailInput & { kind: RequestKind }, name: string) {
+  const r = REQUEST[i.kind];
+  const preview = i.preview.trim();
+  const openUrl = `${i.siteUrl}${r.page}`;
+  const settingsUrl = `${i.siteUrl}/settings`;
+  const text = [
+    r.headline(name),
+    ...(preview ? ["", ...preview.split(/\r?\n/).map((line) => `> ${line}`)] : []),
+    "",
+    `${r.open}: ${openUrl}`,
+    "",
+    "--",
+    r.reason,
+    `Manage email settings: ${settingsUrl}`,
+  ].join("\n");
+
+  const p = (body: string, style = "") => `<p style="margin:0 0 12px;${style}">${body}</p>`;
+  const link = (href: string, label: string) => `<a href="${escapeHtml(href)}">${label}</a>`;
+  const html = [
+    '<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5;color:#111">',
+    p(escapeHtml(r.headline(name))),
+    ...(preview
+      ? [`<blockquote style="margin:0 0 12px;padding-left:12px;border-left:3px solid #ccc;white-space:pre-wrap">${escapeHtml(preview)}</blockquote>`]
+      : []),
+    p(link(openUrl, r.open)),
+    '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0">',
+    p(escapeHtml(r.reason), "color:#666;font-size:13px;"),
+    p(link(settingsUrl, "Manage email settings"), "color:#666;font-size:13px;"),
+    "</div>",
+  ].join("\n");
+
+  return { subject: r.subject(name), text, html, headers: {} as Record<string, string> };
 }

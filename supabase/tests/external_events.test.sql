@@ -82,8 +82,8 @@ select throws_ok($$select public.admin_delete_external_event('eeeeeeee-bbbb-0000
 
 -- ===== production-like grants
 reset role;
-select is(has_function_privilege('anon', 'public.admin_save_external_event(uuid, text, text, text, timestamptz, timestamptz, text, text, text, text, text, text, text, text, boolean)', 'execute'), false, 'anon cannot run the admin function');
-select is(has_function_privilege('authenticated', 'public.admin_save_external_event(uuid, text, text, text, timestamptz, timestamptz, text, text, text, text, text, text, text, text, boolean)', 'execute'), true, 'signed-in members can call it (it checks admin itself)');
+select is(has_function_privilege('anon', 'public.admin_save_external_event(uuid, text, text, text, timestamptz, timestamptz, text, text, text, text, text, text, text, text, boolean, uuid)', 'execute'), false, 'anon cannot run the admin function');
+select is(has_function_privilege('authenticated', 'public.admin_save_external_event(uuid, text, text, text, timestamptz, timestamptz, text, text, text, text, text, text, text, text, boolean, uuid)', 'execute'), true, 'signed-in members can call it (it checks admin itself)');
 select is(has_function_privilege('anon', 'public.admin_delete_external_event(uuid)', 'execute'), false, 'anon cannot run the delete function');
 
 select * from finish();
