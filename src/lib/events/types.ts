@@ -14,4 +14,6 @@ export type PublicEvent = {
   cover_url: string | null;
   luma_url: string;
   featured: boolean;
+  source: "luma" | "external";
+  external_host: string | null;
 };

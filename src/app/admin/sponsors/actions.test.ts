@@ -74,7 +74,7 @@ describe("saveSponsor", () => {
 
   it("refuses bad fields with a message each, without touching the database", async () => {
     const db = asAdmin();
-    const state = await saveSponsor({}, form({ name: "", tier: "diamond", website_url: "http://x.test" }));
+    const state = await saveSponsor({}, form({ name: "", tier: "titanium", website_url: "http://x.test" }));
     expect(state.errors).toMatchObject({ name: expect.any(String), tier: expect.any(String), website_url: expect.any(String) });
     expect(db.calls).toEqual([]);
     expect(updateTag).not.toHaveBeenCalled();

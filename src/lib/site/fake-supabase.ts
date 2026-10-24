@@ -48,8 +48,13 @@ export function fakeSupabase(results: Record<string, Result> = {}) {
     return b;
   }
 
+  const rpcCalls: { name: string; args: unknown }[] = [];
   const supabase = {
     from: (table: string) => chain(table),
+    rpc: async (name: string, args: unknown) => {
+      rpcCalls.push({ name, args });
+      return results[`rpc:${name}`] ?? { data: null, error: null };
+    },
     storage: {
       from: () => ({
         upload: async (path: string, _body: unknown, options?: { contentType?: string }) => {
@@ -63,5 +68,5 @@ export function fakeSupabase(results: Record<string, Result> = {}) {
       }),
     },
   };
-  return { supabase, calls, uploads, removed };
+  return { supabase, calls, uploads, removed, rpcCalls };
 }

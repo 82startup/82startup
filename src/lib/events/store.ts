@@ -15,7 +15,8 @@ export function createEventStore(db: SupabaseClient): EventStore {
 
   return {
     async listStored() {
-      const { data, error } = await db.from("events").select("luma_event_id, start_at, end_at, removed_from_luma");
+      // Only events from our own Luma calendar: events added by link from other sites are never touched by the sync.
+      const { data, error } = await db.from("events").select("luma_event_id, start_at, end_at, removed_from_luma").eq("source", "luma");
       fail(error);
       return data ?? [];
     },

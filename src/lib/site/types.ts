@@ -1,4 +1,5 @@
-export const TIERS = ["platinum", "gold", "silver", "bronze"] as const;
+// In the order the public page shows them.
+export const TIERS = ["platinum", "diamond", "gold", "silver", "bronze"] as const;
 export type Tier = (typeof TIERS)[number];
 
 export type Sponsor = {

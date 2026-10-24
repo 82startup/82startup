@@ -20,6 +20,8 @@ const event = (over: Partial<PublicEvent> = {}): PublicEvent => ({
   cover_url: "https://images.lumacdn.com/cover.png",
   luma_url: "https://luma.com/x",
   featured: false,
+  source: "luma",
+  external_host: null,
   ...over,
 });
 const render = (e: PublicEvent, highlight?: boolean) => renderToStaticMarkup(createElement(EventCard, { event: e, highlight }));
@@ -61,6 +63,19 @@ describe("EventCard", () => {
     const html = render(event({ featured: true }), false);
     expect(html).toContain("h-24 w-24");
     expect(html).not.toContain("Featured");
+  });
+
+  it("says where an external event is from, on both card styles, and says nothing for our own events", () => {
+    const external = { source: "external", external_host: "eventbrite.com" } as const;
+    expect(render(event({ ...external }))).toContain("Added from Eventbrite");
+    expect(render(event({ ...external, featured: true }))).toContain("Added from Eventbrite");
+    expect(render(event())).not.toContain("Added from");
+    expect(render(event({ ...external, external_host: "events.example.org" }))).toContain("Added from events.example.org");
+  });
+
+  it("shows an external event's cover with no referrer (it is on another site)", () => {
+    expect(render(event({ source: "external", external_host: "eventbrite.com", featured: true }))).toContain('referrerPolicy="no-referrer"');
+    expect(render(event({ source: "external", external_host: "eventbrite.com" }))).toContain('referrerPolicy="no-referrer"');
   });
 
   it("escapes a title with markup in it", () => {

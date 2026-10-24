@@ -26,6 +26,13 @@ describe("SponsorsSection", () => {
     expect(html).not.toContain("Silver sponsors");
   });
 
+  it("shows a Diamond tier after Platinum and before Gold, large like Platinum, with its description", () => {
+    const html = sponsors([sponsor({ id: "g", tier: "gold", name: "Gold Co" }), sponsor({ id: "d", tier: "diamond", name: "Diamond Co", description: "Diamond description" }), sponsor({ id: "p", tier: "platinum", name: "Plat Co" })]);
+    expect(html.indexOf("Platinum sponsors")).toBeLessThan(html.indexOf("Diamond sponsors"));
+    expect(html.indexOf("Diamond sponsors")).toBeLessThan(html.indexOf("Gold sponsors"));
+    expect(html).toContain("Diamond description");
+  });
+
   it("shows a platinum sponsor large with its description and website link, opening in a new tab safely", () => {
     const html = sponsors([sponsor({ tier: "platinum", description: "Big description" })]);
     expect(html).toContain("Big description");

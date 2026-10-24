@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { copy } from "@/lib/copy";
+import { PictureInput } from "../picture-input";
 import { TIERS, type Sponsor } from "@/lib/site/types";
 import { saveContactLink, saveSponsor, type SponsorState } from "./actions";
 
@@ -45,9 +46,7 @@ export function SponsorForm({ sponsor }: { sponsor?: Sponsor }) {
       <Field label={copy.sponsorsAdmin.description} error={err.description}>
         <textarea name="description" rows={4} maxLength={600} defaultValue={sponsor?.description} className={input} />
       </Field>
-      <Field label={copy.sponsorsAdmin.logo} error={err.logo}>
-        <input name="logo" type="file" accept="image/png,image/jpeg,image/webp" className="text-sm" />
-      </Field>
+      <PictureInput name="logo" kind="sponsors" label={copy.sponsorsAdmin.logo} serverError={err.logo} />
       {sponsor?.logo_path && (
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="remove_logo" />
