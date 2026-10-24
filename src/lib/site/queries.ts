@@ -9,6 +9,12 @@ function anonClient() {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
+// A speaker row with its embedded links, as a Speaker with the list of event ids.
+export function toSpeaker(row: Record<string, unknown>): Speaker {
+  const { speaker_events, ...rest } = row as Record<string, unknown> & { speaker_events?: { event_id: string }[] };
+  return { ...(rest as Omit<Speaker, "event_ids">), event_ids: (speaker_events ?? []).map((link) => link.event_id) };
+}
+
 export async function getSponsors(): Promise<Sponsor[]> {
   "use cache";
   cacheLife("hours");
@@ -31,16 +37,16 @@ export async function getSpeakers(): Promise<Speaker[]> {
   "use cache";
   cacheLife("hours");
   cacheTag("speakers");
-  const { data, error } = await anonClient().from("speakers").select("*").order("sort_order").order("name");
+  const { data, error } = await anonClient().from("speakers").select("*, speaker_events(event_id)").order("sort_order").order("name");
   if (error) throw new Error(error.message);
-  return (data ?? []) as Speaker[];
+  return (data ?? []).map(toSpeaker);
 }
 
 export async function getSpeaker(slug: string): Promise<Speaker | null> {
   "use cache";
   cacheLife("hours");
   cacheTag("speakers");
-  const { data, error } = await anonClient().from("speakers").select("*").eq("slug", slug).maybeSingle();
+  const { data, error } = await anonClient().from("speakers").select("*, speaker_events(event_id)").eq("slug", slug).maybeSingle();
   if (error) throw new Error(error.message);
-  return (data as Speaker | null) ?? null;
+  return data ? toSpeaker(data) : null;
 }

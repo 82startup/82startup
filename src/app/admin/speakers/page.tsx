@@ -4,8 +4,9 @@ import { connection } from "next/server";
 import { getAdmin } from "@/lib/admin/guard";
 import { copy } from "@/lib/copy";
 import { getVisibleEvents } from "@/lib/events/queries";
+import { eventsForSpeakers } from "@/lib/site/speaker-events";
 import { siteImageUrl } from "@/lib/site/images";
-import type { Speaker } from "@/lib/site/types";
+import { toSpeaker } from "@/lib/site/queries";
 import { supabaseEnv } from "@/lib/supabase/env";
 import { ActionButton } from "../action-button";
 import { AdminNav } from "../admin-nav";
@@ -28,10 +29,10 @@ async function AdminSpeakersContent() {
   if (check.status === "logged-out") redirect("/login?next=/admin/speakers");
   if (check.status !== "admin") notFound();
 
-  const { data, error } = await supabase.from("speakers").select("*").order("sort_order").order("name");
+  const { data, error } = await supabase.from("speakers").select("*, speaker_events(event_id)").order("sort_order").order("name");
   if (error) throw new Error(error.message);
-  const speakers = (data ?? []) as Speaker[];
-  const events = (await getVisibleEvents()).map((e) => ({ id: e.id, title: e.title }));
+  const speakers = (data ?? []).map(toSpeaker);
+  const events = eventsForSpeakers(await getVisibleEvents());
   const baseUrl = supabaseEnv().url;
 
   return (

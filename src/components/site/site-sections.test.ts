@@ -12,7 +12,7 @@ const sponsor = (over: Partial<Sponsor> = {}): Sponsor => ({
   id: "s1", name: "Acme", tier: "gold", website_url: "https://acme.test", description: "About Acme", logo_path: `sponsors/${ID}.png`, sort_order: 1, visible: true, ...over,
 });
 const speaker = (over: Partial<Speaker> = {}): Speaker => ({
-  id: "p1", slug: "ada-lee", name: "Ada Lee", job_title: "CEO", company: "Acme", bio: "Bio", photo_path: `speakers/${ID}.jpg`, linkedin_url: null, website_url: null, event_id: null, sort_order: 1, visible: true, ...over,
+  id: "p1", slug: "ada-lee", name: "Ada Lee", job_title: "CEO", company: "Acme", photo_path: `speakers/${ID}.jpg`, event_ids: [], sort_order: 1, visible: true, ...over,
 });
 const sponsors = (list: Sponsor[], contact: string | null = null) => renderToStaticMarkup(createElement(SponsorsSection, { sponsors: list, contact, baseUrl: BASE }));
 const speakers = (list: Speaker[]) => renderToStaticMarkup(createElement(SpeakersGrid, { speakers: list, baseUrl: BASE }));

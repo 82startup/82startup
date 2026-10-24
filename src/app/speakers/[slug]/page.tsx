@@ -28,8 +28,6 @@ export default function SpeakerPage({ params }: PageProps<"/speakers/[slug]">) {
   );
 }
 
-const HTTPS = /^https:\/\/\S+$/;
-
 async function SpeakerDetail({ params }: { params: PageProps<"/speakers/[slug]">["params"] }) {
   await connection();
   const { slug } = await params;
@@ -38,7 +36,9 @@ async function SpeakerDetail({ params }: { params: PageProps<"/speakers/[slug]">
 
   const src = siteImageUrl(supabaseEnv().url, speaker.photo_path);
   const detail = [speaker.job_title, speaker.company].filter(Boolean).join(" · ");
-  const event = speaker.event_id ? (await getVisibleEvents()).find((e) => e.id === speaker.event_id) : undefined;
+  // The events the speaker speaks at that are on the site (hidden events are not shown), soonest first.
+  const chosen = new Set(speaker.event_ids);
+  const events = chosen.size === 0 ? [] : (await getVisibleEvents()).filter((e) => chosen.has(e.id)).sort((a, b) => a.start_at.localeCompare(b.start_at));
 
   return (
     <article className="flex flex-col gap-4">
@@ -57,22 +57,17 @@ async function SpeakerDetail({ params }: { params: PageProps<"/speakers/[slug]">
           {detail && <p className="text-zinc-600 dark:text-zinc-400">{detail}</p>}
         </div>
       </div>
-      {speaker.bio && <p className="whitespace-pre-line break-words">{speaker.bio}</p>}
-      {(speaker.linkedin_url || speaker.website_url) && (
-        <p className="flex flex-wrap gap-4">
-          {speaker.linkedin_url && HTTPS.test(speaker.linkedin_url) && (
-            <a href={speaker.linkedin_url} target="_blank" rel="noopener noreferrer" className="underline">{copy.site.linkedin}</a>
-          )}
-          {speaker.website_url && HTTPS.test(speaker.website_url) && (
-            <a href={speaker.website_url} target="_blank" rel="noopener noreferrer" className="underline">{copy.site.website}</a>
-          )}
-        </p>
-      )}
-      {event && (
-        <p>
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">{copy.site.speaksAt}: </span>
-          <Link href={`/events/${event.slug}`} className="underline">{event.title}</Link>
-        </p>
+      {events.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">{copy.site.speaksAt}</h2>
+          <ul className="flex flex-col gap-1">
+            {events.map((event) => (
+              <li key={event.id}>
+                <Link href={`/events/${event.slug}`} className="underline">{event.title}</Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </article>
   );
