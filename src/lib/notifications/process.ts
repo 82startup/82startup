@@ -1,4 +1,4 @@
-import { buildEmail, type NotificationKind } from "./email";
+import { buildEmail, isAlwaysSent, type NotificationKind } from "./email";
 import type { MailSender } from "./sender";
 
 export type ClaimedEvent = {
@@ -49,7 +49,8 @@ export async function processNotifications({ store, sender, getEmail, siteUrl, n
     const created = new Date(e.created_at).getTime();
     const enabledAt = e.kind_enabled_at ? new Date(e.kind_enabled_at).getTime() : null;
     const tooOld = now.getTime() - created > MAX_AGE_MS;
-    const beforeTicked = enabledAt === null || created < enabledAt;
+    // Event request emails ignore the email settings; every other kind is sent only for what the member ticked.
+    const beforeTicked = !isAlwaysSent(e.kind) && (enabledAt === null || created < enabledAt);
     const throttled = e.kind === "message" && e.last_sent_at !== null && now.getTime() - new Date(e.last_sent_at).getTime() < MESSAGE_EMAIL_INTERVAL_MS;
 
     if (beforeTicked || tooOld || throttled) {

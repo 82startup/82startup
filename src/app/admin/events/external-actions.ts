@@ -5,6 +5,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAdmin } from "@/lib/admin/guard";
 import { copy } from "@/lib/copy";
+import { triggerNotifications } from "@/lib/notifications/trigger";
 import { fetchEventPage } from "@/lib/external/fetch";
 import { makeExternalSlug, parseExternalForm, toPreview, type ExternalErrors, type Preview } from "@/lib/external/form";
 import { parseEventPage } from "@/lib/external/parse";
@@ -117,6 +118,7 @@ export async function saveExternalEvent(_prev: SaveState, formData: FormData): P
   if (error) return { error: error.code === "23505" ? E.duplicate : error.code === "P0002" && requestId ? E.requestDecided : E.save };
 
   refresh();
+  if (requestId) triggerNotifications();
   return { saved: true };
 }
 

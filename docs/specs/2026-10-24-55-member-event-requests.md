@@ -33,7 +33,7 @@ goes to the admins, who approve or reject it. Admins can make other members admi
 
 ## Emails
 
-- New email kinds: `event_request` (to every admin when a request arrives) and `event_request_result` (to the member when
+- New email kinds: `event_request` (to every admin when a request arrives) and `event_request_approved` and `event_request_rejected` (to the member when
   decided, naming the event or the reason).
 - They use the existing outbox and sender. **Admins always get request emails**: no Settings checkbox, and no Unsubscribe link in
   them (the footer says why they get it and links to Manage email settings). The result email to the member is sent the same way

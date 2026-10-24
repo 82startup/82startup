@@ -1,5 +1,5 @@
 begin;
-select plan(40);
+select plan(47);
 
 -- Admin A, complete members M and O, incomplete member N.
 insert into auth.users (id, email) values
@@ -94,6 +94,17 @@ select set_config('request.jwt.claims', '{"sub":"ffffffff-cccc-0000-0000-0000000
 select is((select event_slug from public.my_event_requests() where url = 'https://a.example/e1'), 'er-new-event', 'M sees the event of the approved request');
 select is((select reject_reason from public.my_event_requests() where url = 'https://a.example/e2'), 'Not our kind of event', 'and the reason for the rejected one');
 select throws_ok($$select public.admin_reject_event_request((select id from public.my_event_requests() limit 1), 'x')$$, '42501', null, 'a member cannot reject');
+
+-- ===== emails (outbox rows; read as the table owner)
+reset role;
+select is((select count(*) from public.notification_events where kind = 'event_request' and recipient_id = 'ffffffff-cccc-0000-0000-000000000001' and actor_id = 'ffffffff-cccc-0000-0000-000000000002'), 3::bigint, 'the admin got one email row for each of the three requests');
+select is((select count(*) from public.notification_events where kind = 'event_request' and recipient_id = 'ffffffff-cccc-0000-0000-000000000002'), 0::bigint, 'the person who asked got none');
+select is((select count(*) from public.notification_events where kind = 'event_request_approved' and recipient_id = 'ffffffff-cccc-0000-0000-000000000002' and actor_id = 'ffffffff-cccc-0000-0000-000000000001'), 1::bigint, 'M is told about the approval');
+select is((select count(*) from public.notification_events where kind = 'event_request_rejected' and recipient_id = 'ffffffff-cccc-0000-0000-000000000002'), 1::bigint, 'M is told about the rejection');
+select is((select count(*) from public.notification_events where kind = 'event_request_approved' and recipient_id <> 'ffffffff-cccc-0000-0000-000000000002'), 0::bigint, 'nobody else is told');
+create temp table claimed as select * from public.claim_notification_events(100);
+select is((select preview from claimed where kind = 'event_request_rejected'), 'Not our kind of event', 'the rejection email carries the reason');
+select is((select preview from claimed where kind = 'event_request_approved'), 'New Event', 'the approval email carries the event title');
 
 -- ===== grants
 reset role;

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAdmin } from "@/lib/admin/guard";
 import { copy } from "@/lib/copy";
+import { triggerNotifications } from "@/lib/notifications/trigger";
 
 export type RejectState = { error?: string };
 
@@ -23,5 +24,6 @@ export async function rejectEventRequest(_prev: RejectState, formData: FormData)
   if (error) return { error: copy.admin.requests.error };
 
   revalidatePath("/admin/events");
+  triggerNotifications();
   return {};
 }

@@ -8,6 +8,7 @@ import { fetchEventPage } from "@/lib/external/fetch";
 import { parseExternalForm, toPreview, type Preview } from "@/lib/external/form";
 import { parseEventPage } from "@/lib/external/parse";
 import { normalizeEventUrl } from "@/lib/external/url";
+import { triggerNotifications } from "@/lib/notifications/trigger";
 import { createClient } from "@/lib/supabase/server";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -65,6 +66,7 @@ export async function submitEventRequest(_prev: SaveState, formData: FormData): 
   }
 
   revalidatePath("/events/submit");
+  triggerNotifications();
   return { saved: true };
 }
 
