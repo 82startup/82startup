@@ -5,6 +5,7 @@ import { EventCard } from "@/components/event-card";
 import { copy } from "@/lib/copy";
 import { pickHomeEvents } from "@/lib/events/home";
 import { getVisibleEvents } from "@/lib/events/queries";
+import { safely } from "@/lib/site/safe";
 import { getSpeakers, getSponsorContact, getSponsors } from "@/lib/site/queries";
 import { SpeakersGrid } from "@/components/site/speakers-grid";
 import { SponsorsSection } from "@/components/site/sponsors-section";
@@ -67,7 +68,7 @@ async function HomeEvents() {
 // Featured speakers and the sponsors, only when there is something to show.
 async function HomeSpeakers() {
   await connection();
-  const speakers = (await getSpeakers()).slice(0, 8);
+  const speakers = (await safely(getSpeakers, [])).slice(0, 8);
   if (speakers.length === 0) return null;
   return (
     <section className="mt-10">
@@ -80,7 +81,7 @@ async function HomeSpeakers() {
 
 async function HomeSponsors() {
   await connection();
-  const [sponsors, contact] = await Promise.all([getSponsors(), getSponsorContact()]);
+  const [sponsors, contact] = await Promise.all([safely(getSponsors, []), safely(getSponsorContact, null)]);
   if (sponsors.length === 0) return null;
   return (
     <section className="mt-10">
