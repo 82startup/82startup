@@ -89,7 +89,7 @@ export async function AttendanceActions({ event }: { event: PublicEvent }) {
                 <li key={a.member_id} className="flex items-center gap-2">
                   <Avatar name={a.name} url={a.avatar_url} size={28} />
                   <span>
-                    <span className="font-medium">{a.name || copy.attendance.member}</span>
+                    <Link href={`/members/${a.member_id}`} className="font-medium underline">{a.name || copy.attendance.member}</Link>
                     {detail && <span className="text-zinc-600 dark:text-zinc-400"> · {detail}</span>}
                   </span>
                 </li>
