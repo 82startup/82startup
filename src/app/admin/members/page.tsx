@@ -7,9 +7,7 @@ import { ADMIN_MEMBERS_PAGE_SIZE, directoryLabel, formatDate } from "@/lib/admin
 import { copy } from "@/lib/copy";
 import { parseMemberSearch } from "@/lib/members/search";
 import type { MemberType } from "@/lib/profile/schema";
-import { ActionButton } from "../action-button";
 import { AdminNav } from "../admin-nav";
-import { setMemberRole } from "./actions";
 
 export default function AdminMembersPage({ searchParams }: PageProps<"/admin/members">) {
   // Nothing about the screen is in the static shell: a non-admin must not learn it exists.
@@ -81,7 +79,7 @@ async function AdminMembersContent({ searchParams }: { searchParams: PageProps<"
           <ul className="flex flex-col gap-3">
             {rows.map((m) => (
               <li key={m.id} className="flex flex-col gap-1 rounded border p-3">
-                <span className="font-semibold">{m.name || copy.admin.members.noName}</span>
+                <Link href={`/members/${m.id}`} className="font-semibold underline">{m.name || copy.admin.members.noName}</Link>
                 <span className="break-all text-sm">{m.email}</span>
                 <span className="text-sm text-zinc-600 dark:text-zinc-400">
                   {copy.admin.members.role[m.role]} · {m.member_type ? copy.profile.types[m.member_type] : "—"} · {copy.admin.members.directoryTitle}: {directoryLabel(m.directory)}
@@ -90,14 +88,6 @@ async function AdminMembersContent({ searchParams }: { searchParams: PageProps<"
                   {copy.admin.members.joined} {formatDate(m.joined_at)} · {copy.admin.members.lastSignIn}{" "}
                   {m.last_sign_in_at ? formatDate(m.last_sign_in_at) : copy.admin.members.never}
                 </span>
-                {m.id !== check.userId && (
-                  <ActionButton
-                    action={setMemberRole}
-                    fields={{ id: m.id, role: m.role === "admin" ? "member" : "admin" }}
-                    label={m.role === "admin" ? copy.admin.members.removeAdmin : copy.admin.members.makeAdmin}
-                    confirm={(m.role === "admin" ? copy.admin.members.confirmRemoveAdmin : copy.admin.members.confirmMakeAdmin).replace("{name}", m.name || m.email)}
-                  />
-                )}
               </li>
             ))}
           </ul>

@@ -12,7 +12,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // Makes a member an admin, or an admin a member. The database function checks admin again and refuses your own role.
 export async function setMemberRole(_prev: RoleState, formData: FormData): Promise<RoleState> {
   const { supabase, check } = await getAdmin();
-  if (check.status === "logged-out") redirect("/login?next=/admin/members");
+  if (check.status === "logged-out") redirect("/login?next=/admin/admins");
   if (check.status !== "admin") return { error: copy.admin.errors.forbidden };
 
   const id = String(formData.get("id") ?? "");
@@ -20,8 +20,8 @@ export async function setMemberRole(_prev: RoleState, formData: FormData): Promi
   if (!UUID.test(id) || (role !== "admin" && role !== "member")) return { error: copy.admin.errors.save };
 
   const { error } = await supabase.rpc("admin_set_role", { p_member: id, p_role: role });
-  if (error) return { error: error.code === "22023" ? copy.admin.members.ownRole : copy.admin.errors.save };
+  if (error) return { error: error.code === "22023" ? copy.admin.admins.ownRole : copy.admin.errors.save };
 
-  revalidatePath("/admin/members");
+  revalidatePath("/admin/admins");
   return {};
 }
