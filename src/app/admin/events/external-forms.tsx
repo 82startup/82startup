@@ -21,8 +21,21 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 }
 
 // The details of an external event, filled from the page (or by hand) for the admin to check and change before saving.
-export function ExternalEventForm({ initial, id, requestId, hidden = false, submitLabel = t.save, onSaved }: { initial: Preview; id?: string; requestId?: string; hidden?: boolean; submitLabel?: string; onSaved?: () => void }) {
-  const [state, formAction, pending] = useActionState<SaveState, FormData>(saveExternalEvent, {});
+type FormProps = {
+  initial: Preview;
+  id?: string;
+  requestId?: string;
+  hidden?: boolean;
+  submitLabel?: string;
+  onSaved?: () => void;
+  // Members use the same form to send a request: their own action, no "Hidden" box, and a note field in `extra`.
+  action?: (prev: SaveState, formData: FormData) => Promise<SaveState>;
+  showHidden?: boolean;
+  extra?: React.ReactNode;
+};
+
+export function ExternalEventForm({ initial, id, requestId, hidden = false, submitLabel = t.save, onSaved, action = saveExternalEvent, showHidden = true, extra }: FormProps) {
+  const [state, formAction, pending] = useActionState<SaveState, FormData>(action, {});
   const err = state.errors ?? {};
   useEffect(() => {
     if (state.saved) onSaved?.();
@@ -79,10 +92,13 @@ export function ExternalEventForm({ initial, id, requestId, hidden = false, subm
       <Field label={t.fields.cover} error={err.cover_url}>
         <input name="cover_url" maxLength={500} defaultValue={initial.coverUrl} className={input} />
       </Field>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="hidden" defaultChecked={hidden} />
-        {t.fields.hidden}
-      </label>
+      {showHidden && (
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="hidden" defaultChecked={hidden} />
+          {t.fields.hidden}
+        </label>
+      )}
+      {extra}
       {err.url && <span role="alert" className="text-sm text-red-700">{err.url}</span>}
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending} className="rounded bg-black px-3 py-1 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black">{submitLabel}</button>

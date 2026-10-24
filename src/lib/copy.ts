@@ -262,7 +262,7 @@ export const copy = {
   },
   eventRequests: {
     title: "Suggest an event",
-    intro: "Know an event the community should see? Send its link. An admin looks at it and adds it to the site if it fits.",
+    intro: "Know an event the community should see? Paste its link and check the details we read from the page (or fill them in by hand). An admin looks at it and adds it to the site if it fits.",
     link: "Event link (https://…)",
     note: "Note for the admins (optional, up to 300 characters)",
     send: "Send",

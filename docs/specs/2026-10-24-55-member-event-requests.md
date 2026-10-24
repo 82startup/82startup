@@ -13,8 +13,10 @@ goes to the admins, who approve or reject it. Admins can make other members admi
 
 - New page `/events/submit` (linked from the Events page: "Suggest an event"), signed-in members with a complete profile only.
 - Form: event link (required), a note to the admins (optional, 300 characters).
-- The link is checked the same way as today (https, public address, normalised). The server does **not** fetch the page at this
-  point; it only stores the link, so a member cannot use the server to fetch pages.
+- **Read link first** (owner, 2026-10-24): like the admin's "Add an event by link", the member pastes the link, the page is read
+  into details (same guarded fetch), and the member checks and edits them. If the page cannot be read or is not an event page,
+  the member fills the details in by hand. Only then **Send** stores the request with those details (and the optional note).
+  Reading needs a signed-in member; nothing is saved until Send.
 - Refused with a plain message: an address already on the site (ours from Luma, or added before), or already waiting for approval.
 - Limits: at most 3 waiting requests per member, and 10 new requests per member per day.
 - The member sees their own requests on the same page with a status: Waiting, Approved (with a link to the event), Rejected.
@@ -24,7 +26,7 @@ goes to the admins, who approve or reject it. Admins can make other members admi
 
 - `/admin/events` gets a "Requests" section at the top, shown only when something waits, and the Admin nav shows the count.
 - Each request shows: who asked (name, company), the link, the note, when.
-- **Review and add**: opens the existing preview/edit form with the link filled in. Pressing **Add event** there adds the
+- **Review and add**: opens the existing preview/edit form with the details the member sent (no second read of the page). Pressing **Add event** there adds the
   event exactly as today and marks the request Approved (same transaction, same database function).
 - **Reject**: marks it Rejected, with an optional short reason that the member sees.
 - Any admin can decide; the first decision wins (a decided request cannot be decided again).

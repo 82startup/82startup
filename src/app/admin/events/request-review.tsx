@@ -3,29 +3,23 @@
 import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 import { copy } from "@/lib/copy";
-import { EMPTY, ExternalEventForm } from "./external-forms";
-import { readEventLink, type ReadState } from "./external-actions";
+import type { Preview } from "@/lib/external/form";
+import { ExternalEventForm } from "./external-forms";
 import { rejectEventRequest, type RejectState } from "./request-actions";
 
 const t = copy.admin.requests;
 
-// One waiting request. "Review and add" reads the member's link like "Add an event by link" does and shows the same details form;
-// adding the event from it approves the request. "Reject" closes it with an optional reason.
-export function RequestReview({ id, url, host }: { id: string; url: string; host: string }) {
+// One waiting request. The member already checked the details, so "Review and add" shows them in the same form as "Add an event by
+// link" (the admin can still change them); adding the event from it approves the request. "Reject" closes it with an optional reason.
+export function RequestReview({ id, details }: { id: string; details: Preview }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [manual, setManual] = useState(false);
-  const [read, readAction, reading] = useActionState<ReadState, FormData>(readEventLink, {});
   const [rejected, rejectAction, rejecting] = useActionState<RejectState, FormData>(rejectEventRequest, {});
-  const preview = read.preview ?? (manual ? EMPTY(url, host) : null);
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-start gap-2">
-        <form action={(formData) => { setOpen(true); setManual(false); readAction(formData); }}>
-          <input type="hidden" name="link" value={url} />
-          <button type="submit" disabled={reading} className="rounded border px-2 py-1 text-xs disabled:opacity-50">{reading ? copy.externalAdmin.reading : t.review}</button>
-        </form>
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="rounded border px-2 py-1 text-xs">{t.review}</button>
         <form
           action={rejectAction}
           onSubmit={(event) => {
@@ -39,15 +33,11 @@ export function RequestReview({ id, url, host }: { id: string; url: string; host
         </form>
       </div>
       {rejected.error && <span role="alert" className="text-sm text-red-700">{rejected.error}</span>}
-      {open && read.error && <span role="alert" className="text-sm text-red-700">{read.error}</span>}
-      {open && read.fillByHand && !manual && (
-        <button type="button" onClick={() => setManual(true)} className="self-start text-sm underline">{copy.externalAdmin.byHand}</button>
-      )}
-      {open && preview && (
+      {open && (
         <div className="flex flex-col gap-3 rounded border p-3">
           <h3 className="font-semibold">{copy.externalAdmin.previewTitle}</h3>
-          <ExternalEventForm initial={preview} requestId={id} submitLabel={copy.externalAdmin.add} onSaved={() => router.refresh()} />
-          <button type="button" onClick={() => { setOpen(false); setManual(false); }} className="self-start text-sm underline">{t.cancel}</button>
+          <ExternalEventForm initial={details} requestId={id} submitLabel={copy.externalAdmin.add} onSaved={() => router.refresh()} />
+          <button type="button" onClick={() => setOpen(false)} className="self-start text-sm underline">{t.cancel}</button>
         </div>
       )}
     </div>

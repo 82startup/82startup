@@ -42,7 +42,7 @@ async function AdminEventsContent() {
   const last = lastSyncedAt(events);
   // Members' requests that wait for an answer. If this call fails the page still works without them.
   const { data: requestRows } = await supabase.rpc("admin_event_requests");
-  const requests = (requestRows ?? []) as { id: string; url: string; host: string; note: string; created_at: string; requester_name: string; requester_company: string }[];
+  const requests = (requestRows ?? []) as { id: string; url: string; host: string; note: string; details: Preview; created_at: string; requester_name: string; requester_company: string }[];
 
   return (
     <>
@@ -63,7 +63,7 @@ async function AdminEventsContent() {
                 <span>{copy.admin.requests.from} {r.requester_name}{r.requester_company ? `, ${r.requester_company}` : ""} · {r.created_at.slice(0, 10)}</span>
                 <a href={r.url} target="_blank" rel="noopener noreferrer" className="break-all underline">{r.url}</a>
                 {r.note && <span>{copy.admin.requests.note} {r.note}</span>}
-                <RequestReview id={r.id} url={r.url} host={r.host} />
+                <RequestReview id={r.id} details={{ ...r.details, url: r.url, host: r.host }} />
               </li>
             ))}
           </ul>

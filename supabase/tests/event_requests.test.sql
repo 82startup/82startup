@@ -1,5 +1,5 @@
 begin;
-select plan(38);
+select plan(40);
 
 -- Admin A, complete members M and O, incomplete member N.
 insert into auth.users (id, email) values
@@ -14,9 +14,12 @@ update public.profiles set name = 'Nia N' where id = 'ffffffff-cccc-0000-0000-00
 insert into public.events (luma_event_id, slug, title, start_at, timezone, luma_url) values
   ('evt-er-1', 'er-event', 'Ours', now() + interval '5 days', 'UTC', 'https://luma.com/ours');
 
+-- Requests already in the database (for example from manual testing) must not change the counts; this is rolled back at the end.
+delete from public.event_requests;
+
 -- ===== visitors
 set local role anon;
-select throws_ok($$select public.submit_event_request('https://a.example/e', 'a.example', '')$$, '42501', null, 'visitors cannot ask');
+select throws_ok($$select public.submit_event_request('https://a.example/e', 'a.example', '', '{"title": "T"}')$$, '42501', null, 'visitors cannot ask');
 select throws_ok($$select * from public.my_event_requests()$$, '42501', null, 'visitors cannot list');
 select throws_ok($$select count(*) from public.event_requests$$, '42501', null, 'the table is closed to visitors');
 
@@ -24,20 +27,22 @@ select throws_ok($$select count(*) from public.event_requests$$, '42501', null, 
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"ffffffff-cccc-0000-0000-000000000004","role":"authenticated"}', true);
-select throws_ok($$select public.submit_event_request('https://a.example/e', 'a.example', '')$$, '42501', null, 'a member with an incomplete profile cannot ask');
+select throws_ok($$select public.submit_event_request('https://a.example/e', 'a.example', '', '{"title": "T"}')$$, '42501', null, 'a member with an incomplete profile cannot ask');
 
 -- ===== a member asks
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"ffffffff-cccc-0000-0000-000000000002","role":"authenticated"}', true);
-select isnt(public.submit_event_request('https://a.example/e1', 'a.example', 'please add'), null, 'M asks for an event');
-select throws_ok($$select public.submit_event_request('https://a.example/e1', 'a.example', '')$$, '23505', 'already requested', 'the same link twice is refused');
-select throws_ok($$select public.submit_event_request('https://luma.com/ours', 'luma.com', '')$$, '23505', 'already on the site', 'a link already on the site is refused');
-select throws_ok($$select public.submit_event_request('http://a.example/e2', 'a.example', '')$$, '22023', null, 'a link that is not https is refused');
-select throws_ok($$select public.submit_event_request('https://a.example/e2', 'a.example', repeat('x', 301))$$, '22001', null, 'a long note is refused');
-select lives_ok($$select public.submit_event_request('https://a.example/e2', 'a.example', '')$$, 'a second');
-select lives_ok($$select public.submit_event_request('https://a.example/e3', 'a.example', '')$$, 'a third');
-select throws_ok($$select public.submit_event_request('https://a.example/e4', 'a.example', '')$$, 'P0001', 'too many waiting', 'a fourth waiting is refused');
+select isnt(public.submit_event_request('https://a.example/e1', 'a.example', 'please add', '{"title": "T"}'), null, 'M asks for an event');
+select throws_ok($$select public.submit_event_request('https://a.example/e1', 'a.example', '', '{"title": "T"}')$$, '23505', 'already requested', 'the same link twice is refused');
+select throws_ok($$select public.submit_event_request('https://luma.com/ours', 'luma.com', '', '{"title": "T"}')$$, '23505', 'already on the site', 'a link already on the site is refused');
+select throws_ok($$select public.submit_event_request('http://a.example/e2', 'a.example', '', '{"title": "T"}')$$, '22023', null, 'a link that is not https is refused');
+select throws_ok($$select public.submit_event_request('https://a.example/e2', 'a.example', repeat('x', 301), '{"title": "T"}')$$, '22001', null, 'a long note is refused');
+select throws_ok($$select public.submit_event_request('https://a.example/e2', 'a.example', '', '{"title": ""}')$$, '22023', null, 'details without a title are refused');
+select throws_ok($$select public.submit_event_request('https://a.example/e2', 'a.example', '', '[]')$$, '22023', null, 'details that are not an object are refused');
+select lives_ok($$select public.submit_event_request('https://a.example/e2', 'a.example', '', '{"title": "T"}')$$, 'a second');
+select lives_ok($$select public.submit_event_request('https://a.example/e3', 'a.example', '', '{"title": "T"}')$$, 'a third');
+select throws_ok($$select public.submit_event_request('https://a.example/e4', 'a.example', '', '{"title": "T"}')$$, 'P0001', 'too many waiting', 'a fourth waiting is refused');
 select is((select count(*) from public.my_event_requests()), 3::bigint, 'M sees their three');
 select throws_ok($$select count(*) from public.event_requests$$, '42501', null, 'M cannot read the table');
 select is((select count(*) from public.admin_event_requests()), 0::bigint, 'M gets nothing from the admin list');
@@ -59,7 +64,7 @@ reset role;
 insert into public.event_requests (requester_id, url, host, status, created_at)
 select 'ffffffff-cccc-0000-0000-000000000002', 'https://old.example/' || g, 'old.example', 'rejected', now() - interval '1 hour' from generate_series(1, 8) g;
 set local role authenticated;
-select throws_ok($$select public.submit_event_request('https://a.example/e5', 'a.example', '')$$, 'P0001', 'too many today', 'ten in a day is the most');
+select throws_ok($$select public.submit_event_request('https://a.example/e5', 'a.example', '', '{"title": "T"}')$$, 'P0001', 'too many today', 'ten in a day is the most');
 
 -- ===== an admin decides
 reset role;
@@ -92,8 +97,8 @@ select throws_ok($$select public.admin_reject_event_request((select id from publ
 
 -- ===== grants
 reset role;
-select is(has_function_privilege('anon', 'public.submit_event_request(text, text, text)', 'execute'), false, 'anon cannot ask');
-select is(has_function_privilege('authenticated', 'public.submit_event_request(text, text, text)', 'execute'), true, 'members can ask');
+select is(has_function_privilege('anon', 'public.submit_event_request(text, text, text, jsonb)', 'execute'), false, 'anon cannot ask');
+select is(has_function_privilege('authenticated', 'public.submit_event_request(text, text, text, jsonb)', 'execute'), true, 'members can ask');
 select is(has_table_privilege('authenticated', 'public.event_requests', 'select'), false, 'the table is closed to members');
 
 select * from finish();
