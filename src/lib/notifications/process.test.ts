@@ -20,7 +20,6 @@ function event(over: Partial<ClaimedEvent> = {}): ClaimedEvent {
     on_requests: false,
     on_accepted: false,
     on_messages: true,
-    on_posts: false,
     unsubscribe_code: "c".repeat(64),
     last_sent_at: null,
     ...over,
@@ -60,7 +59,7 @@ describe("processNotifications", () => {
     expect(t.sent[0].subject).toBe("New message from Ann A");
   });
 
-  it("skips a kind the member has not ticked, without even looking up the address", async () => {
+  it("skips a kind the member has switched off, without even looking up the address", async () => {
     const t = setup([event({ kind_enabled_at: null, on_messages: false })]);
     await t.run();
     expect(t.finished).toEqual([["e1", "skipped"]]);
@@ -85,7 +84,7 @@ describe("processNotifications", () => {
     const t = setup([
       event({ id: "m1", last_sent_at: recent }),
       event({ id: "m2", last_sent_at: ago(61) }),
-      event({ id: "p1", kind: "post", on_posts: true, last_sent_at: recent }),
+      event({ id: "p1", kind: "post", last_sent_at: recent }),
     ]);
     await t.run();
     expect(t.finished).toEqual([["m1", "skipped"], ["m2", "sent"], ["p1", "sent"]]);

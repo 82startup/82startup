@@ -16,7 +16,6 @@ export type ClaimedEvent = {
   on_requests: boolean;
   on_accepted: boolean;
   on_messages: boolean;
-  on_posts: boolean;
   unsubscribe_code: string;
   last_sent_at: string | null;
 };
@@ -73,7 +72,7 @@ export async function processNotifications({ store, sender, getEmail, siteUrl, n
         actorJobTitle: e.actor_job_title,
         actorCompany: e.actor_company,
         preview: e.preview ?? "",
-        prefs: { requests: e.on_requests, accepted: e.on_accepted, messages: e.on_messages, posts: e.on_posts },
+        prefs: { requests: e.on_requests, accepted: e.on_accepted, messages: e.on_messages },
         unsubscribeCode: e.unsubscribe_code,
         siteUrl,
       });

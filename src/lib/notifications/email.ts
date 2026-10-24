@@ -7,7 +7,7 @@ export type EmailInput = {
   actorJobTitle: string;
   actorCompany: string;
   preview: string;
-  prefs: { requests: boolean; accepted: boolean; messages: boolean; posts: boolean };
+  prefs: { requests: boolean; accepted: boolean; messages: boolean };
   unsubscribeCode: string;
   siteUrl: string;
 };
@@ -29,8 +29,16 @@ const HEADLINE: Record<NotificationKind, (name: string) => string> = {
 const KIND_LABEL: Record<NotificationKind, string> = {
   connection_request: "connection requests",
   connection_accepted: "accepted connections",
-  message: "messages",
-  post: "posts from my connections",
+  message: "messages and posts",
+  post: "messages and posts",
+};
+
+// Posts are emailed under the Messages choice, so their Unsubscribe links turn Messages off.
+const UNSUBSCRIBE_KIND: Record<NotificationKind, string> = {
+  connection_request: "connection_request",
+  connection_accepted: "connection_accepted",
+  message: "message",
+  post: "message",
 };
 
 // One line, no control characters (a name must never be able to add a header or a line to the subject).
@@ -54,15 +62,14 @@ export function buildEmail(i: EmailInput): { subject: string; text: string; head
   lines.push(
     "",
     "--",
-    `You get this email because you chose to be emailed about: ${KIND_LABEL[i.kind]}.`,
+    `You get this email because it is turned on in your email settings: ${KIND_LABEL[i.kind]}.`,
     "",
     "Your email settings:",
     `  Connection requests: ${state(i.prefs.requests)}`,
     `  Accepted connections: ${state(i.prefs.accepted)}`,
-    `  Messages: ${state(i.prefs.messages)}`,
-    `  Posts from my connections: ${state(i.prefs.posts)}`,
+    `  Messages and posts: ${state(i.prefs.messages)}`,
     "",
-    `Unsubscribe from these emails: ${unsubscribe(i.kind)}`,
+    `Unsubscribe from these emails: ${unsubscribe(UNSUBSCRIBE_KIND[i.kind])}`,
     `Unsubscribe from all emails: ${unsubscribe("all")}`,
     `Manage email settings: ${i.siteUrl}/settings`,
   );
@@ -71,7 +78,7 @@ export function buildEmail(i: EmailInput): { subject: string; text: string; head
     subject: SUBJECT[i.kind](name),
     text: lines.join("\n"),
     headers: {
-      "List-Unsubscribe": `<${i.siteUrl}/api/unsubscribe?code=${i.unsubscribeCode}&kind=${i.kind}>`,
+      "List-Unsubscribe": `<${i.siteUrl}/api/unsubscribe?code=${i.unsubscribeCode}&kind=${UNSUBSCRIBE_KIND[i.kind]}>`,
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     },
   };

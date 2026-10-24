@@ -4,16 +4,15 @@ import { useActionState } from "react";
 import { copy } from "@/lib/copy";
 import { saveNotificationPreferences, type NotificationState } from "./notification-actions";
 
-type Props = { requests: boolean; accepted: boolean; messages: boolean; posts: boolean };
+type Props = { requests: boolean; accepted: boolean; messages: boolean };
 
 const BOXES = [
   { name: "connection_requests", key: "requests" },
   { name: "connection_accepted", key: "accepted" },
   { name: "messages", key: "messages" },
-  { name: "posts", key: "posts" },
 ] as const;
 
-// The opt-in checkboxes: nothing is emailed until a box is ticked.
+// The email choices: all ticked at first; unticking a box stops that email.
 export function NotificationsForm(props: Props) {
   const [state, formAction, pending] = useActionState<NotificationState, FormData>(saveNotificationPreferences, {});
   return (

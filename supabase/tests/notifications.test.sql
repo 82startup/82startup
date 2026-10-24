@@ -31,9 +31,9 @@ select throws_ok($$select public.unsubscribe_with_code('x', 'all')$$, '42501', n
 select throws_ok($$select public.finish_notification_event('00000000-0000-0000-0000-000000000000', 'sent')$$, '42501', null, 'members cannot finish notifications');
 
 -- ===== settings: everything is off until ticked
-select is((select row(connection_requests, connection_accepted, messages, posts)::text from public.my_notification_preferences()), '(f,f,f,f)', 'every email is off by default');
-select lives_ok($$select public.set_notification_preferences(true, false, true, false)$$, 'B ticks two of them');
-select is((select row(connection_requests, connection_accepted, messages, posts)::text from public.my_notification_preferences()), '(t,f,t,f)', 'and they are saved');
+select is((select row(connection_requests, connection_accepted, messages)::text from public.my_notification_preferences()), '(t,t,t)', 'every email is on by default');
+select lives_ok($$select public.set_notification_preferences(true, false, true)$$, 'B unticks one of them');
+select is((select row(connection_requests, connection_accepted, messages)::text from public.my_notification_preferences()), '(t,f,t)', 'and it is saved');
 
 -- ===== the outbox: one row per event, for the right person
 reset role;
@@ -83,12 +83,12 @@ select is((select count(*) from public.notification_events where kind = 'post' a
 select is((select ref_id from public.notification_events where kind = 'message' and recipient_id = 'ffffffff-9999-0000-0000-000000000002'), (select id from public.messages where body = 'hello Bo'), 'the row points at the message');
 
 -- ===== settings keep their ticked-since time, and unticking clears it
-select isnt((select connection_requests_at from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002'), null, 'a ticked kind remembers since when');
-select is((select messages_at is not null and connection_accepted_at is null and posts_at is null from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002'), true, 'only the ticked kinds');
+select isnt((select connection_requests_at from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002'), null, 'a kind that is on remembers since when');
+select is((select messages_at is not null and connection_accepted_at is null from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002'), true, 'only the unticked kind is off');
 select set_config('t.since', (select connection_requests_at::text from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002'), false);
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"ffffffff-9999-0000-0000-000000000002","role":"authenticated"}', true);
-select lives_ok($$select public.set_notification_preferences(true, true, false, false)$$, 'B saves again');
+select lives_ok($$select public.set_notification_preferences(true, true, false)$$, 'B saves again');
 reset role;
 select is((select connection_requests_at::text from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002'), current_setting('t.since'), 'a kind that stays ticked keeps its time');
 select is((select messages_at from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002'), null, 'an unticked kind is cleared');
@@ -107,7 +107,7 @@ select is((select count(*) from pg_proc p join pg_namespace n on n.oid = p.prona
 update public.notification_events set claimed_at = now() - interval '11 minutes' where recipient_id = 'ffffffff-9999-0000-0000-000000000002' and kind = 'message';
 set local role service_role;
 select is((select count(*) from public.claim_notification_events(100) where kind = 'message' and recipient_id = 'ffffffff-9999-0000-0000-000000000002'), 1::bigint, 'a row stuck while sending is picked up again');
-select is((select on_requests and on_accepted and not on_messages and not on_posts from public.claim_notification_events(100) limit 1) is null, true, 'nothing left to claim');
+select is((select count(*) from public.claim_notification_events(100)), 0::bigint, 'nothing left to claim');
 
 -- ===== finishing: sent, skipped, and retries up to three tries
 reset role;
@@ -140,28 +140,28 @@ select isnt((select last_sent_at from public.claim_notification_events(100) wher
 
 -- ===== unsubscribing with the private code only turns things off
 reset role;
-update public.notification_preferences set connection_requests_at = now(), connection_accepted_at = now(), messages_at = now(), posts_at = now() where member_id = 'ffffffff-9999-0000-0000-000000000002';
+update public.notification_preferences set connection_requests_at = now(), connection_accepted_at = now(), messages_at = now() where member_id = 'ffffffff-9999-0000-0000-000000000002';
 select set_config('t.code', (select unsubscribe_code from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002'), false);
 set local role service_role;
 select is(public.unsubscribe_with_code(current_setting('t.code'), 'message'), 'message', 'the code turns the messages kind off');
 reset role;
-select is((select messages_at is null and posts_at is not null and connection_requests_at is not null from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002'), true, 'and nothing else');
+select is((select messages_at is null and connection_accepted_at is not null and connection_requests_at is not null from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002'), true, 'and nothing else');
 set local role service_role;
 select is(public.unsubscribe_with_code(current_setting('t.code'), 'all'), 'all', 'unsubscribe from all');
 reset role;
-select is((select count(*) from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002' and connection_requests_at is null and connection_accepted_at is null and messages_at is null and posts_at is null), 1::bigint, 'turns all four off');
+select is((select count(*) from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002' and connection_requests_at is null and connection_accepted_at is null and messages_at is null), 1::bigint, 'turns all three off');
 set local role service_role;
 select is(public.unsubscribe_with_code('0000', 'all'), null, 'a malformed code does nothing');
 select is(public.unsubscribe_with_code(repeat('a', 64), 'all'), null, 'an unknown code does nothing');
 select is(public.unsubscribe_with_code(current_setting('t.code'), 'bogus'), null, 'an unknown kind does nothing');
 reset role;
-select is((select count(*) from public.notification_preferences where messages_at is not null or posts_at is not null), 0::bigint, 'no other member was changed');
+select is((select messages_at::text from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000001'), '-infinity', 'no other member was changed');
 
 -- ===== grants and cascade
 select is(has_function_privilege('anon', 'public.claim_notification_events(integer)', 'execute'), false, 'anon cannot claim');
 select is(has_function_privilege('authenticated', 'public.claim_notification_events(integer)', 'execute'), false, 'members cannot claim');
 select is(has_function_privilege('service_role', 'public.claim_notification_events(integer)', 'execute'), true, 'the server job can claim');
-select is(has_function_privilege('authenticated', 'public.set_notification_preferences(boolean, boolean, boolean, boolean)', 'execute'), true, 'members can save their settings');
+select is(has_function_privilege('authenticated', 'public.set_notification_preferences(boolean, boolean, boolean)', 'execute'), true, 'members can save their settings');
 delete from auth.users where id = 'ffffffff-9999-0000-0000-000000000002';
 select is((select count(*) from public.notification_events where 'ffffffff-9999-0000-0000-000000000002' in (recipient_id, actor_id)) + (select count(*) from public.notification_preferences where member_id = 'ffffffff-9999-0000-0000-000000000002'), 0::bigint, 'deleting a member deletes their notifications and settings');
 

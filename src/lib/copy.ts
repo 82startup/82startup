@@ -174,13 +174,12 @@ export const copy = {
     saved: "Saved.",
     saveError: "Could not save. Try again.",
     notifications: "Email notifications",
-    notificationsIntro: "Choose which emails you want from 82 Startup. Nothing is emailed until you tick a box. Every email also has an Unsubscribe link.",
+    notificationsIntro: "Choose which emails you want from 82 Startup. They are all on until you untick a box. Every email also has an Unsubscribe link.",
     emailMeWhen: "Email me when…",
     emails: {
       requests: { title: "Someone wants to connect with me", text: "A connection request, with their note." },
       accepted: { title: "Someone accepts my connection request", text: "So you know you are now connected." },
-      messages: { title: "I receive a message", text: "At most one email an hour for each conversation." },
-      posts: { title: "A connection shares a post", text: "When someone you are connected with posts to their connections." },
+      messages: { title: "I receive a message", text: "Includes posts from your connections. Message emails are sent at most once an hour for each conversation." },
     },
   },
   unsubscribe: {
@@ -195,7 +194,7 @@ export const copy = {
     again: "You can turn them on again any time in",
     settings: "Settings",
     invalid: "This link is not valid.",
-    kinds: { connection_request: "connection requests", connection_accepted: "accepted connections", message: "messages", post: "posts from your connections", all: "all emails" },
+    kinds: { connection_request: "connection requests", connection_accepted: "accepted connections", message: "messages and posts", all: "all emails" },
   },
   posts: {
     title: "Post to my connections",

@@ -9,7 +9,7 @@ const base: EmailInput = {
   actorJobTitle: "CTO",
   actorCompany: "Bco",
   preview: "Let us meet at Summit",
-  prefs: { requests: true, accepted: false, messages: true, posts: false },
+  prefs: { requests: true, accepted: false, messages: true },
   unsubscribeCode: CODE,
   siteUrl: "https://82startup.vercel.app",
 };
@@ -57,21 +57,31 @@ describe("buildEmail footer", () => {
   const text = buildEmail(base).text;
 
   it("says why the member gets it, for this kind", () => {
-    expect(text).toContain("because you chose to be emailed about: connection requests");
-    expect(buildEmail({ ...base, kind: "message" }).text).toContain("because you chose to be emailed about: messages");
+    expect(text).toContain("because it is turned on in your email settings: connection requests");
+    expect(buildEmail({ ...base, kind: "message" }).text).toContain("turned on in your email settings: messages and posts");
+    expect(buildEmail({ ...base, kind: "post" }).text).toContain("turned on in your email settings: messages and posts");
   });
 
-  it("lists all four kinds with On or Off for this member", () => {
+  it("lists all three kinds with On or Off for this member", () => {
     expect(text).toContain("Connection requests: On");
     expect(text).toContain("Accepted connections: Off");
-    expect(text).toContain("Messages: On");
-    expect(text).toContain("Posts from my connections: Off");
+    expect(text).toContain("Messages and posts: On");
+    expect(text).not.toContain("Posts from my connections");
   });
 
   it("has unsubscribe-this-kind, unsubscribe-all and manage links", () => {
     expect(text).toContain(`https://82startup.vercel.app/unsubscribe?code=${CODE}&kind=connection_request`);
     expect(text).toContain(`https://82startup.vercel.app/unsubscribe?code=${CODE}&kind=all`);
     expect(text).toContain("https://82startup.vercel.app/settings");
+  });
+});
+
+describe("buildEmail for a post", () => {
+  it("unsubscribes from messages (posts share that choice), in the link and in the header", () => {
+    const mail = buildEmail({ ...base, kind: "post" });
+    expect(mail.text).toContain(`unsubscribe?code=${CODE}&kind=message`);
+    expect(mail.text).not.toContain("kind=post");
+    expect(mail.headers["List-Unsubscribe"]).toContain("kind=message>");
   });
 });
 

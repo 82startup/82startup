@@ -19,7 +19,6 @@ export async function saveNotificationPreferences(_prev: NotificationState, form
     p_requests: ticked.requests,
     p_accepted: ticked.accepted,
     p_messages: ticked.messages,
-    p_posts: ticked.posts,
   });
   if (error) return { error: copy.settings.saveError };
 

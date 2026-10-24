@@ -2,11 +2,11 @@
 -- functions, and only the server job (service role) reads the outbox. Email addresses are never stored here.
 create table public.notification_preferences (
   member_id uuid primary key references public.profiles (id) on delete cascade,
-  -- Each kind is on when its time is set (the time it was ticked), off when null. Nothing is on by default (opt-in).
-  connection_requests_at timestamptz,
-  connection_accepted_at timestamptz,
-  messages_at timestamptz,
-  posts_at timestamptz,
+  -- Each kind is on when its time is set (on since then), off when null. Everything is on from the start ('-infinity' = always on),
+  -- and a member unticks what they do not want. "messages" covers messages and posts from connections.
+  connection_requests_at timestamptz default '-infinity',
+  connection_accepted_at timestamptz default '-infinity',
+  messages_at timestamptz default '-infinity',
   -- A private random code (about 240 bits) for the Unsubscribe links in emails. It can only turn emails off.
   unsubscribe_code text not null unique default replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', ''),
   updated_at timestamptz not null default now()
@@ -144,21 +144,22 @@ begin
 end
 $$;
 
--- Members: read and save their own settings.
+-- Members: read and save their own settings. A member who never saved anything has everything on.
 create function public.my_notification_preferences()
-returns table (connection_requests boolean, connection_accepted boolean, messages boolean, posts boolean)
+returns table (connection_requests boolean, connection_accepted boolean, messages boolean)
 language sql stable security definer
 set search_path = ''
 as $$
-  select coalesce(p.connection_requests_at is not null, false), coalesce(p.connection_accepted_at is not null, false),
-         coalesce(p.messages_at is not null, false), coalesce(p.posts_at is not null, false)
+  select p.member_id is null or p.connection_requests_at is not null,
+         p.member_id is null or p.connection_accepted_at is not null,
+         p.member_id is null or p.messages_at is not null
   from (select (select auth.uid()) as uid) me
   left join public.notification_preferences p on p.member_id = me.uid
   where me.uid is not null
 $$;
 
--- A kind that stays ticked keeps the time it was first ticked (older events are never emailed after ticking later).
-create function public.set_notification_preferences(p_requests boolean, p_accepted boolean, p_messages boolean, p_posts boolean)
+-- A kind that stays ticked keeps the time it has been on since (older events are never emailed after ticking it again later).
+create function public.set_notification_preferences(p_requests boolean, p_accepted boolean, p_messages boolean)
 returns void
 language plpgsql security definer
 set search_path = ''
@@ -174,7 +175,6 @@ begin
     connection_requests_at = case when p_requests then coalesce(connection_requests_at, now()) end,
     connection_accepted_at = case when p_accepted then coalesce(connection_accepted_at, now()) end,
     messages_at = case when p_messages then coalesce(messages_at, now()) end,
-    posts_at = case when p_posts then coalesce(posts_at, now()) end,
     updated_at = now()
   where member_id = uid;
 end
@@ -187,7 +187,7 @@ create function public.claim_notification_events(p_limit integer)
 returns table (
   id uuid, recipient_id uuid, kind text, actor_id uuid, actor_name text, actor_job_title text, actor_company text,
   preview text, created_at timestamptz, attempts integer, kind_enabled_at timestamptz,
-  on_requests boolean, on_accepted boolean, on_messages boolean, on_posts boolean,
+  on_requests boolean, on_accepted boolean, on_messages boolean,
   unsubscribe_code text, last_sent_at timestamptz
 )
 language plpgsql security definer
@@ -222,9 +222,10 @@ begin
                 else (select m.body from public.messages m where m.id = e.ref_id)
               end, 200),
          e.created_at, e.attempts,
+         -- Posts are emailed under the same choice as messages.
          case e.kind when 'connection_request' then p.connection_requests_at when 'connection_accepted' then p.connection_accepted_at
-                     when 'message' then p.messages_at else p.posts_at end,
-         p.connection_requests_at is not null, p.connection_accepted_at is not null, p.messages_at is not null, p.posts_at is not null,
+                     else p.messages_at end,
+         p.connection_requests_at is not null, p.connection_accepted_at is not null, p.messages_at is not null,
          p.unsubscribe_code,
          (select max(s.sent_at) from public.notification_events s
             where s.status = 'sent' and s.kind = e.kind and s.recipient_id = e.recipient_id and s.actor_id = e.actor_id)
@@ -256,21 +257,20 @@ begin
 end
 $$;
 
--- Turns a kind (or all) off for the member who owns the code. Never turns anything on. Returns the kind turned off, or null.
+-- Turns a kind (or all) off for the member who owns the code. 'message' also covers posts. Never turns anything on. Returns the kind turned off, or null.
 create function public.unsubscribe_with_code(p_code text, p_kind text)
 returns text
 language plpgsql security definer
 set search_path = ''
 as $$
 begin
-  if p_code is null or p_code !~ '^[0-9a-f]{64}$' or p_kind is null or p_kind not in ('connection_request', 'connection_accepted', 'message', 'post', 'all') then
+  if p_code is null or p_code !~ '^[0-9a-f]{64}$' or p_kind is null or p_kind not in ('connection_request', 'connection_accepted', 'message', 'all') then
     return null;
   end if;
   update public.notification_preferences set
     connection_requests_at = case when p_kind in ('connection_request', 'all') then null else connection_requests_at end,
     connection_accepted_at = case when p_kind in ('connection_accepted', 'all') then null else connection_accepted_at end,
     messages_at = case when p_kind in ('message', 'all') then null else messages_at end,
-    posts_at = case when p_kind in ('post', 'all') then null else posts_at end,
     updated_at = now()
   where unsubscribe_code = p_code;
   return case when found then p_kind end;
@@ -293,13 +293,13 @@ end
 $$;
 
 revoke all on function public.my_notification_preferences() from public, anon, authenticated, service_role;
-revoke all on function public.set_notification_preferences(boolean, boolean, boolean, boolean) from public, anon, authenticated, service_role;
+revoke all on function public.set_notification_preferences(boolean, boolean, boolean) from public, anon, authenticated, service_role;
 revoke all on function public.claim_notification_events(integer) from public, anon, authenticated, service_role;
 revoke all on function public.finish_notification_event(uuid, text) from public, anon, authenticated, service_role;
 revoke all on function public.unsubscribe_with_code(text, text) from public, anon, authenticated, service_role;
 revoke all on function public.purge_notification_events() from public, anon, authenticated, service_role;
 grant execute on function public.my_notification_preferences() to authenticated;
-grant execute on function public.set_notification_preferences(boolean, boolean, boolean, boolean) to authenticated;
+grant execute on function public.set_notification_preferences(boolean, boolean, boolean) to authenticated;
 grant execute on function public.claim_notification_events(integer) to service_role;
 grant execute on function public.finish_notification_event(uuid, text) to service_role;
 grant execute on function public.unsubscribe_with_code(text, text) to service_role;
