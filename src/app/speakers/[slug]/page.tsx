@@ -8,11 +8,12 @@ import { getVisibleEvents } from "@/lib/events/queries";
 import { initials } from "@/lib/members/avatar";
 import { siteImageUrl } from "@/lib/site/images";
 import { getSpeaker } from "@/lib/site/queries";
+import { safely } from "@/lib/site/safe";
 import { supabaseEnv } from "@/lib/supabase/env";
 
 export async function generateMetadata({ params }: PageProps<"/speakers/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const speaker = await getSpeaker(slug);
+  const speaker = await safely(() => getSpeaker(slug), null);
   if (!speaker) return { title: copy.site.notFoundTitle };
   return { title: speaker.name, description: [speaker.job_title, speaker.company].filter(Boolean).join(" · ") || undefined };
 }
@@ -32,7 +33,7 @@ const HTTPS = /^https:\/\/\S+$/;
 async function SpeakerDetail({ params }: { params: PageProps<"/speakers/[slug]">["params"] }) {
   await connection();
   const { slug } = await params;
-  const speaker = await getSpeaker(slug);
+  const speaker = await safely(() => getSpeaker(slug), null);
   if (!speaker) notFound();
 
   const src = siteImageUrl(supabaseEnv().url, speaker.photo_path);

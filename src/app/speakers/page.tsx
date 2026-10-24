@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { SpeakersGrid } from "@/components/site/speakers-grid";
 import { copy } from "@/lib/copy";
 import { getSpeakers } from "@/lib/site/queries";
+import { safely } from "@/lib/site/safe";
 import { supabaseEnv } from "@/lib/supabase/env";
 
 export const metadata: Metadata = { title: copy.site.speakers };
@@ -22,7 +23,7 @@ export default function SpeakersPage() {
 
 async function SpeakersContent() {
   await connection();
-  const speakers = await getSpeakers();
+  const speakers = await safely(getSpeakers, []);
   if (speakers.length === 0) return <p>{copy.site.emptySpeakers}</p>;
   return <SpeakersGrid speakers={speakers} baseUrl={supabaseEnv().url} />;
 }

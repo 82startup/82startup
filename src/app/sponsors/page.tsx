@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { SponsorsSection } from "@/components/site/sponsors-section";
 import { copy } from "@/lib/copy";
 import { getSponsorContact, getSponsors } from "@/lib/site/queries";
+import { safely } from "@/lib/site/safe";
 import { supabaseEnv } from "@/lib/supabase/env";
 
 export const metadata: Metadata = { title: copy.site.sponsors };
@@ -22,7 +23,7 @@ export default function SponsorsPage() {
 
 async function SponsorsContent() {
   await connection();
-  const [sponsors, contact] = await Promise.all([getSponsors(), getSponsorContact()]);
+  const [sponsors, contact] = await Promise.all([safely(getSponsors, []), safely(getSponsorContact, null)]);
   if (sponsors.length === 0 && !contact) return <p>{copy.site.emptySponsors}</p>;
   return <SponsorsSection sponsors={sponsors} contact={contact} baseUrl={supabaseEnv().url} />;
 }
