@@ -29,7 +29,7 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"ffffffff-6666-0000-0000-000000000001","role":"authenticated"}', true);
 select throws_ok($$select * from public.messages$$, '42501', null, 'members cannot read the messages table');
 select throws_ok($$insert into public.messages (sender_id, recipient_id, body) values ('ffffffff-6666-0000-0000-000000000001', 'ffffffff-6666-0000-0000-000000000002', 'x')$$, '42501', null, 'members cannot write the messages table');
-select throws_ok($$select public.deliver_message('ffffffff-6666-0000-0000-000000000001', 'ffffffff-6666-0000-0000-000000000002', 'x')$$, '42501', null, 'the internal delivery step is not callable by members');
+select throws_ok($$select public.deliver_message('ffffffff-6666-0000-0000-000000000001', 'ffffffff-6666-0000-0000-000000000002', 'x', true, null)$$, '42501', null, 'the internal delivery step is not callable by members');
 select throws_ok($$select public.send_message('ffffffff-6666-0000-0000-000000000003', 'hi')$$, 'P0002', null, 'not to a member with only a pending request');
 select throws_ok($$select public.send_message('ffffffff-6666-0000-0000-000000000005', 'hi')$$, 'P0002', null, 'not to a stranger');
 select throws_ok($$select public.send_message('ffffffff-6666-0000-0000-0000000000ff', 'hi')$$, 'P0002', null, 'not to someone who does not exist');
@@ -124,7 +124,7 @@ select isnt(public.send_message('ffffffff-6666-0000-0000-000000000002', 'after a
 reset role;
 select is(has_function_privilege('anon', 'public.send_message(uuid, text)', 'execute'), false, 'anon has no execute');
 select is(has_function_privilege('authenticated', 'public.send_message(uuid, text)', 'execute'), true, 'authenticated has execute');
-select is(has_function_privilege('authenticated', 'public.deliver_message(uuid, uuid, text)', 'execute'), false, 'members cannot call the delivery step');
+select is(has_function_privilege('authenticated', 'public.deliver_message(uuid, uuid, text, boolean, uuid)', 'execute'), false, 'members cannot call the delivery step');
 delete from auth.users where id = 'ffffffff-6666-0000-0000-000000000004';
 select is((select count(*) from public.messages where 'ffffffff-6666-0000-0000-000000000004' in (sender_id, recipient_id)), 0::bigint, 'deleting a member deletes their messages');
 
