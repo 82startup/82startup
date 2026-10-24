@@ -25,7 +25,7 @@ function Website({ url, children }: { url: string | null; children: React.ReactN
   );
 }
 
-// The sponsors grouped by tier: platinum large, gold medium, silver and bronze as logos. Tiers with nobody in them are left out.
+// The sponsors grouped by tier: platinum and diamond large, gold medium, silver and bronze as logos. Tiers with nobody in them are left out.
 export function SponsorsSection({ sponsors, contact, baseUrl }: { sponsors: Sponsor[]; contact: string | null; baseUrl: string }) {
   const groups = groupSponsorsByTier(sponsors);
   return (
@@ -33,7 +33,7 @@ export function SponsorsSection({ sponsors, contact, baseUrl }: { sponsors: Spon
       {groups.map(({ tier, sponsors: list }) => (
         <section key={tier} className="flex flex-col gap-4">
           <h2 className="text-sm font-bold uppercase tracking-wide text-zinc-600 dark:text-zinc-400">{copy.site.tiers[tier]}</h2>
-          {tier === "platinum" && (
+          {(tier === "platinum" || tier === "diamond") && (
             <ul className="flex flex-col gap-4">
               {list.map((s) => (
                 <li key={s.id} className="flex flex-col gap-3 rounded-2xl border p-6 sm:flex-row sm:items-center sm:gap-8">

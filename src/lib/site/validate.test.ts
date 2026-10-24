@@ -20,10 +20,10 @@ describe("parseSponsorForm", () => {
     });
   });
 
-  it("requires a name and one of the four tiers", () => {
+  it("requires a name and one of the five tiers", () => {
     expect(parseSponsorForm(form({ name: "  ", tier: "gold" }))).toMatchObject({ ok: false, errors: { name: expect.any(String) } });
-    for (const tier of ["", "diamond", "Gold"]) expect(parseSponsorForm(form({ name: "A", tier }))).toMatchObject({ ok: false, errors: { tier: expect.any(String) } });
-    for (const tier of ["platinum", "gold", "silver", "bronze"]) expect(parseSponsorForm(form({ name: "A", tier }))).toMatchObject({ ok: true });
+    for (const tier of ["", "titanium", "Gold", "DIAMOND"]) expect(parseSponsorForm(form({ name: "A", tier }))).toMatchObject({ ok: false, errors: { tier: expect.any(String) } });
+    for (const tier of ["platinum", "diamond", "gold", "silver", "bronze"]) expect(parseSponsorForm(form({ name: "A", tier }))).toMatchObject({ ok: true });
   });
 
   it("enforces every limit exactly", () => {

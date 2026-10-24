@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { copy } from "@/lib/copy";
+import { PictureInput } from "../picture-input";
 import type { Speaker } from "@/lib/site/types";
 import { saveSpeaker, type SpeakerState } from "./actions";
 
@@ -54,9 +55,7 @@ export function SpeakerForm({ speaker, events }: { speaker?: Speaker; events: { 
           ))}
         </select>
       </Field>
-      <Field label={copy.speakersAdmin.photo} error={err.photo}>
-        <input name="photo" type="file" accept="image/png,image/jpeg,image/webp" className="text-sm" />
-      </Field>
+      <PictureInput name="photo" kind="speakers" label={copy.speakersAdmin.photo} serverError={err.photo} />
       {speaker?.photo_path && (
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="remove_photo" />

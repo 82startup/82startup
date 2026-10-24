@@ -12,6 +12,15 @@ export type AdminEvent = {
   luma_synced_at: string | null;
   luma_sync_status: "ok" | "error" | null;
   luma_sync_error: string | null;
+  source: "luma" | "external";
+  external_url: string | null;
+  external_host: string | null;
+  location_type: string;
+  venue_name: string | null;
+  venue_city: string | null;
+  venue_address: string | null;
+  cover_url: string | null;
+  description: string;
 };
 
 export type EventFlag = "hidden" | "removed" | "sync-error";

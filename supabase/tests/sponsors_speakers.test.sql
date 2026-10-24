@@ -1,5 +1,5 @@
 begin;
-select plan(43);
+select plan(45);
 
 -- Admin A, member M. One event for linking a speaker.
 insert into auth.users (id, email) values
@@ -55,7 +55,9 @@ select lives_ok($$update public.site_settings set value = 'https://x.test/contac
 
 -- ===== the database refuses bad data, even from an admin
 select throws_ok($$insert into public.sponsors (name, tier) values ('', 'gold')$$, '23514', null, 'a sponsor needs a name');
-select throws_ok($$insert into public.sponsors (name, tier) values ('X', 'diamond')$$, '23514', null, 'the tier must be one of the four');
+select throws_ok($$insert into public.sponsors (name, tier) values ('X', 'titanium')$$, '23514', null, 'the tier must be one of the five');
+select lives_ok($$insert into public.sponsors (name, tier) values ('Diamond Co', 'diamond')$$, 'diamond is a tier');
+select is((select tier from public.sponsors where name = 'Diamond Co'), 'diamond', 'and it is saved');
 select throws_ok($$insert into public.sponsors (name, tier, website_url) values ('X', 'gold', 'http://plain.test')$$, '23514', null, 'a sponsor website must be https');
 select throws_ok($$insert into public.sponsors (name, tier, description) values ('X', 'gold', repeat('d', 601))$$, '23514', null, 'a description over 600 characters is refused');
 select throws_ok($$insert into public.sponsors (name, tier, logo_path) values ('X', 'gold', 'https://evil.test/logo.png')$$, '23514', null, 'a logo must be a file in our own folder, not an address');

@@ -9,6 +9,11 @@ describe("groupSponsorsByTier", () => {
     expect(groups.map((g) => g.tier)).toEqual(["platinum", "gold", "bronze"]);
     expect(groups[1].sponsors.map((x) => x.id)).toEqual(["g1", "g3", "g2"]);
   });
+  it("puts Diamond right after Platinum and before Gold", () => {
+    const groups = groupSponsorsByTier([s("g", "gold", 1), s("d", "diamond", 1), s("p", "platinum", 1), s("s", "silver", 1)]);
+    expect(groups.map((g) => g.tier)).toEqual(["platinum", "diamond", "gold", "silver"]);
+  });
+
   it("returns nothing for no sponsors", () => {
     expect(groupSponsorsByTier([])).toEqual([]);
   });

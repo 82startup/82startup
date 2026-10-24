@@ -6,7 +6,7 @@ const NOW = new Date("2026-11-10T12:00:00.000Z");
 
 const ev = (slug: string, start: string, end: string | null, featured = false): PublicEvent => ({
   id: `id-${slug}`, slug, title: slug, description: "", description_md: "", start_at: start, end_at: end, timezone: "UTC", location_type: "offline",
-  venue_name: null, venue_city: null, venue_address: null, cover_url: null, luma_url: "https://luma.com/x", featured,
+  venue_name: null, venue_city: null, venue_address: null, cover_url: null, luma_url: "https://luma.com/x", featured, source: "luma", external_host: null,
 });
 
 const day = (n: number) => `2026-11-${String(n).padStart(2, "0")}T10:00:00Z`;
