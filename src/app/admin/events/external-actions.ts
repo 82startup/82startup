@@ -93,6 +93,9 @@ export async function saveExternalEvent(_prev: SaveState, formData: FormData): P
     if (found === "external") return { error: E.duplicate };
   }
 
+  const rawRequest = String(formData.get("request_id") ?? "");
+  const requestId = !id && UUID.test(rawRequest) ? rawRequest : null;
+
   const { error } = await supabase.rpc("admin_save_external_event", {
     p_id: id,
     p_slug: id ? null : makeExternalSlug(v.title, randomBytes(3).toString("hex")),
@@ -109,8 +112,9 @@ export async function saveExternalEvent(_prev: SaveState, formData: FormData): P
     p_external_url: v.url,
     p_external_host: v.host,
     p_hidden: v.hidden,
+    p_request_id: requestId,
   });
-  if (error) return { error: error.code === "23505" ? E.duplicate : E.save };
+  if (error) return { error: error.code === "23505" ? E.duplicate : error.code === "P0002" && requestId ? E.requestDecided : E.save };
 
   refresh();
   return { saved: true };

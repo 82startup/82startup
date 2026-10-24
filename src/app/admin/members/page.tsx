@@ -7,7 +7,9 @@ import { ADMIN_MEMBERS_PAGE_SIZE, directoryLabel, formatDate } from "@/lib/admin
 import { copy } from "@/lib/copy";
 import { parseMemberSearch } from "@/lib/members/search";
 import type { MemberType } from "@/lib/profile/schema";
+import { ActionButton } from "../action-button";
 import { AdminNav } from "../admin-nav";
+import { setMemberRole } from "./actions";
 
 export default function AdminMembersPage({ searchParams }: PageProps<"/admin/members">) {
   // Nothing about the screen is in the static shell: a non-admin must not learn it exists.
@@ -88,6 +90,14 @@ async function AdminMembersContent({ searchParams }: { searchParams: PageProps<"
                   {copy.admin.members.joined} {formatDate(m.joined_at)} · {copy.admin.members.lastSignIn}{" "}
                   {m.last_sign_in_at ? formatDate(m.last_sign_in_at) : copy.admin.members.never}
                 </span>
+                {m.id !== check.userId && (
+                  <ActionButton
+                    action={setMemberRole}
+                    fields={{ id: m.id, role: m.role === "admin" ? "member" : "admin" }}
+                    label={m.role === "admin" ? copy.admin.members.removeAdmin : copy.admin.members.makeAdmin}
+                    confirm={(m.role === "admin" ? copy.admin.members.confirmRemoveAdmin : copy.admin.members.confirmMakeAdmin).replace("{name}", m.name || m.email)}
+                  />
+                )}
               </li>
             ))}
           </ul>

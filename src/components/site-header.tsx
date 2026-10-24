@@ -61,6 +61,9 @@ async function HeaderContent() {
   // Requests waiting for this member; a failed read just shows no number.
   const { data: waiting } = await supabase.rpc("pending_request_count");
   const pending = typeof waiting === "number" ? waiting : 0;
+  // Event requests waiting for an answer (0 unless this member is an admin).
+  const { data: eventRequests } = isAdmin === true ? await supabase.rpc("admin_pending_event_request_count") : { data: 0 };
+  const waitingEvents = typeof eventRequests === "number" ? eventRequests : 0;
   const { data: unreadData } = await supabase.rpc("unread_message_count");
   const unread = typeof unreadData === "number" ? unreadData : 0;
   return (
@@ -70,7 +73,7 @@ async function HeaderContent() {
         <Link href="/members">{copy.nav.members}</Link>
         <Link href="/connections">{copy.nav.connections}{pending > 0 && ` (${pending})`}</Link>
         <Link href="/messages">{copy.nav.messages}{unread > 0 && ` (${unread})`}</Link>
-        {isAdmin === true && <Link href="/admin/events">{copy.nav.admin}</Link>}
+        {isAdmin === true && <Link href="/admin/events">{copy.nav.admin}{waitingEvents > 0 && ` (${waitingEvents})`}</Link>}
         <Link href="/profile">{copy.nav.profile}</Link>
         <Link href="/settings">{copy.nav.settings}</Link>
         <SignOut />

@@ -149,6 +149,22 @@ describe("saveExternalEvent", () => {
     expect(revalidatePath).toHaveBeenCalledWith("/admin/events");
   });
 
+  it("passes the request an event is added from, so the database approves it in the same step", async () => {
+    const db = asAdmin({ "events:select": { data: [], error: null }, "rpc:admin_save_external_event": { data: ID, error: null } });
+    await saveExternalEvent({}, form({ ...SAVE, request_id: ID }));
+    expect(db.rpcCalls[0].args).toMatchObject({ p_request_id: ID });
+    expect(revalidatePath).toHaveBeenCalledWith("/admin/events");
+    const plain = asAdmin({ "events:select": { data: [], error: null }, "rpc:admin_save_external_event": { data: ID, error: null } });
+    await saveExternalEvent({}, form(SAVE));
+    expect(plain.rpcCalls[0].args).toMatchObject({ p_request_id: null });
+  });
+
+  it("says plainly when the request was already decided by another admin", async () => {
+    asAdmin({ "events:select": { data: [], error: null }, "rpc:admin_save_external_event": { data: null, error: { code: "P0002", message: "request not found" } } });
+    const state = await saveExternalEvent({}, form({ ...SAVE, request_id: ID }));
+    expect(state.error).toMatch(/already (been )?decided|no longer waiting/i);
+  });
+
   it("changes an existing event by its id, leaving the page address alone", async () => {
     const db = asAdmin({ "rpc:admin_save_external_event": { data: ID, error: null } });
     await saveExternalEvent({}, form({ ...SAVE, id: ID, hidden: "on" }));

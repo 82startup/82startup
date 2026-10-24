@@ -9,7 +9,10 @@ import { splitEvents } from "@/lib/events/split";
 export default function EventsPage({ searchParams }: PageProps<"/events">) {
   return (
     <main className="mx-auto w-full max-w-3xl p-6">
-      <h1 className="mb-6 text-2xl font-semibold">{copy.events.title}</h1>
+      <div className="mb-6 flex flex-wrap items-baseline justify-between gap-2">
+        <h1 className="text-2xl font-semibold">{copy.events.title}</h1>
+        <Link href="/events/submit" className="text-sm underline">{copy.eventRequests.suggestLink}</Link>
+      </div>
       <Suspense fallback={<p>{copy.events.loading}</p>}>
         <EventsContent searchParams={searchParams} />
       </Suspense>

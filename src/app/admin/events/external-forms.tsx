@@ -21,7 +21,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 }
 
 // The details of an external event, filled from the page (or by hand) for the admin to check and change before saving.
-export function ExternalEventForm({ initial, id, hidden = false, submitLabel = t.save, onSaved }: { initial: Preview; id?: string; hidden?: boolean; submitLabel?: string; onSaved?: () => void }) {
+export function ExternalEventForm({ initial, id, requestId, hidden = false, submitLabel = t.save, onSaved }: { initial: Preview; id?: string; requestId?: string; hidden?: boolean; submitLabel?: string; onSaved?: () => void }) {
   const [state, formAction, pending] = useActionState<SaveState, FormData>(saveExternalEvent, {});
   const err = state.errors ?? {};
   useEffect(() => {
@@ -32,6 +32,7 @@ export function ExternalEventForm({ initial, id, hidden = false, submitLabel = t
     <form action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="url" value={initial.url} />
       {id && <input type="hidden" name="id" value={id} />}
+      {requestId && <input type="hidden" name="request_id" value={requestId} />}
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
         {t.from} {initial.host} ·{" "}
         <a href={initial.url} target="_blank" rel="noopener noreferrer" className="underline">{t.open}</a>
@@ -92,7 +93,7 @@ export function ExternalEventForm({ initial, id, hidden = false, submitLabel = t
   );
 }
 
-const EMPTY = (url: string, host: string): Preview => ({
+export const EMPTY = (url: string, host: string): Preview => ({
   url, host, title: "", description: "", timezone: "UTC", start: "", end: "", locationType: "offline", venueName: "", venueCity: "", venueAddress: "", coverUrl: "",
 });
 

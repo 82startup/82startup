@@ -11,6 +11,7 @@ import { AdminSwitch } from "./admin-switch";
 import { AdminNav } from "../admin-nav";
 import { SyncButton } from "./sync-button";
 import { AddByLink, ExternalEventTools } from "./external-forms";
+import { RequestReview } from "./request-review";
 import { hostLabel } from "@/lib/external/url";
 import { ZONES, utcToLocalInput } from "@/lib/external/tz";
 import type { Preview } from "@/lib/external/form";
@@ -39,10 +40,13 @@ async function AdminEventsContent() {
   const { data: attendance } = await supabase.rpc("admin_attendance");
   const counts = new Map(((attendance ?? []) as { event_id: string; luma: number; self: number }[]).map((row) => [row.event_id, row]));
   const last = lastSyncedAt(events);
+  // Members' requests that wait for an answer. If this call fails the page still works without them.
+  const { data: requestRows } = await supabase.rpc("admin_event_requests");
+  const requests = (requestRows ?? []) as { id: string; url: string; host: string; note: string; created_at: string; requester_name: string; requester_company: string }[];
 
   return (
     <>
-      <AdminNav current="events" />
+      <AdminNav current="events" pending={requests.length} />
       <h1 className="mb-4 text-2xl font-semibold">{copy.admin.title}</h1>
       <section className="mb-6 flex flex-col gap-2">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -50,6 +54,21 @@ async function AdminEventsContent() {
         </p>
         <SyncButton />
       </section>
+      {requests.length > 0 && (
+        <section className="mb-6 flex flex-col gap-3 rounded border-2 p-4" aria-labelledby="requests-title">
+          <h2 id="requests-title" className="font-semibold">{copy.admin.requests.title} ({requests.length})</h2>
+          <ul className="flex flex-col gap-4">
+            {requests.map((r) => (
+              <li key={r.id} className="flex flex-col gap-1 text-sm">
+                <span>{copy.admin.requests.from} {r.requester_name}{r.requester_company ? `, ${r.requester_company}` : ""} · {r.created_at.slice(0, 10)}</span>
+                <a href={r.url} target="_blank" rel="noopener noreferrer" className="break-all underline">{r.url}</a>
+                {r.note && <span>{copy.admin.requests.note} {r.note}</span>}
+                <RequestReview id={r.id} url={r.url} host={r.host} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <details className="mb-6 rounded border p-4">
         <summary className="cursor-pointer font-semibold">{copy.externalAdmin.title}</summary>
         <div className="mt-4"><AddByLink /></div>
