@@ -9,18 +9,16 @@ const form = (values: Record<string, string>) => {
 
 describe("parseNotificationForm", () => {
   it("reads each checkbox: on means ticked, absent means not", () => {
-    expect(parseNotificationForm(form({ connection_requests: "on", messages: "on" }))).toEqual({
-      requests: true, accepted: false, messages: true,
-    });
-    expect(parseNotificationForm(form({}))).toEqual({ requests: false, accepted: false, messages: false });
-    expect(parseNotificationForm(form({ messages: "yes" }))).toEqual({ requests: false, accepted: false, messages: false });
+    expect(parseNotificationForm(form({ connect: "on", messages: "on" }))).toEqual({ connect: true, messages: true });
+    expect(parseNotificationForm(form({}))).toEqual({ connect: false, messages: false });
+    expect(parseNotificationForm(form({ messages: "yes" }))).toEqual({ connect: false, messages: false });
   });
 });
 
 describe("parseUnsubscribeParams", () => {
   const code = "0123456789abcdef".repeat(4);
   it("accepts a 64-character hex code with a known kind", () => {
-    for (const kind of ["connection_request", "connection_accepted", "message", "all"]) {
+    for (const kind of ["connect", "connection_request", "connection_accepted", "message", "all"]) {
       expect(parseUnsubscribeParams(code, kind)).toEqual({ code, kind });
     }
   });

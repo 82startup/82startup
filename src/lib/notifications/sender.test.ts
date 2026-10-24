@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createMailpitSender, createResendSender } from "./sender";
 
-const mail = { to: "bo@x.test", subject: "Hi", text: "Body", headers: { "List-Unsubscribe": "<https://x.test/u>" } };
+const mail = { to: "bo@x.test", subject: "Hi", text: "Body", html: "<p>Body</p>", headers: { "List-Unsubscribe": "<https://x.test/u>" } };
 
 describe("createResendSender", () => {
   it("posts the email to Resend with the key and the from address", async () => {
@@ -11,7 +11,7 @@ describe("createResendSender", () => {
     expect(url).toBe("https://api.resend.com/emails");
     expect(init.method).toBe("POST");
     expect((init.headers as Record<string, string>).authorization).toBe("Bearer re_key");
-    expect(JSON.parse(String(init.body))).toEqual({ from: "82 Startup <n@x.test>", to: ["bo@x.test"], subject: "Hi", text: "Body", headers: mail.headers });
+    expect(JSON.parse(String(init.body))).toEqual({ from: "82 Startup <n@x.test>", to: ["bo@x.test"], subject: "Hi", text: "Body", html: "<p>Body</p>", headers: mail.headers });
   });
 
   it("throws an error with only the status, never the answer text or the address, when Resend refuses", async () => {
@@ -41,6 +41,7 @@ describe("createMailpitSender", () => {
     expect(body.To).toEqual([{ Email: "bo@x.test" }]);
     expect(body.Subject).toBe("Hi");
     expect(body.Text).toBe("Body");
+    expect(body.HTML).toBe("<p>Body</p>");
     expect(body.Headers).toEqual(mail.headers);
   });
 });

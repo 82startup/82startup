@@ -72,7 +72,7 @@ export async function processNotifications({ store, sender, getEmail, siteUrl, n
         actorJobTitle: e.actor_job_title,
         actorCompany: e.actor_company,
         preview: e.preview ?? "",
-        prefs: { requests: e.on_requests, accepted: e.on_accepted, messages: e.on_messages },
+        prefs: { connect: e.on_requests && e.on_accepted, messages: e.on_messages },
         unsubscribeCode: e.unsubscribe_code,
         siteUrl,
       });
