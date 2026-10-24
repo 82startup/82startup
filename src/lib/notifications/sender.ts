@@ -1,4 +1,4 @@
-export type Mail = { to: string; subject: string; text: string; headers: Record<string, string> };
+export type Mail = { to: string; subject: string; text: string; html: string; headers: Record<string, string> };
 
 export interface MailSender {
   send(mail: Mail): Promise<void>;
@@ -23,7 +23,7 @@ export function createResendSender({ apiKey, from, fetch: fetchImpl = fetch }: O
         res = await fetchImpl("https://api.resend.com/emails", {
           method: "POST",
           headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-          body: JSON.stringify({ from, to: [mail.to], subject: mail.subject, text: mail.text, headers: mail.headers }),
+          body: JSON.stringify({ from, to: [mail.to], subject: mail.subject, text: mail.text, html: mail.html, headers: mail.headers }),
         });
       } catch {
         throw new MailError("mail request failed (network)");
@@ -44,7 +44,7 @@ export function createMailpitSender({ baseUrl, from, fetch: fetchImpl = fetch }:
         res = await fetchImpl(`${baseUrl}/api/v1/send`, {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ From: sender, To: [{ Email: mail.to }], Subject: mail.subject, Text: mail.text, Headers: mail.headers }),
+          body: JSON.stringify({ From: sender, To: [{ Email: mail.to }], Subject: mail.subject, Text: mail.text, HTML: mail.html, Headers: mail.headers }),
         });
       } catch {
         throw new MailError("local mailbox request failed (network)");

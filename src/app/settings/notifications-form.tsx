@@ -4,11 +4,10 @@ import { useActionState } from "react";
 import { copy } from "@/lib/copy";
 import { saveNotificationPreferences, type NotificationState } from "./notification-actions";
 
-type Props = { requests: boolean; accepted: boolean; messages: boolean };
+type Props = { connect: boolean; messages: boolean };
 
 const BOXES = [
-  { name: "connection_requests", key: "requests" },
-  { name: "connection_accepted", key: "accepted" },
+  { name: "connect", key: "connect" },
   { name: "messages", key: "messages" },
 ] as const;
 
