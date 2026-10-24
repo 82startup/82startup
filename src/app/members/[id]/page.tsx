@@ -96,7 +96,7 @@ async function MemberDetail({ params }: { params: PageProps<"/members/[id]">["pa
         </p>
       )}
       <MemberEvents events={(events ?? []) as MemberEvent[]} />
-      <ConnectionPanel memberId={id} state={state} connectionId={connectionId} note={note} />
+      <ConnectionPanel memberId={id} name={member.name} state={state} connectionId={connectionId} note={note} />
       {member.id === viewer && (
         <p>
           <Link href="/profile" className="underline">{copy.members.edit}</Link>
