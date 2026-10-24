@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { copy, loginErrorText } from "@/lib/copy";
 import { safeNextPath } from "@/lib/auth/safe-next";
 import { signInWithEmail, signInWithGoogle } from "./actions";
+import { Turnstile } from "./turnstile";
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
@@ -30,6 +31,7 @@ async function LoginForms({ searchParams }: { searchParams: PageProps<"/login">[
         <input type="hidden" name="next" value={next} />
         <label htmlFor="email" className="text-sm font-medium">{copy.login.emailLabel}</label>
         <input id="email" name="email" type="email" required autoComplete="email" className="rounded border p-2" />
+        <Turnstile />
         <button type="submit" className="rounded bg-black p-2 text-white">{copy.login.emailButton}</button>
       </form>
 
