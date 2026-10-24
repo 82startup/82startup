@@ -1,6 +1,6 @@
 export const copy = {
   siteName: "82 Startup",
-  nav: { signIn: "Sign in", profile: "Profile", signOut: "Sign out", events: "Events", members: "Members", connections: "Connections", admin: "Admin" },
+  nav: { signIn: "Sign in", profile: "Profile", signOut: "Sign out", events: "Events", members: "Members", connections: "Connections", messages: "Messages", admin: "Admin" },
   login: {
     title: "Sign in to 82 Startup",
     emailLabel: "Email",
@@ -128,6 +128,29 @@ export const copy = {
       save: "Could not save. Try again.",
       wait: "You can send a new request to this member later.",
       unavailable: "This member is not available.",
+    },
+  },
+  messages: {
+    title: "Messages",
+    loading: "Loading messages…",
+    empty: "No conversations yet. Open a connection to start one.",
+    send: "Send",
+    sending: "Sending…",
+    placeholder: "Write a message",
+    refresh: "Refresh",
+    earlier: "Show earlier messages",
+    latest: "Back to the latest messages",
+    message: "Message",
+    you: "You",
+    unread: "new",
+    unavailable: "This conversation is not available.",
+    backToList: "All messages",
+    noMessages: "No messages yet. Say hello.",
+    errors: {
+      invalid: "Write a message of 1 to 2,000 characters.",
+      notConnected: "You can only message members you are connected with.",
+      tooFast: "You are sending messages too fast. Wait a minute and try again.",
+      save: "Could not send. Try again.",
     },
   },
   attendance: {
