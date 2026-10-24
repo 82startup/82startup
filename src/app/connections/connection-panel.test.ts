@@ -56,6 +56,7 @@ describe("ConnectionPanel", () => {
     const connected = render("connected");
     expect(connected).toContain("Connected");
     expect(connected).toContain("Disconnect");
+    expect(connected).toContain(`href="/messages/${ID}"`);
     const blocked = render("blocked");
     expect(blocked).toContain("You blocked this member.");
     expect(blocked).toContain("Unblock");

@@ -95,6 +95,7 @@ function MemberRow({ row }: { row: Row }) {
         )}
         {row.kind === "connected" && (
           <>
+            <Link href={`/messages/${row.member_id}`} className="rounded border px-3 py-1 text-sm">{copy.messages.message}</Link>
             <ActionForm action={disconnect} fields={{ member: row.member_id }} label={copy.connections.disconnect} quiet />
             <ActionForm action={blockMember} fields={{ member: row.member_id }} label={copy.connections.block} quiet />
           </>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { copy } from "@/lib/copy";
 import { blockMember, cancelRequest, disconnect, respondToRequest, sendConnectionRequest, unblockMember } from "./actions";
 import { ActionForm } from "./action-form";
@@ -46,6 +47,7 @@ export function ConnectionPanel({ memberId, state, connectionId, note }: Props) 
       {state === "connected" && (
         <div className="flex flex-wrap items-center gap-3">
           <span>{copy.connections.connected}</span>
+          <Link href={`/messages/${memberId}`} className="rounded border px-3 py-1 text-sm">{copy.messages.message}</Link>
           <ActionForm action={disconnect} fields={member} label={copy.connections.disconnect} quiet />
         </div>
       )}
