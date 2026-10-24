@@ -1,13 +1,13 @@
+// "connect" covers connection requests and accepted connections (the two older kinds stay valid for links in emails already sent).
 // "message" covers messages and posts from connections.
-export const UNSUBSCRIBE_KINDS = ["connection_request", "connection_accepted", "message", "all"] as const;
+export const UNSUBSCRIBE_KINDS = ["connect", "connection_request", "connection_accepted", "message", "all"] as const;
 export type UnsubscribeKind = (typeof UNSUBSCRIBE_KINDS)[number];
 
 // Checkboxes send "on" when ticked and nothing when not.
 export function parseNotificationForm(formData: FormData) {
   const ticked = (name: string) => formData.get(name) === "on";
   return {
-    requests: ticked("connection_requests"),
-    accepted: ticked("connection_accepted"),
+    connect: ticked("connect"),
     messages: ticked("messages"),
   };
 }

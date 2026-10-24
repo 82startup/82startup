@@ -43,15 +43,15 @@ describe("saveNotificationPreferences", () => {
 
   it("saves exactly the ticked boxes through the database function", async () => {
     const rpc = fakeClient();
-    expect(await saveNotificationPreferences({}, form({ connection_requests: "on", messages: "on" }))).toEqual({ saved: true });
-    expect(rpc).toHaveBeenCalledExactlyOnceWith("set_notification_preferences", { p_requests: true, p_accepted: false, p_messages: true });
+    expect(await saveNotificationPreferences({}, form({ connect: "on", messages: "on" }))).toEqual({ saved: true });
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("set_notification_preferences", { p_connect: true, p_messages: true });
     expect(revalidatePath).toHaveBeenCalledWith("/settings");
   });
 
   it("saves nothing ticked as everything off", async () => {
     const rpc = fakeClient();
     await saveNotificationPreferences({}, form({}));
-    expect(rpc).toHaveBeenCalledWith("set_notification_preferences", { p_requests: false, p_accepted: false, p_messages: false });
+    expect(rpc).toHaveBeenCalledWith("set_notification_preferences", { p_connect: false, p_messages: false });
   });
 
   it("reports a failure without database text", async () => {

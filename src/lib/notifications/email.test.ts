@@ -9,7 +9,7 @@ const base: EmailInput = {
   actorJobTitle: "CTO",
   actorCompany: "Bco",
   preview: "Let us meet at Summit",
-  prefs: { requests: true, accepted: false, messages: true },
+  prefs: { connect: true, messages: true },
   unsubscribeCode: CODE,
   siteUrl: "https://82startup.vercel.app",
 };
@@ -54,25 +54,55 @@ describe("buildEmail body", () => {
 });
 
 describe("buildEmail footer", () => {
-  const text = buildEmail(base).text;
+  const { text, html } = buildEmail({ ...base, prefs: { connect: false, messages: true } });
 
   it("says why the member gets it, for this kind", () => {
-    expect(text).toContain("because it is turned on in your email settings: connection requests");
+    expect(text).toContain("because it is turned on in your email settings: Connect emails");
+    expect(buildEmail({ ...base, kind: "connection_accepted" }).text).toContain("settings: Connect emails");
     expect(buildEmail({ ...base, kind: "message" }).text).toContain("turned on in your email settings: messages and posts");
     expect(buildEmail({ ...base, kind: "post" }).text).toContain("turned on in your email settings: messages and posts");
   });
 
-  it("lists all three kinds with On or Off for this member", () => {
-    expect(text).toContain("Connection requests: On");
-    expect(text).toContain("Accepted connections: Off");
+  it("lists both choices with On or Off for this member", () => {
+    expect(text).toContain("Connect emails: Off");
     expect(text).toContain("Messages and posts: On");
-    expect(text).not.toContain("Posts from my connections");
+    expect(text).not.toContain("Accepted connections");
   });
 
-  it("has unsubscribe-this-kind, unsubscribe-all and manage links", () => {
-    expect(text).toContain(`https://82startup.vercel.app/unsubscribe?code=${CODE}&kind=connection_request`);
-    expect(text).toContain(`https://82startup.vercel.app/unsubscribe?code=${CODE}&kind=all`);
-    expect(text).toContain("https://82startup.vercel.app/settings");
+  it("text version has the unsubscribe and manage links as addresses", () => {
+    expect(text).toContain(`Unsubscribe: https://82startup.vercel.app/unsubscribe?code=${CODE}&kind=connect`);
+    expect(text).toContain("Manage email settings: https://82startup.vercel.app/settings");
+    expect(text).not.toContain("kind=all");
+  });
+
+  it("html version shows the words Unsubscribe | Manage email settings as links", () => {
+    expect(html).toContain(`<a href="https://82startup.vercel.app/unsubscribe?code=${CODE}&amp;kind=connect">Unsubscribe</a> | <a href="https://82startup.vercel.app/settings">Manage email settings</a>`);
+  });
+
+  it("both connection kinds unsubscribe from Connect", () => {
+    for (const kind of ["connection_request", "connection_accepted"] as const) {
+      const mail = buildEmail({ ...base, kind });
+      expect(mail.text).toContain("kind=connect");
+      expect(mail.headers["List-Unsubscribe"]).toContain("kind=connect>");
+    }
+  });
+});
+
+describe("buildEmail html", () => {
+  it("escapes everything that comes from other members, so only our own links are clickable", () => {
+    const mail = buildEmail({
+      ...base,
+      kind: "message",
+      actorName: "<b>Bo</b>",
+      actorCompany: 'A"co',
+      preview: '<script>alert(1)</script> <a href="https://evil.example">x</a> & more',
+    });
+    expect(mail.html).not.toContain("<script>");
+    expect(mail.html).not.toContain("<b>Bo");
+    expect(mail.html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(mail.html).toContain("&amp; more");
+    const links = [...mail.html.matchAll(/<a href="([^"]+)"/g)].map((m) => m[1]);
+    expect(links.every((l) => l.startsWith("https://82startup.vercel.app/"))).toBe(true);
   });
 });
 

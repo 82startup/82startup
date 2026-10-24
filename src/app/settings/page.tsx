@@ -29,8 +29,8 @@ async function SettingsContent() {
 
   // Everything is on unless the member unticked it (and a failed read shows the default).
   const { data: prefsRows } = await supabase.rpc("my_notification_preferences");
-  const prefs = (prefsRows?.[0] ?? { connection_requests: true, connection_accepted: true, messages: true }) as {
-    connection_requests: boolean; connection_accepted: boolean; messages: boolean;
+  const prefs = (prefsRows?.[0] ?? { connect: true, messages: true }) as {
+    connect: boolean; messages: boolean;
   };
 
   return (
@@ -42,7 +42,7 @@ async function SettingsContent() {
       <section id="notifications" className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{copy.settings.notifications}</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">{copy.settings.notificationsIntro}</p>
-        <NotificationsForm requests={prefs.connection_requests} accepted={prefs.connection_accepted} messages={prefs.messages} />
+        <NotificationsForm connect={prefs.connect} messages={prefs.messages} />
       </section>
     </>
   );

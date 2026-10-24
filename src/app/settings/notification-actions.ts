@@ -16,8 +16,7 @@ export async function saveNotificationPreferences(_prev: NotificationState, form
 
   const ticked = parseNotificationForm(formData);
   const { error } = await supabase.rpc("set_notification_preferences", {
-    p_requests: ticked.requests,
-    p_accepted: ticked.accepted,
+    p_connect: ticked.connect,
     p_messages: ticked.messages,
   });
   if (error) return { error: copy.settings.saveError };
