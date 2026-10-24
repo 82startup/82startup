@@ -11,7 +11,6 @@ export type ProfileInput = {
   bio: string;
   linkedin_url: string | null;
   member_type: MemberType | null;
-  show_in_directory: boolean;
 };
 
 export type ParseResult =
@@ -25,7 +24,7 @@ function text(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
-const SUBMITTED_KEYS = ["name", "job_title", "company_name", "company_website", "bio", "linkedin_url", "member_type", "show_in_directory"] as const;
+const SUBMITTED_KEYS = ["name", "job_title", "company_name", "company_website", "bio", "linkedin_url", "member_type"] as const;
 export type SubmittedValues = Record<(typeof SUBMITTED_KEYS)[number], string>;
 
 export function submittedValues(formData: FormData): SubmittedValues {
@@ -70,8 +69,6 @@ export function parseProfileForm(formData: FormData): ParseResult {
       bio,
       linkedin_url: linkedin || null,
       member_type: type as MemberType,
-      // A checkbox sends "on" when ticked and nothing when not.
-      show_in_directory: formData.get("show_in_directory") === "on",
     },
   };
 }

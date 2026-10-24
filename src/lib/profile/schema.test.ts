@@ -34,15 +34,17 @@ describe("parseProfileForm", () => {
         bio: "Hello",
         linkedin_url: "https://www.linkedin.com/in/ada",
         member_type: "startup",
-        show_in_directory: true,
       },
     });
   });
 
-  it("reads the directory checkbox: on means shown, absent means left out", () => {
-    expect(parseProfileForm(form({ ...REQ, name: "Ada", show_in_directory: "on" }))).toMatchObject({ ok: true, value: { show_in_directory: true } });
-    expect(parseProfileForm(form({ ...REQ, name: "Ada" }))).toMatchObject({ ok: true, value: { show_in_directory: false } });
-    expect(parseProfileForm(form({ ...REQ, name: "Ada", show_in_directory: "yes" }))).toMatchObject({ ok: true, value: { show_in_directory: false } });
+  it("ignores a submitted directory switch: it now lives in Settings, so saving the profile never changes it", () => {
+    const extras: Record<string, string>[] = [{ show_in_directory: "on" }, { show_in_directory: "yes" }, {}];
+    for (const extra of extras) {
+      const result = parseProfileForm(form({ ...REQ, ...extra }));
+      expect(result).toMatchObject({ ok: true });
+      expect((result as { value: object }).value).not.toHaveProperty("show_in_directory");
+    }
   });
 
   it("treats an empty LinkedIn URL and company website as null (they stay optional)", () => {
@@ -72,7 +74,7 @@ describe("parseProfileForm", () => {
   it("keeps the website, bio, LinkedIn and directory switch optional", () => {
     expect(parseProfileForm(form(REQ))).toMatchObject({
       ok: true,
-      value: { company_website: null, bio: "", linkedin_url: null, show_in_directory: false },
+      value: { company_website: null, bio: "", linkedin_url: null },
     });
   });
 
@@ -161,7 +163,7 @@ describe("parseProfileForm", () => {
 });
 
 describe("submittedValues", () => {
-  it("returns the eight raw strings untrimmed, with missing keys as empty strings", () => {
+  it("returns the seven raw strings untrimmed, with missing keys as empty strings", () => {
     const values = submittedValues(form({ name: "  Ada ", bio: "x", member_type: "wizard", show_in_directory: "on", extra: "ignored" }));
     expect(values).toEqual({
       name: "  Ada ",
@@ -171,7 +173,6 @@ describe("submittedValues", () => {
       bio: "x",
       linkedin_url: "",
       member_type: "wizard",
-      show_in_directory: "on",
     });
   });
 });

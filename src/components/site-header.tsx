@@ -72,6 +72,7 @@ async function HeaderContent() {
         <Link href="/messages">{copy.nav.messages}{unread > 0 && ` (${unread})`}</Link>
         {isAdmin === true && <Link href="/admin/events">{copy.nav.admin}</Link>}
         <Link href="/profile">{copy.nav.profile}</Link>
+        <Link href="/settings">{copy.nav.settings}</Link>
         <SignOut />
       </nav>
     </>

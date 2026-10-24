@@ -16,7 +16,7 @@ const { ConnectionPanel } = await import("./connection-panel");
 const ID = "11111111-2222-3333-4444-555555555555";
 const CID = "99999999-2222-3333-4444-555555555555";
 const render = (state: string, note = "") =>
-  renderToStaticMarkup(createElement(ConnectionPanel, { memberId: ID, state, connectionId: CID, note }));
+  renderToStaticMarkup(createElement(ConnectionPanel, { memberId: ID, name: "Bo B", state, connectionId: CID, note }));
 
 describe("ConnectionPanel", () => {
   it("shows nothing on your own profile or for an unavailable member", () => {
@@ -24,13 +24,24 @@ describe("ConnectionPanel", () => {
     expect(render("unavailable")).toBe("");
   });
 
-  it("offers Connect with a note box, and Block, when there is no relation", () => {
+  it("offers a Connect button that opens a popup with the note box, Send and Cancel, and offers Block", () => {
     const html = render("none");
-    expect(html).toContain("Connect");
+    expect(html).toContain("<dialog");
+    expect(html).not.toContain("<dialog open");
+    expect(html).toContain("Invite Bo B to connect");
     expect(html).toContain("<textarea");
     expect(html).toContain('maxLength="200"');
+    expect(html).toContain(">Send</button>");
+    expect(html).toContain(">Cancel</button>");
+    expect(html).toContain(">Connect</button>");
     expect(html).toContain("Block");
     expect(html).toContain(`value="${ID}"`);
+  });
+
+  it("keeps the note box out of the page itself: it lives only inside the popup", () => {
+    const html = render("none");
+    const before = html.slice(0, html.indexOf("<dialog"));
+    expect(before).not.toContain("<textarea");
   });
 
   it("shows Request sent with Cancel for a sent request", () => {

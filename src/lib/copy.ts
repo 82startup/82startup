@@ -1,6 +1,6 @@
 export const copy = {
   siteName: "82 Startup",
-  nav: { signIn: "Sign in", profile: "Profile", signOut: "Sign out", events: "Events", members: "Members", connections: "Connections", messages: "Messages", admin: "Admin" },
+  nav: { signIn: "Sign in", profile: "Profile", settings: "Settings", signOut: "Sign out", events: "Events", members: "Members", connections: "Connections", messages: "Messages", admin: "Admin" },
   login: {
     title: "Sign in to 82 Startup",
     emailLabel: "Email",
@@ -37,8 +37,8 @@ export const copy = {
       institution: "Institution",
       other: "Other",
     },
-    showInDirectory: "Show me in the member directory",
-    showInDirectoryHint: "You appear in the directory only once you have entered a name. Turning this off also removes your name from event attendee lists.",
+    settingsNote: "Privacy and notifications are in",
+    settingsLink: "Settings",
     save: "Save profile",
     saved: "Profile saved.",
     errors: {
@@ -115,6 +115,10 @@ export const copy = {
     title: "Connections",
     loading: "Loading connections…",
     connect: "Connect",
+    inviteTitle: "Invite {name} to connect",
+    inviteHint: "Add a short note to say why you would like to connect (optional).",
+    send: "Send",
+    cancelDialog: "Cancel",
     notePlaceholder: "Add a short note (optional)",
     requestSent: "Request sent",
     cancel: "Cancel request",
@@ -157,6 +161,16 @@ export const copy = {
       tooFast: "You are sending messages too fast. Wait a minute and try again.",
       save: "Could not send. Try again.",
     },
+  },
+  settings: {
+    title: "Settings",
+    loading: "Loading settings…",
+    privacy: "Privacy",
+    showInDirectory: "Show me in the member directory",
+    showInDirectoryHint: "You appear in the directory only once you have entered a name. Turning this off also removes your name from event attendee lists.",
+    save: "Save",
+    saved: "Saved.",
+    saveError: "Could not save. Try again.",
   },
   posts: {
     title: "Post to my connections",

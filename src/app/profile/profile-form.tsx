@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { copy } from "@/lib/copy";
 import { MEMBER_TYPES, type MemberType } from "@/lib/profile/schema";
@@ -16,7 +17,6 @@ type Props = {
     bio: string;
     linkedin_url: string | null;
     member_type: MemberType | null;
-    show_in_directory: boolean;
   };
 };
 
@@ -48,11 +48,11 @@ export function ProfileForm({ profile, setup = false, next = "/" }: Props) {
       <Field label={copy.profile.name} required error={err.name}>
         <input name="name" defaultValue={v?.name ?? profile.name} required maxLength={100} className="rounded border p-2" />
       </Field>
-      <Field label={copy.profile.jobTitle} required error={err.job_title}>
-        <input name="job_title" defaultValue={v?.job_title ?? profile.job_title} required maxLength={120} className="rounded border p-2" />
-      </Field>
       <Field label={copy.profile.company} required hint={copy.profile.companyHint} error={err.company_name}>
         <input name="company_name" defaultValue={v?.company_name ?? profile.company_name} required maxLength={100} className="rounded border p-2" />
+      </Field>
+      <Field label={copy.profile.jobTitle} required error={err.job_title}>
+        <input name="job_title" defaultValue={v?.job_title ?? profile.job_title} required maxLength={120} className="rounded border p-2" />
       </Field>
       <Field label={copy.profile.companyWebsite} error={err.company_website}>
         <input name="company_website" type="url" defaultValue={v?.company_website ?? profile.company_website ?? ""} maxLength={200} className="rounded border p-2" />
@@ -64,17 +64,9 @@ export function ProfileForm({ profile, setup = false, next = "/" }: Props) {
         <input name="linkedin_url" type="url" defaultValue={v?.linkedin_url ?? profile.linkedin_url ?? ""} className="rounded border p-2" />
       </Field>
 
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="flex items-center gap-2 font-medium">
-          <input
-            type="checkbox"
-            name="show_in_directory"
-            defaultChecked={v ? v.show_in_directory === "on" : profile.show_in_directory}
-          />
-          {copy.profile.showInDirectory}
-        </span>
-        <span className="font-normal text-zinc-600 dark:text-zinc-400">{copy.profile.showInDirectoryHint}</span>
-      </label>
+      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        {copy.profile.settingsNote} <Link href="/settings" className="underline">{copy.profile.settingsLink}</Link>.
+      </p>
 
       <button type="submit" disabled={pending} className="rounded bg-black p-2 text-white disabled:opacity-50">
         {setup ? copy.profile.saveAndContinue : copy.profile.save}

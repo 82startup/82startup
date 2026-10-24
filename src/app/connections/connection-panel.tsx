@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { copy } from "@/lib/copy";
-import { blockMember, cancelRequest, disconnect, respondToRequest, sendConnectionRequest, unblockMember } from "./actions";
+import { blockMember, cancelRequest, disconnect, respondToRequest, unblockMember } from "./actions";
 import { ActionForm } from "./action-form";
+import { ConnectDialog } from "./connect-dialog";
 
 type Props = {
   memberId: string;
+  name: string; // shown in the Connect popup
   state: string; // from connection_state()
   connectionId: string | null; // the open request, for sent and received
   note: string; // the note on a received request
 };
 
 // The connect controls on another member's profile. Nothing on your own, or when the member is unavailable.
-export function ConnectionPanel({ memberId, state, connectionId, note }: Props) {
+export function ConnectionPanel({ memberId, name, state, connectionId, note }: Props) {
   if (state === "self" || state === "unavailable") return null;
   const member = { member: memberId };
 
@@ -26,7 +28,7 @@ export function ConnectionPanel({ memberId, state, connectionId, note }: Props) 
 
   return (
     <section className="flex flex-col gap-3">
-      {state === "none" && <ActionForm action={sendConnectionRequest} fields={member} label={copy.connections.connect} withNote />}
+      {state === "none" && <ConnectDialog memberId={memberId} name={name || copy.attendance.member} />}
       {state === "sent" && (
         <div className="flex flex-wrap items-center gap-3">
           <span>{copy.connections.requestSent}</span>
