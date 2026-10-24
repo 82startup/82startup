@@ -95,7 +95,7 @@ async function HomeSponsors() {
   if (sponsors.length === 0) return null;
   return (
     <section className="mt-10">
-      <h2 className="mb-3 text-xl font-semibold">{copy.site.sponsors}</h2>
+      <h2 className="mb-3 text-xl font-semibold">{copy.site.featuredSponsors}</h2>
       <SponsorsSection sponsors={sponsors} contact={contact} baseUrl={supabaseEnv().url} />
       <Link href="/sponsors" className="mt-4 inline-block underline">{copy.site.seeAll} →</Link>
     </section>
