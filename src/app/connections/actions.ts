@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { copy } from "@/lib/copy";
 import { parseIdForm, parseMemberForm, parseSendForm } from "@/lib/connections/form";
+import { triggerNotifications } from "@/lib/notifications/trigger";
 import { createClient } from "@/lib/supabase/server";
 
 export type ConnectionState = { error?: string };
@@ -22,6 +23,8 @@ async function call(fn: string, args: Record<string, unknown>): Promise<Connecti
   }
   revalidatePath("/connections");
   revalidatePath("/members/[id]", "page");
+  // A request or an acceptance may have created an email to send; it goes out after the answer.
+  if (fn === "send_connection_request" || fn === "respond_connection_request") triggerNotifications();
   return {};
 }
 
