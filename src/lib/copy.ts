@@ -1,5 +1,12 @@
 export const copy = {
   siteName: "82 Startup",
+  signupBar: {
+    text: "Sign up for the latest updates",
+    placeholder: "you@company.com",
+    button: "Sign up",
+    close: "Close",
+    url: "https://82startup.substack.com/subscribe",
+  },
   nav: { signIn: "Sign in", profile: "Profile", settings: "Settings", signOut: "Sign out", events: "Events", members: "Members", connections: "Connections", messages: "Messages", admin: "Admin" },
   login: {
     title: "Sign in to 82 Startup",
