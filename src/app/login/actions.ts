@@ -15,11 +15,16 @@ export async function signInWithEmail(formData: FormData) {
   const next = safeNextPath(String(formData.get("next") ?? ""));
   if (!email) redirect(`/login?error=email&next=${encodeURIComponent(next)}`);
 
+  // With the Turnstile check on (a site key is set), Supabase verifies the token with Cloudflare and refuses without a good one.
+  const captchaToken = String(formData.get("cf-turnstile-response") ?? "");
+  if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !captchaToken) redirect(`/login?error=captcha&next=${encodeURIComponent(next)}`);
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: await callbackUrl(next) },
+    options: { emailRedirectTo: await callbackUrl(next), ...(captchaToken && { captchaToken }) },
   });
+  if (error?.code === "captcha_failed") redirect(`/login?error=captcha&next=${encodeURIComponent(next)}`);
   redirect(error ? `/login?error=send&next=${encodeURIComponent(next)}` : "/login?sent=1");
 }
 

@@ -19,6 +19,7 @@ export const copy = {
       send: "We could not send the email. Try again in a minute.",
       provider: "We could not start that sign-in. Try again.",
       auth: "That sign-in link did not work. Request a new one.",
+      captcha: "Please complete the security check and try again.",
     },
   },
   profile: {
