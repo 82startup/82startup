@@ -317,3 +317,5 @@ The latest user request explicitly authorizes pushing the completed integration 
 
 ### Current integration performance rules
 Root AGENTS.md now authorizes OG metadata, prerendering, WebP artwork, bounded24fps glyph animation, a hosted multi-file map with lazy plan images and cache version19, and release to the existing production project after verified push. These supersede historical single-file/offline map and client-only HTML instructions for this derived viewer. Home date text is March15–21 only; event facts stay unchanged. The archive remains untouched.
+
+Release steering: Git push only; the existing Vercel integration deploys automatically. No manual Vercel deployment/authentication. Root AGENTS.md supersedes prior release steps.
