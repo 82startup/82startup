@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 82 Startup — unified Summit and community repository
 
-## Getting Started
+The public entry point now uses the existing **82 Startup Week 2027** Summit site. The original Next.js community implementation is preserved for later integration.
 
-First, run the development server:
+## Run locally
 
-```bash
+```sh
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. The landing page and static routes do not require Supabase credentials. Community backend development still needs its original environment (`supabase start && ./scripts/dev-env.sh`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Layout and routing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `public/`: canonical Summit HTML, CSS, JavaScript, event data, images, licenses and derived 3D venue viewer, imported from the current local `summit-2027/dist/`.
+- `/` serves `public/index.html` before the preserved Next.js homepage. `/index.html`, `/schedule.html`, `/speakers.html`, `/venue.html` and `/tickets.html` remain available, including schedule day queries and relative asset links.
+- The old community landing and navigation are hidden. `/events`, `/members`, `/connections`, `/messages`, `/profile`, `/settings`, `/login`, `/admin`, `/speakers`, `/sponsors` and their descendants temporarily redirect to `/` with HTTP 307. This is a UI launch gate, not API authorization.
+- `src/app/`, `src/components/`, `src/lib/`, `supabase/`: existing community implementation retained. Auth callbacks, sign-out, unsubscribe, APIs, cron jobs and database access controls remain unchanged.
+- `src/proxy.ts`: bypasses community sessions for Summit routes and temporarily gates community screens. A future community launch must deliberately revise this gate and add navigation.
+- `docs/summit/`: imported design rules, event/source/license documentation and historical Summit README. Historical `dist/` references mean `public/` in this repository. Root AGENTS.md overrides historical workflow rules.
 
-## Learn More
+Edit the landing directly in `public/`; the sibling local Summit folder is a reference snapshot, not an ongoing sync source. The independent original map source, nested Git directories, caches, credentials and historical hosting identity are not imported. The five events and individual Luma checkout links retain the Summit behavior; no local checkout or community database is used by the landing.
 
-To learn more about Next.js, take a look at the following resources:
+## Validation and delivery
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```sh
+npm run lint
+npm test
+npm run build
+npm start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Database/access-rule tests remain available through `npm run test:db` with local Supabase running. Use a supported Node version (22.12+, 24 LTS or 26+). Complete authorized work by committing and pushing directly to the verified default branch using GitHub account `randyjlee` and verified email `randyjlee.hj@gmail.com`. No hosting deployment is part of this integration.

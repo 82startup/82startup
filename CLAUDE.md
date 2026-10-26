@@ -4,31 +4,9 @@ Public site for the 82 Startup community: events imported from Luma, plus member
 profiles visible after login. Full design:
 `docs/specs/2026-10-22-82startup-platform-design.md`.
 
-## Every piece of work is a thread
+## Current integration and release workflow
 
-One GitHub Issue → one branch → one git worktree → one owner.
-
-- Branch: `<person>/<issue#>-<slug>` (e.g. `kiha/3-auth-profiles`)
-- Worktree: `.worktrees/<issue#>-<slug>` (git-ignored)
-- Never push to `main`. `main` changes only by merging a pull request.
-
-## Stages
-
-**Stage 1 — Brainstorm & requirements.** Write the spec to
-`docs/specs/<YYYY-MM-DD>-<issue#>-<topic>.md`. Stop and get the owner's explicit
-approval. No code before approval.
-
-**Stage 2 — Development.** Write the plan to
-`docs/plans/<YYYY-MM-DD>-<issue#>-<topic>.md`, then build with tests written
-first. If the work outgrows the approved spec, return to Stage 1 for that part.
-
-**Stage 3 — Test.** Run all automated checks, QA in a browser, hand it to the
-owner. **Release only after the owner says "ship it".**
-
-**Release.** Push branch → open PR → checks pass → merge to `main` → production
-deploys automatically → health check → close the issue → remove the worktree.
-
-Small changes (typos, minor fixes) skip the spec and plan but still need "ship it".
+Root AGENTS.md is authoritative and supersedes the previous issue/branch/PR, pre-development approval and “ship it” requirements. The user authorized Summit landing integration, temporary community UI hiding, and direct commit/push to the verified default branch. Preserve community implementation for later integration; see README.md for routing. No hosting deployment is requested by this task.
 
 ## Production safety
 
