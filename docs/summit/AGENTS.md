@@ -304,3 +304,13 @@ The current canonical landing source is ../../public/ in 82startup/82startup. Hi
 
 ### Unified footer centering
 The current user correction centers the single footer text span with grid place-items:center in public/style.css. This supersedes the preceding text-only flex implementation; preserve typography, color and bottom alignment.
+
+### Compact hero and push hold
+Root AGENTS.md now prohibits all pushes/deployments until the user explicitly requests them again, superseding historical release rules. The homepage hero is approximately 10% shorter using reduced padding/margins and a 5% smaller Zen Dots title. Preserve copy, equal line sizes and other styling.
+
+### Archived original source
+The original Summit folder now lives at `/Users/randy/project/_old/summit-2027`. Work only in `/Users/randy/project/82_2027summit/82startup`; this supersedes the earlier sibling-source reference. Do not push or deploy until explicitly requested again.
+
+Latest hero spacing is approximately 15% shorter again, retaining title size; root AGENTS.md records the authoritative spacing. This supersedes prior hero padding/margins. The archive and push hold remain unchanged.
+
+The latest user request explicitly authorizes pushing the completed integration and visual changes as randyjlee, superseding the prior push hold for this change set. Root AGENTS.md controls protected-main delivery; no hosting deployment is requested.

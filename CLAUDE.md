@@ -6,7 +6,7 @@ profiles visible after login. Full design:
 
 ## Current integration and release workflow
 
-Root AGENTS.md is authoritative and supersedes the previous issue/branch/PR, pre-development approval and “ship it” requirements. The user authorized Summit landing integration, temporary community UI hiding, and direct commit/push to the verified default branch. Preserve community implementation for later integration; see README.md for routing. No hosting deployment is requested by this task.
+Root AGENTS.md is authoritative and supersedes the previous issue/branch/PR, pre-development approval and “ship it” requirements. The user authorized Summit landing integration, temporary community UI hiding, and direct commit/push to the verified default branch. Preserve community implementation for later integration; see README.md for routing. No hosting deployment is requested by this task. Latest user authorization now permits pushing the completed integration and visual changes as randyjlee, superseding the previous push hold for this change set; no hosting deployment is requested.
 
 ## Production safety
 

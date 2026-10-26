@@ -498,3 +498,25 @@ body{font-weight:500}h1,h2,h3,.hero h1,.footer-word,.stat strong{font-family:'IB
 /* Center the footer text as one intrinsic-width item at every breakpoint. */
 .footer-word{display:grid;place-items:center;justify-content:normal;text-align:center;min-width:0;padding-inline:0}
 .footer-word>span{display:block;width:max-content;margin-inline:auto}
+
+/* Compact the home hero by about 10%, with a 5% smaller display title. */
+.hero{padding-top:50px;padding-bottom:54px}
+.hero h1{font-size:max(12px,clamp(22.8px,5.415vw,85.5px));margin-top:27px;margin-bottom:22px}
+@media(max-width:800px){
+ .hero{padding-top:31px;padding-bottom:33px}
+ .hero h1{font-size:max(12px,5.415vw);margin-top:20px;margin-bottom:20px}
+}
+
+/* Further reduce the hero height by 15% through spacing, retaining title size. */
+.hero{padding-top:28px;padding-bottom:32px}
+.hero h1{margin-top:19px;margin-bottom:14px}
+.hero-sub{margin-top:22px;margin-bottom:18px}
+.hero-actions{margin-top:18px;padding-top:4px}
+.hero-note{margin-top:13px}
+@media(max-width:800px){
+ .hero{padding-top:19px;padding-bottom:21px}
+ .hero h1{margin-top:14px;margin-bottom:14px}
+ .hero-sub{margin-top:19px;margin-bottom:19px}
+ .hero-actions{margin-top:19px}
+ .hero-note{margin-top:15px}
+}

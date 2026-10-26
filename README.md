@@ -20,7 +20,7 @@ Open http://localhost:3000. The landing page and static routes do not require Su
 - `src/proxy.ts`: bypasses community sessions for Summit routes and temporarily gates community screens. A future community launch must deliberately revise this gate and add navigation.
 - `docs/summit/`: imported design rules, event/source/license documentation and historical Summit README. Historical `dist/` references mean `public/` in this repository. Root AGENTS.md overrides historical workflow rules.
 
-Edit the landing directly in `public/`; the sibling local Summit folder is a reference snapshot, not an ongoing sync source. The independent original map source, nested Git directories, caches, credentials and historical hosting identity are not imported. The five events and individual Luma checkout links retain the Summit behavior; no local checkout or community database is used by the landing.
+Edit the landing directly in `public/`; the original Summit folder is archived at `/Users/randy/project/_old/summit-2027` and is not an ongoing sync source. The independent original map source, nested Git directories, caches, credentials and historical hosting identity are not imported. The five events and individual Luma checkout links retain the Summit behavior; no local checkout or community database is used by the landing.
 
 ## Validation and delivery
 
@@ -34,3 +34,11 @@ npm start
 Database/access-rule tests remain available through `npm run test:db` with local Supabase running. Use a supported Node version (22.12+, 24 LTS or 26+). Complete authorized work by committing and pushing directly to the verified default branch using GitHub account `randyjlee` and verified email `randyjlee.hj@gmail.com`. No hosting deployment is part of this integration.
 
 The large footer wordmark uses one text span centered by a grid on every page, retaining the existing typography and bottom alignment. CI also runs on temporary `integration/**` branches so required checks can pass on the exact candidate commit before a direct protected-main push.
+
+Current user override: keep changes local; do not push any branch or deploy until explicitly requested again. This supersedes automatic delivery instructions above. The home hero now uses a 5% smaller title and tighter vertical spacing to reduce its total height by approximately 10%.
+
+Active workspace: `/Users/randy/project/82_2027summit/82startup` only. The archived Summit folder retains its original map project and Git history at `/Users/randy/project/_old/summit-2027`. Do not modify the archive or push changes without a new user instruction.
+
+The homepage hero spacing is now reduced by a further approximately 15% from the previous compact version; title size and all content are preserved. Changes remain local under the active push hold.
+
+Latest delivery authorization: the user explicitly requested pushing the completed integration and visual changes with GitHub account `randyjlee`, superseding the previous push hold for this change set. Required CI must pass on the same commit before main is updated. No hosting deployment is requested.

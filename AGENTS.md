@@ -20,3 +20,19 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Footer centering: keep `82 STARTUP WEEK` inside a single intrinsic-width span centered by a full-width grid (`place-items:center`), across all Summit pages and breakpoints. Preserve the current font size, tracking, yellow inset treatment and flush bottom placement. This supersedes text-only flex centering.
 - When protected main requires CI before a direct push, use a temporary `integration/**` branch for the exact candidate commit. CI must pass before pushing that same commit to main; do not bypass checks or create a PR. This supersedes main-only push triggers in CI. No database rules are changed by this workflow.
+
+## Latest user steering — local edits only until push is explicitly requested
+
+- Do not push any branch or publish/deploy changes until the user explicitly asks again. This supersedes automatic direct-main completion and the temporary integration-branch push workflow above. A previously pushed validation branch exists; do not advance it or main while this hold is active. Local edits and verification remain authorized.
+- Compact the homepage hero height by approximately 10% through reduced vertical padding and title margins, with its Zen Dots title 5% smaller (5.415vw, desktop cap85.5px). Preserve all three equal-size title lines, copy, colors, motion and actions. Desktop padding is 50px/54px and title margins27px/22px; at <=800px padding31px/33px and margins20px/20px. This supersedes earlier hero spacing and title scale only.
+
+## Active workspace and archived source — latest user instruction
+
+- Work exclusively in `/Users/randy/project/82_2027summit/82startup` from now on. The original Summit folder, including its Git history and independent original map source, is archived at `/Users/randy/project/_old/summit-2027`. This supersedes references to an active sibling Summit project. Do not edit or synchronize from the archive unless explicitly requested.
+- Keep all changes local. Do not push any branch or deploy until the user explicitly asks again; the existing push hold remains authoritative.
+
+### Additional 15% hero height reduction
+The latest user request reduces the current homepage hero by another approximately 15%. Preserve its existing title font size and all content; reduce vertical padding to28px/32px desktop and19px/21px at <=800px, title margins to19px/14px desktop and14px/14px mobile, subtitle margins22px/18px desktop and19px/19px mobile, action top padding4px and top margin18px desktop/19px mobile, and note top margin13px desktop/15px mobile. This supersedes the preceding hero spacing values only. Work exclusively in 82startup; the no-push/no-deployment hold remains active.
+
+### Push explicitly authorized for the completed integration
+The user now explicitly authorizes pushing the current integration, footer centering, archived-workspace documentation and compact hero changes using GitHub account randyjlee. This lifts the preceding push hold for this change set. Commit with verified email randyjlee.hj@gmail.com, run required CI on the exact candidate through the temporary integration branch, then push the same commit to verified default branch main without a PR or force push. A hosting deployment is not requested. Work remains exclusively in 82startup.
