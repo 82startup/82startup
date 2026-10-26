@@ -21,3 +21,5 @@ The two evening descriptions retain an old “[Time TBD]” phrase; use their pu
 `dist/event-data.js` is the shared source for homepage cards, the date-filtered schedule, and the ticket directory. Bookings and payment occur **only on Luma**, in a new tab with `noopener noreferrer`. Generic ticket CTAs lead to the five-event chronological ticket timeline. Contextual event CTAs lead directly to that event’s unique official URL. There is no local checkout, reservation, fake purchase modal, Day + Dinner selector, separate Day 01/02 pass, or invented bundle. Luma owns availability, tiers, fees and final payment amounts.
 
 This supersedes the previous March 16 reception at Fort Mason, day-pass/dinner options, “prices coming soon” notices and absent-checkout workflow. The homepage’s 1,500 attendance figure remains an explicitly labeled planning estimate from the earlier organizer brief, not a figure asserted by this Luma calendar.
+
+Homepage display range override: March15–21, 2027. This is presentation copy only; all individual event dates and Luma ticket facts above remain unchanged.

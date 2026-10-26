@@ -61,3 +61,10 @@ Title clarification supersedes all recent text-experiment notes: Ghost Type and 
 - Program-card artwork uses soft, grainy CSS radial gradients instead of the former contour-line image: multi-hue lavender/coral/plum, mint/cobalt/violet/peach, and apricot/lilac/rose/teal palettes. Apply the locally authored procedural summit-grain.svg as a pronounced coarse static texture with stronger noise contrast and larger grains; preserve square corners, date labels, card copy, ticket links and dividers. The photo carousel uses four inert wrap copies so its three-across desktop view loops seamlessly, retains the 3-second advance, and remains responsive.
 
 - Set the program-art grain overlay opacity to 0.34, reducing its previous 0.68 strength by 50%. Preserve the coarse grain size and mixed-color gradients; this supersedes the stronger texture treatment.
+
+## Optimized public delivery assets
+
+- Selected social artwork: `public/assets/og-startup-week-2027-zen-dots.jpg`, 1200×630 JPEG, approximately110KB, encoded from the supplied/generated Zen Dots PNG master. Used by static Open Graph and Twitter tags across all five landing documents. Preserve PNG masters.
+- Existing botanical and contour artwork now use sibling `.webp` delivery variants; originals remain for source fidelity.
+- Derived hosted map plans are `public/venue-map/assets/plan-<content hash>.webp`, extracted from the original embedded JPEGs at the same pixel dimensions. Three.js r128 is extracted unchanged under `public/venue-map/vendor/three-r128.min.js`; its MIT notice and THREE-LICENSE.txt remain included.
+- The original self-contained map project is archived outside the active repository and remains unchanged. Public map HTML now references the extracted local HTTP assets.

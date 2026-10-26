@@ -6,12 +6,13 @@
     "node": ">=22.12"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "npm run build:landing && next dev",
+    "build": "npm run build:landing && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:db": "supabase test db"
+    "test:db": "supabase test db",
+    "build:landing": "node scripts/build-landing.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

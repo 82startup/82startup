@@ -8,7 +8,9 @@
  const glyphPools=[".,:;`'\"", "!|/\\-_~^+=<>[]{}()?", "0123456789abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&*@"];
  const gray='48,48,48';
  let width=0,height=0,cols=0,rows=0,heat,next,raf=0,last=0,clock=0,visible=true,disposed=false;
- const cellX=9,cellY=12,pointer={x:-1000,y:-1000},bursts=[],waves=[];
+ let cellX=9,cellY=12,radialDistances,noise;
+ const frameRate=24;
+ const pointer={x:-1000,y:-1000},bursts=[],waves=[];
  let waveInitialized=false,nextWaveAt=0;
  const fract=n=>n-Math.floor(n);
  const random=(x,y,t)=>fract(Math.sin(x*127.1+y*311.7+t*17.7)*43758.5453);
@@ -24,7 +26,7 @@
    const xx=(x+wind+cols)%cols;
    const below=(y+1)*cols;
    let value=heat[below+xx]*.48+heat[below+(xx+1)%cols]*.22+heat[below+(xx+cols-1)%cols]*.22+heat[Math.min(rows-1,y+2)*cols+xx]*.08;
-   value-=cooling*(.4+random(x,y,t)*.9);
+   value-=cooling*(.4+noise[(y*cols+x+Math.floor(t*17))%noise.length]*.9);
    if(pointer.x>-100){const dx=x*cellX-pointer.x,dy=y*cellY-pointer.y;value*=1-.28*Math.exp(-(dx*dx+dy*dy)/4200);}
    for(const burst of bursts){const age=clock-burst.time;if(age<1.2){const dx=x*cellX-burst.x,dy=y*cellY-(height-age*125);value+=Math.exp(-(dx*dx/8000+dy*dy/1700))*.14*(1-age/1.2);}}
    next[y*cols+x]=Math.max(0,Math.min(1,value));
@@ -73,7 +75,7 @@
    const px=x*cellX+cellX/2,py=height-(rows-y-1)*cellY;
    let energy=0,offsetX=0,offsetY=0;
    for(const front of fronts){
-    const dx=px-front.x,dy=py-front.y,distance=Math.hypot(dx,dy);
+    const dx=px-front.x,dy=py-front.y,distance=radialDistances[y*cols+x];
     const edge=(distance-front.radius)/front.band;
     const ring=Math.exp(-edge*edge*.5)*front.fade;
     energy+=ring*front.strength;
@@ -81,7 +83,7 @@
    }
    const v=Math.min(1,heat[y*cols+x]*.32+energy);if(v<.045)continue;
    const pool=glyphPools[Math.min(glyphPools.length-1,Math.floor(v*glyphPools.length))];
-   const variation=random(x,y,Math.floor(clock*(2.5+random(x,y,0)*2)));
+   const variation=noise[(y*cols+x+Math.floor(clock*3))%noise.length];
    const glyph=pool[Math.min(pool.length-1,Math.floor(variation*pool.length))];
    const depth=.72+.28*(.5+.5*Math.sin(x*.065+y*.07+clock*.4));
    const alpha=(.022+v*.21)*depth;
@@ -115,15 +117,17 @@
  }
  function wake(){if(!raf&&!disposed&&visible&&!document.hidden&&!reduce.matches){last=0;raf=requestAnimationFrame(frame);}}
  function frame(now){raf=0;if(disposed||!visible||document.hidden||reduce.matches)return;
-  if(!last||now-last>=1000/30){clock+=1/30;step();draw();last=now;}
+  if(!last||now-last>=1000/frameRate){clock+=1/frameRate;step();draw();last=now;}
   raf=requestAnimationFrame(frame);
  }
  function resize(){
-  width=host.clientWidth;height=host.clientHeight;const dpr=Math.min(devicePixelRatio||1,1.5);
+  width=host.clientWidth;height=host.clientHeight;const density=Math.max(1,Math.sqrt(width*height/(9*12*4000)));cellX=9*density;cellY=12*density;const dpr=Math.min(devicePixelRatio||1,1.5);
   canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
   waves.length=0;waveInitialized=false;nextWaveAt=0;
   cols=Math.ceil(width/cellX);rows=Math.ceil(height/cellY);heat=new Float32Array(cols*rows);next=new Float32Array(cols*rows);
-  for(let i=0;i<rows*2;i++){clock+=.025;step();}draw();wake();
+  radialDistances=new Float32Array(cols*rows);noise=new Float32Array(cols*rows);
+  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const i=y*cols+x;radialDistances[i]=Math.hypot(x*cellX+cellX/2-width*.5,height-(rows-y-1)*cellY-height*.5);noise[i]=random(x,y,0);}
+  for(let i=0;i<Math.min(16,rows);i++){clock+=.025;step();}draw();wake();
  }
  function move(e){if(reduce.matches)return;const r=host.getBoundingClientRect();pointer.x=e.clientX-r.left;pointer.y=e.clientY-r.top;}
  function leave(){pointer.x=pointer.y=-1000;}

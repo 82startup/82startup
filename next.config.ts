@@ -9,6 +9,13 @@ const nextConfig: NextConfig = {
       fallback: [],
     };
   },
+  // Short-lived documents; reusable static assets stay in the browser/CDN cache.
+  async headers() {
+    const cache = [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }];
+    return [
+      ...["/assets/:path*", "/venue-map/vendor/:path*", "/venue-map/assets/:path*", "/style.css", "/app.js", "/event-data.js", "/event-photos.js", "/glyph-ember-preview.js", "/hero-glitch.js", "/company-logos.js"].map(source => ({ source, headers: cache })),
+    ];
+  },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

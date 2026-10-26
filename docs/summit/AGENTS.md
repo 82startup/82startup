@@ -314,3 +314,6 @@ The original Summit folder now lives at `/Users/randy/project/_old/summit-2027`.
 Latest hero spacing is approximately 15% shorter again, retaining title size; root AGENTS.md records the authoritative spacing. This supersedes prior hero padding/margins. The archive and push hold remain unchanged.
 
 The latest user request explicitly authorizes pushing the completed integration and visual changes as randyjlee, superseding the prior push hold for this change set. Root AGENTS.md controls protected-main delivery; no hosting deployment is requested.
+
+### Current integration performance rules
+Root AGENTS.md now authorizes OG metadata, prerendering, WebP artwork, bounded24fps glyph animation, a hosted multi-file map with lazy plan images and cache version19, and release to the existing production project after verified push. These supersede historical single-file/offline map and client-only HTML instructions for this derived viewer. Home date text is March15–21 only; event facts stay unchanged. The archive remains untouched.
