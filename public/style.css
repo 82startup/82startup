@@ -494,3 +494,7 @@ body{font-weight:500}h1,h2,h3,.hero h1,.footer-word,.stat strong{font-family:'IB
 /* Center the actual text run, including when it approaches the container width. */
 .footer-word{display:flex;justify-content:center;letter-spacing:-.065em;text-indent:0}
 @media(max-width:360px){.footer-word{letter-spacing:-.08em}}
+
+/* Center the footer text as one intrinsic-width item at every breakpoint. */
+.footer-word{display:grid;place-items:center;justify-content:normal;text-align:center;min-width:0;padding-inline:0}
+.footer-word>span{display:block;width:max-content;margin-inline:auto}

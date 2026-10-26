@@ -301,3 +301,6 @@ Center the actual large footer text run with a flex container (justify-content:c
 
 ## Repository integration override
 The current canonical landing source is ../../public/ in 82startup/82startup. Historical dist/ paths refer to public/ now. Root AGENTS.md controls integration, temporary community UI gating, direct default-branch pushes and deployment policy, superseding conflicting historical workflow instructions above. The sibling Summit project is retained as the original local reference.
+
+### Unified footer centering
+The current user correction centers the single footer text span with grid place-items:center in public/style.css. This supersedes the preceding text-only flex implementation; preserve typography, color and bottom alignment.

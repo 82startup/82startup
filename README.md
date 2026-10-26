@@ -32,3 +32,5 @@ npm start
 ```
 
 Database/access-rule tests remain available through `npm run test:db` with local Supabase running. Use a supported Node version (22.12+, 24 LTS or 26+). Complete authorized work by committing and pushing directly to the verified default branch using GitHub account `randyjlee` and verified email `randyjlee.hj@gmail.com`. No hosting deployment is part of this integration.
+
+The large footer wordmark uses one text span centered by a grid on every page, retaining the existing typography and bottom alignment. CI also runs on temporary `integration/**` branches so required checks can pass on the exact candidate commit before a direct protected-main push.
