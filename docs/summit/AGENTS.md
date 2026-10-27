@@ -372,3 +372,82 @@ All built-in 3D scene tags and selectable object names use English, including re
 ## Release authorized — October 26, 2026
 
 The user explicitly requested push and deployment of the current Expo, mobile layout, event timeline and 3D map changes. This lifts all preceding local-only/no-commit/no-push/no-deploy holds for this change set. Verify GitHub randyjlee and its verified email, run required checks on the exact integration candidate, then push the same commit to verified default branch main without a PR or force push. Use the existing Vercel Git integration for automatic production deployment; do not manually deploy or change accounts/projects. Verify remote commit and production rollout read-only. Exported artwork remains outside the repository and is not part of this website release.
+
+### Header animation contrast
+Increase the homepage hero animated glyph and floating ember opacity by 15% (multiply existing glyph alpha and ember opacity by 1.15). Preserve motion, timing, colors, layout and reduced-motion behavior. This is a local-only adjustment; do not commit, push or deploy unless explicitly requested.
+
+## Homepage speakers and sponsor sections
+Add static homepage sections after the event timeline and before the photo gallery, matching existing Summit paper/grid styling. Speakers follow the user screenshot: 김정상 (Professor · IONQ), Edward Kim (Co-founder · Gusto), Cal Henderson (Co-founder · Slack), Eric Kim (Co-founder · Good Water Capital). User-supplied names/roles are retained as supplied. Four desktop columns, two mobile columns. Sponsors are exclusively Naver (Platinum), Altos Ventures and 한국벤처기업협회 (Gold), as clarified by the user; speaker employers are not sponsors. Preserve the screenshot's Featured Sponsors 2026 heading so these are not silently presented as confirmed 2027 sponsorship. Use text wordmarks, not invented official logo images. Keep the unrelated illustrative tech-logo strip hidden. No Supabase dependency for these static sections. These local changes are not authorized for push/deployment yet.
+
+### Face-focused speaker portraits
+Frame homepage speaker photos as close-up headshots inside their existing square cards, using CSS object positioning and individual scale/origin adjustments. Keep original image files, full names, roles and the first speaker's missing-photo placeholder unchanged. Preserve responsive layout. This supersedes upper-body portrait framing. Keep changes local; do not commit, push or deploy.
+
+### IONQ speaker photo supplied by user
+Replace the IONQ speaker placeholder with public/assets/speakers/ionq-speaker.jpg, downloaded from the exact user-provided image URL. Retain the supplied display name and role and face-focused framing. This supersedes the missing-photo placeholder instruction. Keep changes local without commit/push/deployment.
+
+### IONQ speaker name correction
+The correct IONQ speaker name is 김정상, explicitly corrected by the user. This supersedes the earlier screenshot name. Keep the user-supplied portrait and existing role. Changes remain local.
+
+### Consistent speaker portrait placement
+Use individually positioned source images in the square portrait frames to align eye-lines around 35% of frame height, with consistent headroom and comparable face scale. This supersedes the earlier transform/origin close-up rules. Preserve original image files and speaker details. Keep all changes local without commit, push or deployment.
+
+### Black-and-white speaker photos
+Display all homepage speaker portraits in grayscale using CSS, preserving original source files and aligned face framing. Keep changes local without commit, push or deployment.
+
+### Edward Kim portrait replacement
+Use the exact user-selected TechCrunch image (https://techcrunch.com/wp-content/uploads/2024/10/edward-kim.jpg), saved as public/assets/speakers/edward-kim-techcrunch.jpg, instead of the earlier red-sweater photo. Frame it to the shared portrait eye-line and preserve grayscale. This supersedes the earlier Edward photo source/framing only. Keep changes local.
+
+### Black vector sponsor logos
+Replace the three sponsor text approximations with local SVG artwork: NAVER logotype from Wikimedia (sourced to NAVER), ALTOS paths from the official altos.vc inline logo, and KOVA vector paths extracted from the official 2024 brochure. All visible logo ink is black, preserving white negative spaces and original path geometry. No embedded raster images or font-dependent recreated logos. Preserve sponsor tiers/names, 2026 heading and responsive layout. This supersedes the earlier text-wordmark rule. Source records are in docs/summit/ASSETS.md. Keep changes local without commit/push/deployment.
+
+### Sponsor website links removed
+Sponsor cards are informational only: remove the NAVER website link and Visit website action; do not make any sponsor card/logo a link. Center the Platinum logo. This supersedes the previous NAVER outbound sponsor action. Keep changes local without commit/push/deployment.
+
+### Center NAVER sponsor logo
+Use a full-width grid with place-items:center on the Platinum sponsor card and auto logo margins so NAVER is centered horizontally and vertically at every breakpoint. This supersedes preceding flex justification for this card. Keep changes local.
+
+### Edward portrait scale correction
+Enlarge the user-selected Edward Kim portrait from 320% to 385% source width, with left -152% and top -26%, to bring face scale closer to the other portraits while maintaining the shared eye-line. This supersedes the previous TechCrunch image framing. Preserve grayscale and keep changes local.
+
+### Sponsor inquiry action
+Below the sponsor cards, show Interested in sponsoring? with a black Reach out button linking exactly to mailto:gkim@sazze.vc. This is the user-authorized contact action; sponsor company website links remain removed. Stack the heading and action on mobile. Keep changes local without commit, push or deployment.
+
+### Speakers page synchronized with homepage
+The standalone /speakers.html page now renders the same shared four-person lineup as the homepage, including current source photos, corrected 김정상 name, grayscale treatment and individual face positioning. Remove the former lineup-coming-soon artwork and notices. Keep speaker data/markup shared to prevent divergence. Metadata describes the actual lineup. This supersedes historical speaker-placeholder rules. Keep changes local without commit/push/deployment.
+
+### Larger 김정상 portrait
+Increase the IONQ portrait source width from 220% to 253% (15% relative enlargement), adjusting left to -71% and top to -7.5% to retain the face center and eye-line. Apply through the shared portrait CSS on the homepage and Speakers page; preserve grayscale. This supersedes the earlier IONQ framing. Keep changes local.
+
+### Altos horizontal lockup
+Use the user-selected horizontal Altos logo form: white ALTOS lettering in a black square, with black VENTURES lettering to its right. Local assets/sponsor-logos/altos-lockup.svg reuses the official ALTOS letter paths and outlines the accompanying VENTURES word; transparent surroundings, no embedded raster or font dependencies. This supersedes the previous standalone ALTOS wordmark. Preserve no-link sponsor behavior and keep changes local.
+
+### Remove duplicate KOVA caption
+Remove the separate 한국벤처기업협회 caption below the KOVA sponsor SVG, since the association name is already part of its logo. Preserve the logo and accessible alt text. Keep changes local.
+
+### Remove duplicate Altos caption
+Remove the separate Altos Ventures caption below its horizontal sponsor logo, matching the KOVA caption removal. Retain the SVG lockup and accessible alt text. This supersedes the earlier separate company-name caption. Keep changes local without commit, push or deployment.
+
+### Reopen sponsor logo loop
+Reopen the homepage rolling strip directly below the hero using only the current black SVG marks for NAVER, Altos Ventures and KOVA. Repeat three sponsor cycles in each of two identical track groups to fill wide viewports and create a seamless infinite loop. Expose company names once to assistive technology; hide duplicated marks. Restore company-logos.js on the homepage in the prerender generator; retain pause/play, hover/focus pause, offscreen/tab/modal pause and reduced-motion behavior. This supersedes the hidden-strip and illustrative-tech-company content rules. Preserve the lower sponsor section and keep changes local without commit/push/deployment.
+
+### Sponsor rolling strip on all public Summit pages
+Render the same NAVER/Altos/KOVA infinite loop once on each of Overview, Schedule, Speakers, Venue and Tickets. Homepage keeps its post-hero placement; inner pages place it immediately after their page heading. Include company-logos.js on all five documents so pause controls, visibility handling and reduced motion remain functional. This supersedes homepage-only logo-strip rendering and script loading. Do not add the strip inside the standalone 3D viewer or the separately preserved community preview. Keep all changes local without commit/push/deployment.
+
+### Smaller rolling sponsor logos
+Reduce the rolling-strip logo image boxes by 20% on all public pages: desktop 200×72px to 160×57.6px; mobile 162×60px to 129.6×48px. Preserve strip height, item spacing, repeat continuity and controls. Lower sponsor cards are unchanged. This supersedes the preceding rolling logo sizes. Keep changes local without commit/push/deployment.
+
+### Slower sponsor logo loop
+Reduce rolling sponsor speed by 40% relative to the previous 36-second cycle: use a 60-second cycle (60% of previous velocity). Preserve seamless repetition, pause controls and reduced-motion behavior across all five public pages. This supersedes the previous 36-second duration. Keep changes local without commit/push/deployment.
+
+### Additional 30% rolling logo reduction
+Reduce rolling sponsor images by another 30% from the current sizes: desktop 112×40.32px and mobile 90.72×33.6px. This supersedes the previous 160×57.6px and 129.6×48px sizes. Preserve the 60-second cycle, strip spacing and lower sponsor cards. Keep changes local without commit/push/deployment.
+
+### Balance rolling logo proportions
+Preserve each SVG intrinsic aspect ratio with auto height and individually balanced widths: desktop NAVER 112px, Altos 108px, KOVA 162px; mobile 91px, 88px, 132px respectively. KOVA is wider to keep its fine lettering readable; the square Altos lockup is narrower to avoid dominating by height. Compact items to 210px/170px and strip height to 88px/76px desktop/mobile. This supersedes uniform logo image boxes and earlier strip/item dimensions. Preserve the 60-second seamless loop. Keep changes local.
+
+### Remove rolling logo stop button
+Remove the visible play/pause button from the sponsor rolling strip on all five public pages and remove its script dependency. Retain automatic offscreen, hidden-tab, modal and reduced-motion pause behavior plus existing hover/focus pause. This explicitly supersedes the prior visible pause-control requirement. Keep changes local without commit/push/deployment.
+
+## Push and production release authorized — October 26, 2026
+
+The user explicitly requested pushing current main changes and deployment. This supersedes the preceding local-only holds for this change set: speaker/sponsor sections and assets, shared Speakers page, portrait framing/grayscale, header contrast and all-page sponsor rolling strip. Retain the dev-only community preview helper, with .next-community output ignored by Git and ESLint; it must never enable community routes in production. Validate the exact candidate through integration/** CI, then push the same commit to verified default branch main as randyjlee with verified email randyjlee.hj@gmail.com. Use the existing Vercel Git integration and verify rollout read-only; do not manually deploy or create projects. Exclude unused replaced portrait files, private state, credentials and generated caches.

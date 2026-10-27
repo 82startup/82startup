@@ -86,7 +86,7 @@
    const variation=noise[(y*cols+x+Math.floor(clock*3))%noise.length];
    const glyph=pool[Math.min(pool.length-1,Math.floor(variation*pool.length))];
    const depth=.72+.28*(.5+.5*Math.sin(x*.065+y*.07+clock*.4));
-   const alpha=(.022+v*.21)*depth;
+   const alpha=(.022+v*.21)*depth*1.15;
    ctx.fillStyle=`rgba(${gray},${alpha.toFixed(3)})`;
 
    ctx.fillText(glyph,px+offsetX,py+offsetY);
@@ -104,7 +104,7 @@
    const size=large?14:12;
    const symbol=large?'✦':'+';
    ctx.font=`600 ${size}px "IBM Plex Sans",sans-serif`;
-   const opacity=alpha*(.16+random(i,9,2)*.18);
+   const opacity=alpha*(.16+random(i,9,2)*.18)*1.15;
    ctx.shadowColor=`rgba(${gray},${opacity*.25})`;ctx.shadowBlur=large?8:5;
    ctx.fillStyle=`rgba(${gray},${opacity})`;
    ctx.fillText(symbol,x,y);

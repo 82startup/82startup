@@ -68,3 +68,25 @@ Title clarification supersedes all recent text-experiment notes: Ghost Type and 
 - Existing botanical and contour artwork now use sibling `.webp` delivery variants; originals remain for source fidelity.
 - Derived hosted map plans are `public/venue-map/assets/plan-<content hash>.webp`, extracted from the original embedded JPEGs at the same pixel dimensions. Three.js r128 is extracted unchanged under `public/venue-map/vendor/three-r128.min.js`; its MIT notice and THREE-LICENSE.txt remain included.
 - The original self-contained map project is archived outside the active repository and remains unchanged. Public map HTML now references the extracted local HTTP assets.
+
+### Homepage speaker portrait reference sources
+User authorized the four speakers from their screenshot. Local portrait files were retrieved from these published sources (no generated portraits):
+- First speaker: user-supplied name 김정상 is retained; show an initial placeholder because an available Duke portrait names a different person. Do not pair it with this name. Original screenshot portrait file is not available on disk.
+- edward-kim.png: https://d2xo500swnpgl1.cloudfront.net/uploads/web/Eddie_0018-1603788029918.png (ELC speaker profile).
+- cal-henderson.jpg: https://www.indexventures.com/media/images/Cal_Henderson_.original.format-jpeg.jpg (Index Ventures profile).
+- eric-kim.jpeg: https://images.squarespace-cdn.com/content/v1/5fbc42d5bc2a9d5c6d239a3c/1624940105364-22YYX70V4I9MQCEYO5BW/File_000%2B%281%29.jpeg (Across the Lines interview).
+Sponsor company names and tiers come from the organizer's 2026 screenshot; use text wordmarks.
+
+IONQ speaker photo supplied directly by user: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJnKlGpQzadeEsXJjrkADdo0la7CA8ZkuT4c9sbLRsQiXOTw3bca3RcDt2&s=10 → public/assets/speakers/ionq-speaker.jpg. This supersedes the first-speaker placeholder; preserve user-provided identity text.
+
+### Edward Kim portrait replacement
+Use the exact user-selected TechCrunch image (https://techcrunch.com/wp-content/uploads/2024/10/edward-kim.jpg), saved as public/assets/speakers/edward-kim-techcrunch.jpg, instead of the earlier red-sweater photo. Frame it to the shared portrait eye-line and preserve grayscale. This supersedes the earlier Edward photo source/framing only. Keep changes local.
+
+### Black sponsor SVG sources
+- public/assets/sponsor-logos/naver.svg: https://commons.wikimedia.org/wiki/File:Naver_Logotype.svg (original NAVER homepage logotype, public-domain text logo). Official black variant reference: https://www.navercorp.com/en/company/brandGuide.
+- public/assets/sponsor-logos/altos.svg: official https://altos.vc/ inline SVG id svg250910726_4204, extracting the original letter paths and removing the square background.
+- public/assets/sponsor-logos/kova.svg: official https://test.venture.or.kr/kova/upload/newsletter/mailtpl/240605_KOVA_Brochure.pdf, page 1 bottom vector signature. Extracted vector outlines, cropped viewBox, removed embedded raster elements, converted colored ink to black while retaining white cutouts.
+All logos remain trademarks of their respective owners. No new sponsorship or affiliation is asserted beyond the user-provided sponsor list.
+
+### Altos horizontal lockup
+Use the user-selected horizontal Altos logo form: white ALTOS lettering in a black square, with black VENTURES lettering to its right. Local assets/sponsor-logos/altos-lockup.svg reuses the official ALTOS letter paths and outlines the accompanying VENTURES word; transparent surroundings, no embedded raster or font dependencies. This supersedes the previous standalone ALTOS wordmark. Preserve no-link sponsor behavior and keep changes local.

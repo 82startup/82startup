@@ -3,6 +3,9 @@ import { updateSession } from "@/lib/supabase/proxy";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  if (process.env.NODE_ENV === "development" && process.env.COMMUNITY_LOCAL_PREVIEW === "1") {
+    return updateSession(request);
+  }
   // The Summit is public and must also work without a community session/database.
   if (pathname === "/" || pathname === "/index.html" ||
       /^\/(?:schedule|speakers|venue|tickets)\.html$/.test(pathname) ||
