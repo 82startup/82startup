@@ -519,3 +519,124 @@ body{font-weight:500}h1,h2,h3,.hero h1,.footer-word,.stat strong{font-family:'IB
  .hero-actions{margin-top:19px}
  .hero-note{margin-top:15px}
 }
+
+/* Six events share one chronological grid, including Expo and VIP. */
+.program-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+.program-card .program-title{font-size:clamp(22px,2vw,30px)}
+.program-art.art-06{background:radial-gradient(ellipse at 0 0,#9fb8b8,transparent 65%),radial-gradient(ellipse at 90% 15%,#55618f,transparent 66%),radial-gradient(ellipse at 20% 110%,#313a68,transparent 65%),#171c32}
+@media(min-width:801px) and (max-width:1199px){.program-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){.program-cards{grid-template-columns:1fr}.program-card .program-title{font-size:clamp(22px,5vw,30px)}}
+
+/* Mobile gutters: fixed 10px rails and a larger three-line hero title. */
+@media(max-width:800px){
+ :root{--rail:10px}
+ .wrap{padding-left:10px;padding-right:10px}
+ .hero h1{font-size:6.2vw}
+}
+
+/* Mobile hero primary action spans the full content width. */
+@media(max-width:800px){
+ .hero-actions>.button{width:100%;justify-content:space-between}
+}
+
+/* Homepage chronological timeline, retaining every event artwork. */
+.program-timeline{position:relative;margin:0 -28px}
+.program-timeline::before{content:'';position:absolute;left:124px;top:0;bottom:0;width:1px;background:var(--grid-line)}
+.program-timeline .program-card{display:grid;grid-template-columns:96px minmax(240px,.85fr) minmax(0,1.15fr);gap:32px;padding:32px 28px;margin:0;border:0;border-bottom:1px solid var(--grid-line);align-items:start}
+.program-timeline .program-card:last-child{border-bottom:0}
+.program-timeline-date{position:relative;display:flex;flex-direction:column;gap:7px;padding-top:5px}
+.program-timeline-date::after{content:'';position:absolute;right:-4px;top:10px;width:9px;height:9px;background:var(--fg);border:2px solid var(--paper);box-shadow:0 0 0 1px var(--grid-line)}
+.program-timeline-date>span,.program-timeline-date>small{font-size:12px;letter-spacing:.1em;color:var(--muted)}
+.program-timeline-date strong{font-size:30px;font-weight:500;line-height:1.2;letter-spacing:-.04em}
+.program-timeline .program-art{height:260px;width:100%;min-width:0}
+.program-timeline .program-content{padding:0;min-width:0;align-self:center}
+.program-timeline .program-content>p{margin:0 0 20px;min-height:0}
+.program-timeline .program-facts{margin-top:0}
+.program-timeline .program-ticket{align-self:flex-start;margin-top:20px}
+.program-timeline .card-bottom{margin:16px 0 0;padding:0}
+.program-timeline .program-title{font-size:clamp(22px,2.1vw,32px)}
+@media(min-width:801px) and (max-width:1100px){
+ .program-timeline .program-card{grid-template-columns:76px minmax(200px,.9fr) minmax(0,1.1fr);gap:24px}
+ .program-timeline::before{left:104px}
+ .program-timeline-date strong{font-size:26px}
+}
+@media(max-width:800px){
+ .program-timeline{margin:0 -16px}
+ .program-timeline::before{left:67px}
+ .program-timeline .program-card{grid-template-columns:52px minmax(0,1fr);gap:20px;padding:24px 16px}
+ .program-timeline-date{grid-column:1;grid-row:1/3;gap:5px}
+ .program-timeline-date strong{font-size:21px}
+ .program-timeline-date>span,.program-timeline-date>small{font-size:11px}
+ .program-timeline .program-art{grid-column:2;height:220px}
+ .program-timeline .program-content{grid-column:2}
+ .program-timeline .program-title{font-size:clamp(21px,5.4vw,30px)}
+ .program-timeline .program-ticket{width:100%;justify-content:space-between}
+}
+
+/* Compact timeline rows with two equal, quiet actions. */
+.program-timeline .program-card{padding-top:24px;padding-bottom:24px;gap:28px}
+.program-timeline .program-art{height:220px}
+.program-timeline .program-content>p{margin-bottom:14px;font-weight:400;line-height:1.7}
+.program-timeline .program-facts{gap:4px}
+.program-timeline .program-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}
+.program-timeline .program-actions .program-ticket,.program-timeline .program-actions .program-schedule-link{display:flex;align-items:center;justify-content:space-between;width:100%;height:44px;min-height:44px;margin:0;padding:0 14px;font-size:12px;font-weight:500;letter-spacing:0;gap:8px;line-height:1.3}
+.program-timeline .program-actions .program-ticket{background:transparent;color:var(--fg);border:1px solid var(--fg)}
+.program-timeline .program-actions .program-schedule-link{border:1px solid var(--grid-line)}
+.program-timeline .program-actions .arrow{font-size:18px}
+.program-timeline .program-actions .card-bottom{margin:0;padding:0;min-width:0;display:block}
+@media(max-width:800px){
+ .program-timeline .program-card{gap:16px 20px;padding-top:20px;padding-bottom:20px}
+ .program-timeline .program-art{height:190px}
+ .program-timeline .program-actions{gap:7px;margin-top:14px}
+ .program-timeline .program-actions .program-ticket,.program-timeline .program-actions .program-schedule-link{padding:0 9px;font-size:11px;gap:5px}
+ .program-timeline .program-actions .arrow{font-size:15px}
+}
+
+/* Smaller timeline artwork and a black registration action. */
+.program-timeline .program-card{grid-template-columns:96px minmax(200px,.6fr) minmax(0,1.4fr);gap:24px}
+.program-timeline .program-art{height:170px}
+.program-timeline .program-title{font-size:clamp(20px,1.7vw,26px);bottom:18px}
+.program-timeline .program-art .index{font-size:11px;padding:8px 10px}
+.program-timeline .program-actions .program-ticket{background:#24251f;color:var(--yellow);border-color:#24251f}
+@media(min-width:801px) and (max-width:1100px){
+ .program-timeline .program-card{grid-template-columns:76px minmax(180px,.7fr) minmax(0,1.3fr)}
+}
+@media(max-width:800px){
+ .program-timeline .program-card{grid-template-columns:52px minmax(0,1fr);gap:14px 20px}
+ .program-timeline .program-art{height:145px}
+ .program-timeline .program-title{font-size:clamp(19px,5vw,25px);bottom:16px}
+ .program-timeline .program-art .index{font-size:10px;padding:7px 8px}
+}
+
+/* Desktop artwork matches the adjacent details and action height. */
+@media(min-width:801px){
+ .program-timeline .program-card{align-items:stretch}
+ .program-timeline .program-art{height:auto;min-height:170px;align-self:stretch}
+ .program-timeline .program-content{align-self:stretch;justify-content:center}
+}
+
+/* Two-line summaries and compact timeline actions. */
+.program-timeline .program-content>p{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;flex:none;line-height:1.7;max-height:3.4em}
+.program-timeline .program-actions{gap:8px;margin-top:14px;max-width:420px}
+.program-timeline .program-actions .program-ticket,.program-timeline .program-actions .program-schedule-link{height:36px;min-height:36px;padding:0 12px;font-size:12px;font-weight:400;justify-content:center;gap:8px;text-transform:none}
+.program-timeline .program-actions .arrow{font-size:14px}
+.program-timeline .program-actions .program-schedule-link{border-color:transparent}
+@media(max-width:800px){
+ .program-timeline .program-actions .program-ticket,.program-timeline .program-actions .program-schedule-link{padding:0 8px;font-size:11px;gap:6px}
+}
+
+/* Show complete descriptions and align compact actions to the right. */
+.program-timeline .program-content>p{display:block;-webkit-line-clamp:unset;max-height:none;overflow:visible}
+.program-timeline .program-actions{width:100%;max-width:420px;margin-left:auto}
+
+/* Anchor timeline dots to the same coordinate as the rail. */
+.program-timeline{--timeline-rail:124px}
+.program-timeline::before{left:var(--timeline-rail)}
+.program-timeline .program-card{position:relative}
+.program-timeline-date{position:static}
+.program-timeline-date::after{left:calc(var(--timeline-rail) + .5px);right:auto;top:34px;transform:translateX(-50%)}
+@media(min-width:801px) and (max-width:1100px){.program-timeline{--timeline-rail:104px}}
+@media(max-width:800px){.program-timeline{--timeline-rail:67px}.program-timeline-date::after{top:30px}}
+
+/* Let full summaries use the available details width. */
+.program-timeline .program-content>p{max-width:none;width:100%}

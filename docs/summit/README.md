@@ -291,3 +291,56 @@ Increase the current 82 STARTUP WEEK footer wordmark font by another 30% (11.661
 ### Footer text-run centering correction
 
 Center the actual large footer text run with a flex container (justify-content:center), not only text-align, so a long nowrap line cannot fall back to left alignment. Retain the second 30% font increase; tighten tracking to -.065em (-.08em below 360px) to keep the full phrase visible. This supersedes the earlier .02em tracking for this wordmark.
+
+## Luma Expo synchronization — October 26, 2026
+
+The official calendar now includes 82 Startup Expo 2027 (https://luma.com/ro8918x0), March 17 10:00 through March 18 18:00 PDT, Fort Mason Center · Gateway Pavilion, 2 Marina Blvd, San Francisco CA 94109. Admission is free with registration required. Use the published header bounds despite the body’s Time TBD; do not imply overnight sessions. Preserve the separately supplied March 19 VIP event. There are six events total. The homepage displays all six in chronological order in one grid: three columns and two rows on desktop, two columns on tablet, one on mobile. This supersedes the four-card layout and separate full-width VIP feature. Schedule and tickets use the same shared event source; show Expo on both days, its free registration action and official link. Keep counts and metadata at six; the homepage date range remains March 15–21.
+
+## Active local-only hold — October 26, 2026
+
+The user explicitly said not to push because more edits are coming. Keep this Expo/grid change set and subsequent edits local; do not commit, push any branch, or deploy until the user explicitly requests it again. This supersedes automatic default-branch delivery, validation-branch pushes and release authorization above for current work.
+
+## Mobile spacing and title — October 26, 2026
+
+At widths <=800px, use fixed 10px outer wrap gutters and matching 10px page rails, superseding the prior 6vw (approximately 23px) mobile gutters. Retain the existing inner section padding. Enlarge the homepage hero title from 5.415vw to 6.2vw, preserving all three equal-size lines and existing typography/motion. Desktop layout is unchanged. Keep changes local under the active no-commit/no-push/no-deploy hold.
+
+### Mobile hero primary button
+At <=800px, the homepage hero Get your tickets button fills 100% of the hero action content width, with label and arrow spaced apart. Preserve the secondary link and desktop behavior. This supersedes the prior intrinsic-width mobile primary button. Keep changes local; no commit, push or deployment.
+
+## Homepage event timeline — latest layout
+
+Replace the six-card 3-column/2-row homepage layout with one chronological vertical timeline. Preserve all six existing gradient/grain artworks and titles, event facts and individual registration links. Desktop rows contain a connected date rail, artwork and details; mobile rows keep the date rail beside stacked artwork/details. This explicitly supersedes the previous homepage grid and separate VIP feature. Use program-timeline rather than program-cards so the old full-row card overlay does not cross timeline content. Keep the 10px mobile outer gutters, larger hero title, full-width mobile hero button and local-only hold.
+
+### Simplified event timeline actions
+Keep the timeline and existing artwork, with more compact rows (220px desktop artwork, 190px mobile) and lighter description text. Place event registration and View program in two equal columns on desktop and mobile, using compact 44px outline actions instead of the stacked full-width dark button and text link. This supersedes the earlier timeline button layout only; the mobile hero primary button remains full width. Keep all current work local without committing, pushing or deploying.
+
+### Smaller timeline artwork and black tickets
+Reduce homepage timeline artwork to 170px high on desktop and 145px on mobile, with a narrower desktop artwork column and proportionately smaller artwork labels/titles. Keep the two equal action columns. Registration/ticket actions use the established black background (#24251f) and yellow label/arrow; View program remains outlined. This supersedes the preceding 220px/190px artwork and outlined registration action. All changes remain local under the active no-commit/no-push/no-deploy hold.
+
+### Timeline image height alignment
+On desktop (>800px), stretch each timeline artwork to match its adjacent description/facts/buttons column, with a 170px minimum height. Keep the reduced artwork column width, mobile 145px artwork, black ticket actions and two-column buttons. This supersedes the fixed desktop 170px artwork height. Keep all changes local.
+
+### Compact buttons and two-line event summaries
+Homepage timeline descriptions show at most two lines with an ellipsis on overflow; full event summaries remain available in Schedule/Tickets. Keep complete descriptions in the DOM. Timeline actions stay in two equal columns but are 36px tall, centered, with smaller arrows and a 420px maximum group width. Ticket registration stays black/yellow; View program is a plain action without a visible border. This supersedes the preceding 44px full-column-width outlined actions. Preserve desktop image/detail height alignment and the local-only hold.
+
+### Full descriptions and right-aligned buttons — latest instruction
+Show the complete homepage event descriptions without line clamping, truncation or ellipses. This explicitly supersedes the preceding two-line limit. Align the compact two-column button group to the right of its details column using auto left margin, retaining its 420px maximum width, 36px height and black ticket action. Keep artwork height aligned to full details on desktop. All work remains local.
+
+### Timeline dot alignment
+Anchor every date marker to the same --timeline-rail coordinate as the vertical line (124px desktop, 104px tablet, 67px mobile), centered on the 1px stroke with translateX(-50%). Position markers relative to each full timeline row rather than the date text width. This supersedes the previous right-offset dot placement, which drifted as row gaps changed. Keep all changes local.
+
+### Wider complete timeline descriptions
+Remove the inherited 310px paragraph max-width from homepage timeline descriptions; use the entire details column so desktop summaries wrap to approximately two lines without hiding any text. Natural wrapping remains responsive; no fixed line limit or truncation. This supersedes the legacy card paragraph width. Preserve right-aligned compact buttons and local-only work.
+
+### Artwork export clarification
+The square bottom-title-only artwork request is for six standalone image files, not a website layout change. Preserve the preceding website layout and export the artwork separately outside the repository. Keep the no-commit/no-push/no-deploy hold.
+
+### Clean 3D map floors — remove scanned annotations
+All 3D building floors now use the existing solid off-white material without scanned floor-plan textures. This removes upside-down room names, dimensions and other baked-in annotations across buildings/floors/layouts. Preserve modeled walls, doors, stairs, furnishings, booth labels and intentional navigation signage; original reference drawings remain available in the gallery. This supersedes the previous textured 3D floor behavior only. Viewer cache version is 20. Keep changes local without commit, push or deployment.
+
+### English 3D map tags
+All built-in 3D scene tags and selectable object names use English, including registration, stage/screen, seating, tech team, curtain, reception, buffet, queue, VIP lounge, startup booths, meeting rooms, food court/stalls, doors and banners. Preserve category colors and pill styling by matching English labels. Do not rewrite user-authored notes or source drawing images. Viewer cache version is 21. Keep changes local.
+
+## Release authorized — October 26, 2026
+
+The user explicitly requested push and deployment of the current Expo, mobile layout, event timeline and 3D map changes. This lifts all preceding local-only/no-commit/no-push/no-deploy holds for this change set. Verify GitHub randyjlee and its verified email, run required checks on the exact integration candidate, then push the same commit to verified default branch main without a PR or force push. Use the existing Vercel Git integration for automatic production deployment; do not manually deploy or change accounts/projects. Verify remote commit and production rollout read-only. Exported artwork remains outside the repository and is not part of this website release.
