@@ -68,7 +68,8 @@
    light.addColorStop(1,`rgba(${gray},0)`);
    ctx.fillStyle=light;ctx.fillRect(0,height-radius*1.1,width,radius*1.1);
   }
-  ctx.font='500 12px ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace';ctx.textAlign='center';ctx.textBaseline='bottom';
+  const mobile=width<=800;
+  ctx.font=`500 ${mobile?8:12}px ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace`;ctx.textAlign='center';ctx.textBaseline='bottom';
   // One or two broad fronts travel only outward and fade beyond the hero edges.
   const fronts=outwardWaves();
   for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
@@ -86,7 +87,7 @@
    const variation=noise[(y*cols+x+Math.floor(clock*3))%noise.length];
    const glyph=pool[Math.min(pool.length-1,Math.floor(variation*pool.length))];
    const depth=.72+.28*(.5+.5*Math.sin(x*.065+y*.07+clock*.4));
-   const alpha=(.022+v*.21)*depth*1.15;
+   const alpha=(.022+v*.21)*depth*1.15*(mobile?.55:1);
    ctx.fillStyle=`rgba(${gray},${alpha.toFixed(3)})`;
 
    ctx.fillText(glyph,px+offsetX,py+offsetY);
@@ -101,10 +102,10 @@
    const pulse=.82+.18*Math.sin(clock*3+i*1.7);
    const alpha=fade*pulse;
    const large=i%4===0;
-   const size=large?14:12;
+   const size=mobile?(large?8:7):(large?14:12);
    const symbol=large?'✦':'+';
    ctx.font=`600 ${size}px "IBM Plex Sans",sans-serif`;
-   const opacity=alpha*(.16+random(i,9,2)*.18)*1.15;
+   const opacity=alpha*(mobile?(.05+random(i,9,2)*.05):(.16+random(i,9,2)*.18))*1.15;
    ctx.shadowColor=`rgba(${gray},${opacity*.25})`;ctx.shadowBlur=large?8:5;
    ctx.fillStyle=`rgba(${gray},${opacity})`;
    ctx.fillText(symbol,x,y);

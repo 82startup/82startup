@@ -184,3 +184,37 @@ Remove the visible play/pause button from the sponsor rolling strip on all five 
 ## Push and production release authorized — October 26, 2026
 
 The user explicitly requested pushing current main changes and deployment. This supersedes the preceding local-only holds for this change set: speaker/sponsor sections and assets, shared Speakers page, portrait framing/grayscale, header contrast and all-page sponsor rolling strip. Retain the dev-only community preview helper, with .next-community output ignored by Git and ESLint; it must never enable community routes in production. Validate the exact candidate through integration/** CI, then push the same commit to verified default branch main as randyjlee with verified email randyjlee.hj@gmail.com. Use the existing Vercel Git integration and verify rollout read-only; do not manually deploy or create projects. Exclude unused replaced portrait files, private state, credentials and generated caches.
+
+## Supabase local connection
+The original community preview uses the user-selected existing production project htqkxezswbduzwgycftx (82startup-production). Its verified API URL and publishable key are stored only in ignored .env.local; never commit that file or credentials. Preserve normal RLS and authentication; do not add service-role keys, change schema or expose the community in production as part of this local connection. Public data reads have been verified. Codex Supabase connector reauthentication is a separate issue; the local application can connect independently. No push/deployment requested for this connection task.
+
+## OAuth callback preserves browser origin
+OAuth callback responses use relative 303 Location headers for both success and failure, preserving the actual browser hostname rather than the internal Next.js request origin. This prevents 127.0.0.1 login cookies from being lost after a localhost redirect. Keep safeNextPath validation and normal Supabase PKCE exchange/session protections. This supersedes the previous absolute callback redirects. Keep this fix local until push/deployment is requested.
+
+## Mobile speaker heading alignment
+
+At <=800px, align speaker and sponsor section headings to flex-start so their eyebrow, title and description share the section’s left inset. This supersedes desktop flex-end alignment on mobile only; retain desktop alignment and portrait layout. The user requested this fix and preview locally; do not commit, push or deploy this change set.
+
+## Mobile ASCII and ember readability
+
+At hero widths <=800px, render ASCII glyphs at 8px instead of 12px and floating embers at 8px/7px instead of 14px/12px. Render the mobile ASCII field at 55% of its previous opacity. Reduce mobile ember opacity to the .05–.10 range (before existing fade/pulse and 1.15 multiplier) so rising particles remain subtle behind the copy. This supersedes the previous shared mobile/desktop particle sizing and opacity only; preserve desktop rendering, motion and bounded grid density. Keep this user-requested preview local without commit, push or deployment.
+
+## Mobile hero title enlarged another 10%
+
+At <=800px, increase the homepage hero title from 6.2vw to 6.82vw (10%). Preserve all three equal-size lines and current spacing, typography and motion. This supersedes the previous 6.2vw mobile title size only. Keep the requested preview local without commit, push or deployment.
+
+## Bolder hero title
+
+Thicken all three homepage hero title lines with a .02em currentColor text stroke, preserving the single-weight Zen Dots font, current font sizes, line breaks and motion. This supersedes the previous unstroked hero lettering. Keep this requested preview local without commit, push or deployment.
+
+## More space between mobile hero content blocks
+
+For the latest hero screenshot request, at <=800px use hero vertical padding 25px/29px, title margins 20px/20px, subtitle margins 27px/25px, action top margin 27px and row gap 26px, and note top margin 23px. This supersedes the earlier compact mobile hero spacing only. Preserve title size/weight and desktop spacing. Keep this preview local without commit, push or deployment.
+
+## Additional 10% mobile hero spacing
+
+Increase the preceding mobile hero spacing values by exactly 10%: vertical padding 27.5px/31.9px, title margins 22px/22px, subtitle margins 29.7px/27.5px, action top margin 29.7px and row gap 28.6px, and note top margin 25.3px. These supersede the preceding mobile spacing values only. Preserve typography and desktop layout; keep changes local without commit, push or deployment.
+
+## Mobile refinements release authorized
+
+The user now authorizes committing, pushing and deploying all current intended changes: browser-origin OAuth callback fix and tests, mobile speaker alignment, smaller/subtler ASCII and embers, enlarged/bolder hero title, increased mobile hero spacing, cache-version updates and synchronized documentation. This explicitly lifts the preceding local-only holds for this change set. Verify GitHub randyjlee and verified email randyjlee.hj@gmail.com; validate the exact commit through integration/** CI, push that same commit to verified default branch main, and verify the existing Vercel Git production rollout read-only. Do not manually deploy or change Vercel accounts/projects; keep ignored credentials and local state excluded.

@@ -531,7 +531,7 @@ body{font-weight:500}h1,h2,h3,.hero h1,.footer-word,.stat strong{font-family:'IB
 @media(max-width:800px){
  :root{--rail:10px}
  .wrap{padding-left:10px;padding-right:10px}
- .hero h1{font-size:6.2vw}
+ .hero h1{font-size:6.82vw}
 }
 
 /* Mobile hero primary action spans the full content width. */
@@ -657,6 +657,7 @@ body{font-weight:500}h1,h2,h3,.hero h1,.footer-word,.stat strong{font-family:'IB
 .sponsor-naver{color:#03a94d}.sponsor-altos{font-weight:500;letter-spacing:.22em;font-size:32px}.sponsor-kova{color:#005866;font-weight:800}
 .home-sponsor h4{font-size:18px;font-weight:500;margin:0;text-align:center}
 @media(max-width:800px){
+ .home-speakers .section-top,.home-sponsors .section-top{align-items:flex-start}
  .home-speaker-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 16px;padding-top:24px}
  .home-speaker h3{font-size:18px;margin-top:12px}.home-speaker>p{font-size:12px}.lineup-intro{font-size:14px}
  .home-sponsor-grid{gap:12px}.home-sponsor{min-height:140px;padding:20px 12px;gap:16px}.home-sponsor-platinum{padding:28px 20px}
@@ -733,4 +734,16 @@ body{font-weight:500}h1,h2,h3,.hero h1,.footer-word,.stat strong{font-family:'IB
  .logo-marquee .company-logo-item img[src$="naver.svg"]{width:91px}
  .logo-marquee .company-logo-item img[src$="altos-lockup.svg"]{width:88px}
  .logo-marquee .company-logo-item img[src$="kova.svg"]{width:132px}
+}
+
+/* Thicken the single-weight Zen Dots hero lettering without changing its metrics. */
+.hero h1{-webkit-text-stroke:.02em currentColor}
+
+/* Give the mobile hero content blocks a little more breathing room. */
+@media(max-width:800px){
+ .hero{padding-top:27.5px;padding-bottom:31.9px}
+ .hero h1{margin-top:22px;margin-bottom:22px}
+ .hero-sub{margin-top:29.7px;margin-bottom:27.5px}
+ .hero-actions{margin-top:29.7px;row-gap:28.6px}
+ .hero-note{margin-top:25.3px}
 }
