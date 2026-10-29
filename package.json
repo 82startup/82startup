@@ -6,7 +6,7 @@
     "node": ">=22.12"
   },
   "scripts": {
-    "dev:community": "COMMUNITY_LOCAL_PREVIEW=1 next dev --hostname 127.0.0.1 --port 3001",
+    "dev:community": "npm run build:landing && COMMUNITY_LOCAL_PREVIEW=1 next dev --port 4820",
     "dev": "npm run build:landing && next dev",
     "build": "npm run build:landing && next build",
     "start": "next start",

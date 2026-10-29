@@ -739,6 +739,15 @@ body{font-weight:500}h1,h2,h3,.hero h1,.footer-word,.stat strong{font-family:'IB
 /* Thicken the single-weight Zen Dots hero lettering without changing its metrics. */
 .hero h1{-webkit-text-stroke:.02em currentColor}
 
+/* Community sign-in opens in a centered dialog over the Summit. */
+.community-login-dialog{width:min(560px,calc(100vw - 32px));max-width:none;max-height:min(520px,calc(100dvh - 32px));margin:auto;padding:0;border:1px solid var(--fg);border-radius:0;background:var(--paper);color:var(--fg);overflow:hidden;box-shadow:0 24px 90px rgba(0,0,0,.3)}
+.community-login-dialog::backdrop{background:rgba(24,25,22,.68);backdrop-filter:blur(3px)}
+.community-login-dialog-header{height:52px;padding:0 14px 0 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #b5ba3f;background:var(--yellow);font:500 12px var(--mono);letter-spacing:.04em;text-transform:uppercase}
+.community-login-close{width:36px;height:36px;border:1px solid var(--fg);border-radius:0;background:var(--fg);color:var(--yellow);font-size:24px;line-height:1;cursor:pointer}
+.community-login-close:hover{background:var(--paper);color:var(--fg)}
+.community-login-dialog iframe{display:block;width:100%;height:min(420px,calc(100dvh - 104px));border:0;background:var(--paper)}
+@media(max-width:560px){.community-login-dialog{width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}.community-login-dialog iframe{height:min(420px,calc(100dvh - 82px))}}
+
 /* Give the mobile hero content blocks a little more breathing room. */
 @media(max-width:800px){
  .hero{padding-top:27.5px;padding-bottom:31.9px}

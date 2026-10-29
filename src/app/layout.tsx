@@ -1,34 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense, type ReactNode } from "react";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SignupBar } from "@/components/signup-bar";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { AppChrome } from "@/components/app-chrome";
 
 export const metadata: Metadata = {
   title: "82 Startup",
   description: "Events and community for Korean founders, investors and builders.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children, modal }: { children: ReactNode; modal: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" />
+      </head>
       <body className="min-h-full flex flex-col">
-        <SiteHeader />
-        {children}
-        <SignupBar />
+        <Suspense fallback={<><SiteHeader />{children}<SignupBar />{modal}</>}>
+          <AppChrome header={<SiteHeader />} signup={<SignupBar />} overlay={modal}>{children}</AppChrome>
+        </Suspense>
       </body>
     </html>
   );

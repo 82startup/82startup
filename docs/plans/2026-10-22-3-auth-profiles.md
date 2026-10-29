@@ -419,7 +419,7 @@ Note: LinkedIn sign-in was removed from this release (see Task 5 Step 4).
 In `supabase/config.toml` under `[auth]` set:
 ```toml
 site_url = "http://localhost:3000"
-additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+additional_redirect_urls = ["http://localhost:3000/auth/callback", "http://localhost:3000/auth/callback?next=*", "http://127.0.0.1:3000/auth/callback?next=*"]
 ```
 Leave the external providers disabled locally (Google needs real client credentials and are tested on the deployed site in Task 5). Magic links are testable locally through Mailpit at `http://127.0.0.1:55324`.
 
@@ -1002,7 +1002,13 @@ Run, after the owner agrees: `supabase link --project-ref htqkxezswbduzwgycftx` 
 
 - [ ] **Step 3: Configure Auth URLs in Supabase (owner, dashboard)**
 
-Authentication → URL Configuration: Site URL `https://82startup.vercel.app`; Redirect URLs add the globs `https://82startup.vercel.app/**` and `https://*-82-startup.vercel.app/**` (the callback URL carries `?next=`). Also confirm in the dashboard (Authentication → Sign In / Providers) that "Allow anonymous sign-ins" is OFF and "Confirm email" is ON.
+Authentication → URL Configuration: Site URL `https://82startup.vercel.app`; Redirect URLs include `http://localhost:3000/auth/callback?next=*`, `http://127.0.0.1:3000/auth/callback?next=*`, `https://82startup.vercel.app/auth/callback?next=*`, and `https://*-82-startup.vercel.app/auth/callback?next=*`. Also confirm in the dashboard (Authentication → Sign In / Providers) that "Allow anonymous sign-ins" is OFF and "Confirm email" is ON. This callback pattern supersedes older exact-path-only local configuration.
+
+### Current community entry and shell behavior
+
+The Summit `Join Community` sign-in defaults to `/members`. `/member` redirects to that canonical route, and `/events` no longer renders the community event index; it redirects to `/members`. Event details and submission routes remain available. Community screens use the Summit palette, IBM Plex Sans/Noto Sans KR, and a left navigation rail (horizontal at narrow widths). The sidebar Admin link appears only after Supabase `is_admin` confirms the signed-in user is an administrator. These current behaviors supersede the older event-first and header-navigation launch notes below.
+
+The member directory presents three columns on desktop and fewer columns on narrower screens. Search and type filters share a compact aligned row with a custom Summit-style select indicator. Cards place the member-type tag at the right edge, opposite the avatar and member details. Selecting a directory member opens a profile modal over the directory using an intercepted route; direct detail URLs remain full pages and browser back closes the modal. Company website and LinkedIn links are compact accessible icon buttons with a recognizable LinkedIn brand mark; connection actions are aligned together. The community sidebar logo reads `82 STARTUP WEEK` over `COMMUNITY`; its mark and the app favicon use the Summit landing page's `public/assets/82startup-symbol.svg` asset. Community pages do not show an extra Summit/community overline above their content.
 
 - [ ] **Step 4: Create the Google OAuth app (owner); LinkedIn deferred**
 

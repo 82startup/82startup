@@ -14,10 +14,6 @@ export async function proxy(request: NextRequest) {
       pathname === "/style.css") {
     return NextResponse.next();
   }
-  // Temporary launch gate: retain the community implementation for later integration.
-  if (/^\/(?:events|members|connections|messages|profile|settings|login|admin|speakers|sponsors)(?:\/|$)/.test(pathname)) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
   return updateSession(request);
 }
 

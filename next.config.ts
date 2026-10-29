@@ -3,11 +3,12 @@ import type { NextConfig } from "next";
 const communityPreview = process.env.NODE_ENV === "development" && process.env.COMMUNITY_LOCAL_PREVIEW === "1";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["127.0.0.1"],
   distDir: communityPreview ? ".next-community" : ".next",
   // Serve the imported Summit document before the preserved community homepage.
   async rewrites() {
     return {
-      beforeFiles: communityPreview ? [] : [{ source: "/", destination: "/index.html" }],
+      beforeFiles: [{ source: "/", destination: "/index.html" }],
       afterFiles: [],
       fallback: [],
     };

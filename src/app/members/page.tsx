@@ -10,7 +10,7 @@ import { MemberCard, type MemberRow } from "./member-card";
 
 export default function MembersPage({ searchParams }: PageProps<"/members">) {
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
+    <main className="members-page mx-auto w-full p-6">
       <Suspense fallback={<p>{copy.members.loading}</p>}>
         <MembersContent searchParams={searchParams} />
       </Suspense>
@@ -50,22 +50,24 @@ async function MembersContent({ searchParams }: { searchParams: PageProps<"/memb
   return (
     <>
       <h1 className="mb-4 text-2xl font-semibold">{copy.members.title}</h1>
-      <form method="get" action="/members" className="mb-6 flex flex-wrap items-end gap-2">
-        <label className="flex min-w-0 flex-1 flex-col gap-1 text-sm font-medium">
-          {copy.members.search}
-          <input name="q" defaultValue={q} maxLength={80} className="rounded border p-2 font-normal" />
+      <form method="get" action="/members" className="member-filters">
+        <label className="member-filter-field member-search-field">
+          <span>{copy.members.search}</span>
+          <input name="q" defaultValue={q} maxLength={80} className="font-normal" />
         </label>
-        <label className="flex flex-col gap-1 text-sm font-medium">
-          {copy.members.type}
-          <select name="type" defaultValue={type ?? ""} className="rounded border p-2 font-normal">
-            <option value="">{copy.members.allTypes}</option>
-            {MEMBER_TYPES.map((t) => (
-              <option key={t} value={t}>{copy.profile.types[t]}</option>
-            ))}
-          </select>
+        <label className="member-filter-field member-type-filter">
+          <span>{copy.members.type}</span>
+          <span className="member-select-control">
+            <select name="type" defaultValue={type ?? ""} className="font-normal">
+              <option value="">{copy.members.allTypes}</option>
+              {MEMBER_TYPES.map((t) => (
+                <option key={t} value={t}>{copy.profile.types[t]}</option>
+              ))}
+            </select>
+          </span>
         </label>
-        <button type="submit" className="rounded bg-black px-4 py-2 text-white dark:bg-white dark:text-black">{copy.members.submit}</button>
-        {filtered && <Link href="/members" className="px-2 py-2 underline">{copy.members.clear}</Link>}
+        <button type="submit" className="member-filter-submit">{copy.members.submit}</button>
+        {filtered && <Link href="/members" className="member-filter-clear">{copy.members.clear}</Link>}
       </form>
 
       {rows.length === 0 ? (
@@ -75,7 +77,7 @@ async function MembersContent({ searchParams }: { searchParams: PageProps<"/memb
         </div>
       ) : (
         <>
-          <ul className="flex flex-col gap-3">
+          <ul className="members-grid">
             {rows.map((member) => <MemberCard key={member.id} member={member} />)}
           </ul>
           {lastPage > 1 && (

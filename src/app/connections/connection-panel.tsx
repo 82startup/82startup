@@ -27,7 +27,7 @@ export function ConnectionPanel({ memberId, name, state, connectionId, note }: P
   }
 
   return (
-    <section className="flex flex-col gap-3">
+    <section className="member-connection-panel flex flex-col gap-3">
       {state === "none" && <ConnectDialog memberId={memberId} name={name || copy.attendance.member} />}
       {state === "sent" && (
         <div className="flex flex-wrap items-center gap-3">

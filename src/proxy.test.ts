@@ -17,13 +17,13 @@ describe("Summit launch routing", () => {
     expect(updateSession).not.toHaveBeenCalled();
   });
 
-  it("temporarily hides community screens and nested routes", async () => {
-    for (const path of ["/events", "/events/submit", "/members/123", "/connections", "/messages/123", "/profile", "/settings", "/login?next=/members", "/admin/events", "/speakers/person", "/sponsors"]) {
+  it("routes community screens through session refresh instead of the retired launch gate", async () => {
+    const paths = ["/events", "/events/submit", "/members/123", "/connections", "/messages/123", "/profile", "/settings", "/login?next=/members", "/admin/events", "/speakers/person", "/sponsors"];
+    for (const path of paths) {
       const response = await proxy(new NextRequest(`https://example.com${path}`));
-      expect(response.status).toBe(307);
-      expect(response.headers.get("location")).toBe("https://example.com/");
+      expect(response.headers.get("location")).toBeNull();
     }
-    expect(updateSession).not.toHaveBeenCalled();
+    expect(updateSession).toHaveBeenCalledTimes(paths.length);
   });
 
   it("preserves existing backend, auth and unsubscribe routing", async () => {

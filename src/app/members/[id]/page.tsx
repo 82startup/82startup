@@ -1,107 +1,13 @@
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
-import { connection } from "next/server";
-import { Avatar } from "@/components/avatar";
 import { copy } from "@/lib/copy";
-import type { MemberType } from "@/lib/profile/schema";
-import { createClient } from "@/lib/supabase/server";
-import { ConnectionPanel } from "@/app/connections/connection-panel";
-import { MemberEvents, type MemberEvent } from "./member-events";
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { MemberDetailContent } from "./member-detail-content";
 
 export default function MemberPage({ params }: PageProps<"/members/[id]">) {
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
+    <main className="member-direct-page mx-auto w-full p-6">
       <Suspense fallback={<p>{copy.members.loading}</p>}>
-        <MemberDetail params={params} />
+        <MemberDetailContent params={params} showBack />
       </Suspense>
     </main>
-  );
-}
-
-type Member = {
-  id: string;
-  name: string;
-  avatar_url: string | null;
-  job_title: string;
-  company_name: string;
-  company_website: string | null;
-  bio: string;
-  linkedin_url: string | null;
-  member_type: MemberType | null;
-};
-
-async function MemberDetail({ params }: { params: PageProps<"/members/[id]">["params"] }) {
-  await connection();
-  const { id } = await params;
-  // A malformed id, an unknown member and a hidden member all end on the same not-found page.
-  if (!UUID.test(id)) notFound();
-
-  const supabase = await createClient();
-  const { data: claims } = await supabase.auth.getClaims();
-  const viewer = claims?.claims.sub;
-  if (!viewer) redirect(`/login?next=/members/${id}`);
-
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, name, avatar_url, job_title, company_name, company_website, bio, linkedin_url, member_type")
-    .eq("id", id)
-    .maybeSingle();
-  const member = data as Member | null;
-  if (!member) notFound();
-
-  const { data: events } = await supabase.rpc("member_events", { p_member: id });
-
-  // The connect button depends on the relation; an open request also needs its id (and the note, if it is for the viewer).
-  const { data: stateData } = await supabase.rpc("connection_state", { p_member: id });
-  const state = typeof stateData === "string" ? stateData : "unavailable";
-  let connectionId: string | null = null;
-  let note = "";
-  if (state === "sent" || state === "received") {
-    const { data: lists } = await supabase.rpc("my_connection_lists");
-    const open = ((lists ?? []) as Array<{ kind: string; connection_id: string | null; member_id: string; note: string }>).find(
-      (r) => r.member_id === id && (r.kind === "sent" || r.kind === "received"),
-    );
-    connectionId = open?.connection_id ?? null;
-    note = open?.note ?? "";
-  }
-
-  return (
-    <article className="flex flex-col gap-4">
-      <Link href="/members" className="text-sm text-zinc-600 dark:text-zinc-400">← {copy.members.allMembers}</Link>
-      <div className="flex items-center gap-4">
-        <Avatar name={member.name} url={member.avatar_url} size={72} />
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-semibold">{member.name || copy.attendance.member}</h1>
-          {member.job_title && <span>{member.job_title}</span>}
-          {member.member_type && <span className="text-sm text-zinc-600 dark:text-zinc-400">{copy.profile.types[member.member_type]}</span>}
-        </div>
-      </div>
-      {member.company_name && (
-        <p>
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">{copy.members.company}: </span>
-          {member.company_website ? (
-            <a href={member.company_website} target="_blank" rel="noopener noreferrer" className="underline">{member.company_name}</a>
-          ) : (
-            member.company_name
-          )}
-        </p>
-      )}
-      {member.bio && <p className="whitespace-pre-line">{member.bio}</p>}
-      {member.linkedin_url && (
-        <p>
-          <a href={member.linkedin_url} target="_blank" rel="noopener noreferrer" className="underline">{copy.members.linkedin}</a>
-        </p>
-      )}
-      <MemberEvents events={(events ?? []) as MemberEvent[]} />
-      <ConnectionPanel memberId={id} name={member.name} state={state} connectionId={connectionId} note={note} />
-      {member.id === viewer && (
-        <p>
-          <Link href="/profile" className="underline">{copy.members.edit}</Link>
-        </p>
-      )}
-    </article>
   );
 }
