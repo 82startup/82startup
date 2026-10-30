@@ -33,6 +33,7 @@ describe("parseProfileForm", () => {
         company_website: "https://acme.example.com",
         bio: "Hello",
         linkedin_url: "https://www.linkedin.com/in/ada",
+        kakao_url: null,
         member_type: "startup",
       },
     });
@@ -136,6 +137,16 @@ describe("parseProfileForm", () => {
     }
   });
 
+  it("accepts a KakaoTalk open chat, QR or channel link and rejects anything else", () => {
+    for (const good of ["https://open.kakao.com/o/sAbC123", "https://qr.kakao.com/talk/xyz", "https://pf.kakao.com/_abc"]) {
+      expect(parseProfileForm(form({ ...REQ, name: "Ada", kakao_url: good }))).toMatchObject({ ok: true, value: { kakao_url: good } });
+    }
+    for (const bad of ["http://open.kakao.com/o/a", "https://open.kakao.com.evil.com/o/a", "https://kakao.com/x", "https://open.kakao.com/", "https://open.kakao.com/o/" + "a".repeat(200)]) {
+      expect(parseProfileForm(form({ ...REQ, name: "Ada", kakao_url: bad }))).toMatchObject({ ok: false, errors: { kakao_url: expect.any(String) } });
+    }
+    expect(parseProfileForm(form({ ...REQ, kakao_url: "" }))).toMatchObject({ ok: true, value: { kakao_url: null } });
+  });
+
   it("rejects a LinkedIn URL that is not on linkedin.com over https", () => {
     for (const bad of ["http://www.linkedin.com/in/a", "https://evil.com/in/a", "linkedin.com/in/a"]) {
       const result = parseProfileForm(form({ ...REQ, name: "Ada", linkedin_url: bad }));
@@ -163,7 +174,7 @@ describe("parseProfileForm", () => {
 });
 
 describe("submittedValues", () => {
-  it("returns the seven raw strings untrimmed, with missing keys as empty strings", () => {
+  it("returns the eight raw strings untrimmed, with missing keys as empty strings", () => {
     const values = submittedValues(form({ name: "  Ada ", bio: "x", member_type: "wizard", show_in_directory: "on", extra: "ignored" }));
     expect(values).toEqual({
       name: "  Ada ",
@@ -172,6 +183,7 @@ describe("submittedValues", () => {
       company_website: "",
       bio: "x",
       linkedin_url: "",
+      kakao_url: "",
       member_type: "wizard",
     });
   });

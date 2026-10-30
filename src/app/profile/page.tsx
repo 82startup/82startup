@@ -3,14 +3,14 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { safeNextPath } from "@/lib/auth/safe-next";
 import { copy } from "@/lib/copy";
-import { isProfileComplete } from "@/lib/profile/schema";
+import { isProfileComplete, KAKAO_ENABLED } from "@/lib/profile/schema";
 import { createClient } from "@/lib/supabase/server";
 import { PhotoSection } from "./photo-section";
 import { ProfileForm } from "./profile-form";
 
 export default function ProfilePage({ searchParams }: PageProps<"/profile">) {
   return (
-    <main className="mx-auto w-full max-w-lg p-6">
+    <main className="profile-page">
       <Suspense>
         <ProfileContent searchParams={searchParams} />
       </Suspense>
@@ -31,6 +31,9 @@ async function ProfileContent({ searchParams }: { searchParams: PageProps<"/prof
     .eq("id", userId)
     .single();
   if (!profile) redirect("/login?next=/profile");
+  // Read separately so the page still works on a database without the kakao_url migration (it reads as empty).
+  const { data: kakao } = KAKAO_ENABLED ? await supabase.from("profiles").select("kakao_url").eq("id", userId).maybeSingle() : { data: null };
+  const kakaoUrl = (kakao as { kakao_url: string | null } | null)?.kakao_url ?? null;
 
   // A member who has not filled the four required fields sees the first-time screen (the site sends them here from everywhere).
   const setup = !isProfileComplete(profile);
@@ -40,16 +43,16 @@ async function ProfileContent({ searchParams }: { searchParams: PageProps<"/prof
 
   return (
     <>
-      <h1 className="mb-6 text-2xl font-semibold">{setup ? copy.profile.setupTitle : copy.profile.title}</h1>
+      <h1>{setup ? copy.profile.setupTitle : copy.profile.title}</h1>
       {setup ? (
         <>
-          <ProfileForm profile={profile} setup next={next} />
-          <div className="mt-8">{photo}</div>
+          <ProfileForm profile={{ ...profile, kakao_url: kakaoUrl }} setup next={next} />
+          {photo}
         </>
       ) : (
         <>
           {photo}
-          <ProfileForm profile={profile} />
+          <ProfileForm profile={{ ...profile, kakao_url: kakaoUrl }} />
         </>
       )}
     </>

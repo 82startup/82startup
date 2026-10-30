@@ -71,16 +71,21 @@ export function PhotoSection({ userId, name, avatarUrl }: Props) {
   }
 
   return (
-    <section className="mb-8 flex flex-col gap-3 rounded border p-4">
-      <h2 className="text-lg font-semibold">{copy.photo.title}</h2>
-      <div className="flex items-center gap-4">
+    <section className="profile-photo">
+      <div className="profile-photo-row">
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element -- local preview of the picture about to be saved
-          <img src={preview.url} alt={copy.photo.preview} width={96} height={96} className="h-24 w-24 flex-none rounded-full object-cover" />
+          <img src={preview.url} alt={copy.photo.preview} width={96} height={96} className="profile-photo-preview" />
         ) : (
           <Avatar name={name} url={avatarUrl} size={96} />
         )}
-        <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
+        <div className="profile-photo-copy">
+          <h2>{copy.photo.title}</h2>
+          <p className="profile-field-hint">{copy.photo.hint}</p>
+          <div className="profile-photo-actions">
+          {!preview && (
+          <label className="community-action community-action-secondary profile-photo-pick" aria-disabled={reading || saving || undefined}>
+            {copy.photo.choose}
           <input
             ref={input}
             type="file"
@@ -88,29 +93,31 @@ export function PhotoSection({ userId, name, avatarUrl }: Props) {
             aria-label={copy.photo.choose}
             disabled={reading || saving}
             onChange={(e) => onPick(e.target.files?.[0])}
-            className="w-full min-w-0 text-sm"
+            className="visually-hidden"
           />
+          </label>
+          )}
           {preview && (
-            <div className="flex gap-2">
-              <button type="button" onClick={onSave} disabled={saving} className="rounded bg-black px-3 py-1 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black">
+            <>
+              <button type="button" onClick={onSave} disabled={saving} className="community-action">
                 {saving ? copy.photo.saving : copy.photo.save}
               </button>
-              <button type="button" onClick={clearPreview} disabled={saving} className="rounded border px-3 py-1 text-sm disabled:opacity-50">
+              <button type="button" onClick={clearPreview} disabled={saving} className="community-action community-action-secondary">
                 {copy.photo.cancel}
               </button>
-            </div>
+            </>
           )}
           {!preview && avatarUrl && (
             <form action={removeAction}>
-              <button type="submit" disabled={removing} className="rounded border px-3 py-1 text-sm disabled:opacity-50">
+              <button type="submit" disabled={removing} className="action-quiet">
                 {copy.photo.remove}
               </button>
             </form>
           )}
+          </div>
+          {(error || removeState.error) && <p role="alert" className="profile-field-error">{error ?? removeState.error}</p>}
         </div>
       </div>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">{copy.photo.hint}</p>
-      {(error || removeState.error) && <p role="alert" className="text-sm text-red-700">{error ?? removeState.error}</p>}
     </section>
   );
 }

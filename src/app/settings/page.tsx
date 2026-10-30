@@ -8,8 +8,8 @@ import { NotificationsForm } from "./notifications-form";
 
 export default function SettingsPage() {
   return (
-    <main className="mx-auto flex w-full max-w-lg flex-col gap-8 p-6">
-      <h1 className="text-2xl font-semibold">{copy.settings.title}</h1>
+    <main className="settings-page">
+      <h1>{copy.settings.title}</h1>
       <Suspense fallback={<p>{copy.settings.loading}</p>}>
         <SettingsContent />
       </Suspense>
@@ -35,14 +35,22 @@ async function SettingsContent() {
 
   return (
     <>
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">{copy.settings.privacy}</h2>
+      <section className="settings-card">
+        <h2>{copy.settings.privacy}</h2>
         <DirectoryForm showInDirectory={profile.show_in_directory} />
       </section>
-      <section id="notifications" className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">{copy.settings.notifications}</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">{copy.settings.notificationsIntro}</p>
+      <section id="notifications" className="settings-card">
+        <h2>{copy.settings.notifications}</h2>
+        <p className="settings-intro">{copy.settings.notificationsIntro}</p>
         <NotificationsForm connect={prefs.connect} messages={prefs.messages} />
+      </section>
+      <section className="settings-card">
+        <h2>{copy.settings.account}</h2>
+        {/* Sign out lives here (not in the sidebar). A plain form POST, so it works without client code. */}
+        <form action="/auth/signout" method="post" className="settings-account">
+          <p className="settings-intro">{copy.settings.signOutText}</p>
+          <button type="submit" className="community-action community-action-secondary">{copy.settings.signOut}</button>
+        </form>
       </section>
     </>
   );

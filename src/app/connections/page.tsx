@@ -6,12 +6,13 @@ import { Avatar } from "@/components/avatar";
 import { copy } from "@/lib/copy";
 import { createClient } from "@/lib/supabase/server";
 import { ActionForm } from "./action-form";
+import { MoreMenu } from "./more-menu";
 import { blockMember, cancelRequest, disconnect, respondToRequest, unblockMember } from "./actions";
 
 export default function ConnectionsPage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
-      <h1 className="text-2xl font-semibold">{copy.connections.title}</h1>
+    <main className="connections-page">
+      <h1>{copy.connections.title}</h1>
       <Suspense fallback={<p>{copy.connections.loading}</p>}>
         <Lists />
       </Suspense>
@@ -50,9 +51,9 @@ async function Lists() {
         const list = rows.filter((r) => r.kind === kind);
         if (list.length === 0) return null;
         return (
-          <section key={kind} className="flex flex-col gap-3">
-            <h2 className="text-lg font-semibold">{copy.connections.sections[kind]} ({list.length})</h2>
-            <ul className="flex flex-col gap-3">
+          <section key={kind} className="connections-section">
+            <h2>{copy.connections.sections[kind]}<span>{list.length}</span></h2>
+            <ul className="connections-list">
               {list.map((row) => (
                 <MemberRow key={`${kind}-${row.member_id}`} row={row} />
               ))}
@@ -68,26 +69,26 @@ function MemberRow({ row }: { row: Row }) {
   const detail = [row.job_title, row.company_name].filter(Boolean).join(" · ");
   const name = row.name || copy.attendance.member;
   return (
-    <li className="flex flex-col gap-2 rounded border p-3">
-      <div className="flex items-center gap-3">
+    <li className="connection-row">
+      <div className="connection-row-member">
         <Avatar name={row.name} url={row.avatar_url} />
-        <div className="flex min-w-0 flex-col">
+        <div className="connection-row-copy">
           {row.profile_visible ? (
-            <Link href={`/members/${row.member_id}`} className="font-semibold underline">{name}</Link>
+            <Link href={`/members/${row.member_id}`} className="connection-row-name">{name}</Link>
           ) : (
-            <span className="font-semibold">{name}</span>
+            <span className="connection-row-name">{name}</span>
           )}
-          {detail && <span className="text-sm text-zinc-600 dark:text-zinc-400">{detail}</span>}
+          {detail && <span className="connection-row-detail">{detail}</span>}
         </div>
       </div>
       {row.kind === "received" && row.note && (
-        <p className="whitespace-pre-line text-sm"><span className="text-zinc-600 dark:text-zinc-400">{copy.connections.noteFrom}: </span>{row.note}</p>
+        <p className="connection-note"><span>{copy.connections.noteFrom}</span>{row.note}</p>
       )}
-      <div className="flex flex-wrap gap-3">
+      <div className="connection-row-actions">
         {row.kind === "received" && row.connection_id && (
           <>
             <ActionForm action={respondToRequest} fields={{ id: row.connection_id, value: "true" }} label={copy.connections.accept} />
-            <ActionForm action={respondToRequest} fields={{ id: row.connection_id, value: "false" }} label={copy.connections.decline} />
+            <ActionForm action={respondToRequest} fields={{ id: row.connection_id, value: "false" }} label={copy.connections.decline} secondary />
           </>
         )}
         {row.kind === "sent" && row.connection_id && (
@@ -95,9 +96,11 @@ function MemberRow({ row }: { row: Row }) {
         )}
         {row.kind === "connected" && (
           <>
-            <Link href={`/messages/${row.member_id}`} className="rounded border px-3 py-1 text-sm">{copy.messages.message}</Link>
-            <ActionForm action={disconnect} fields={{ member: row.member_id }} label={copy.connections.disconnect} quiet />
-            <ActionForm action={blockMember} fields={{ member: row.member_id }} label={copy.connections.block} quiet />
+            <Link href={`/messages/${row.member_id}`} className="community-action">{copy.messages.message}</Link>
+            <MoreMenu label={copy.connections.more}>
+              <ActionForm action={disconnect} fields={{ member: row.member_id }} label={copy.connections.disconnect} quiet />
+              <ActionForm action={blockMember} fields={{ member: row.member_id }} label={copy.connections.block} quiet />
+            </MoreMenu>
           </>
         )}
         {row.kind === "blocked" && <ActionForm action={unblockMember} fields={{ member: row.member_id }} label={copy.connections.unblock} quiet />}

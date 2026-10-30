@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { createClient } from "@/lib/supabase/browser";
 
 const navigation = [
@@ -21,6 +21,8 @@ function isCommunityRoute(pathname: string): boolean {
 export function AppChrome({ header, signup, children, overlay }: { header: ReactNode; signup: ReactNode; children: ReactNode; overlay: ReactNode }) {
   const pathname = usePathname();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [requests, setRequests] = useState(0); // connection requests waiting for my answer, shown on Connections
+  const [unread, setUnread] = useState(0); // unread messages across conversations, shown on Messages
 
   useEffect(() => {
     if (!isCommunityRoute(pathname)) return;
@@ -31,30 +33,52 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
       try {
         const { data: claims, error: claimsError } = await supabase.auth.getClaims();
         if (claimsError || !claims?.claims.sub) {
-          if (current) setIsAdmin(false);
+          if (current) { setIsAdmin(false); setRequests(0); setUnread(0); }
           return;
         }
-        const { data, error } = await supabase.rpc("is_admin");
-        if (current) setIsAdmin(!error && data === true);
+        // Counts only: the same small functions the public header uses, not the full lists.
+        const [admin, waiting, unreadCount] = await Promise.all([
+          supabase.rpc("is_admin"),
+          supabase.rpc("pending_request_count"),
+          supabase.rpc("unread_message_count"),
+        ]);
+        if (!current) return;
+        setIsAdmin(!admin.error && admin.data === true);
+        setRequests(waiting.error ? 0 : Number(waiting.data) || 0);
+        setUnread(unreadCount.error ? 0 : Number(unreadCount.data) || 0);
       } catch {
-        if (current) setIsAdmin(false);
+        if (current) { setIsAdmin(false); setRequests(0); setUnread(0); }
       }
     }
 
     void checkAdmin();
+    // Keep the request and unread badges current while the tab is open and visible.
+    const poll = () => { if (document.visibilityState === "visible") void checkAdmin(); };
+    const timer = window.setInterval(poll, 15_000);
+    document.addEventListener("visibilitychange", poll);
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
         setIsAdmin(false);
+        setRequests(0);
+        setUnread(0);
         return;
       }
       queueMicrotask(() => { void checkAdmin(); });
     });
     return () => {
       current = false;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", poll);
       subscription.unsubscribe();
     };
   }, [pathname]);
 
+  if (pathname === "/login") {
+    // The Summit sign-in dialog loads /login?modal=1 in an iframe and must never show the public header or signup bar
+    // (hiding them with CSS after the form arrived made them flash). Reading the query needs its own small Suspense,
+    // so it is done only here: elsewhere it would turn every route's prerendered shell into an empty fallback.
+    return <><Suspense fallback={null}><OutsideModalLogin>{header}</OutsideModalLogin></Suspense>{children}<Suspense fallback={null}><OutsideModalLogin>{signup}</OutsideModalLogin></Suspense>{overlay}</>;
+  }
   if (!isCommunityRoute(pathname)) {
     return <>{header}{children}{signup}{overlay}</>;
   }
@@ -66,16 +90,31 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
           <span className="community-brand-mark" aria-hidden="true"><img src="/assets/82startup-symbol.svg" alt="" /></span>
           <span><strong>82 STARTUP WEEK</strong><small>COMMUNITY</small></span>
         </Link>
+        {/* Mobile only: profile and settings as icons in the brand row, so the tabs never scroll. */}
+        <div className="community-mobile-actions">
+          <Link href="/profile" className="community-icon-action" aria-label="My profile" title="My profile" aria-current={pathname.startsWith("/profile") ? "page" : undefined}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8" /><path d="M4.8 20c.9-3.9 3.7-6 7.2-6s6.3 2.1 7.2 6" /></svg>
+          </Link>
+          <Link href="/settings" className="community-icon-action" aria-label="Settings" title="Settings" aria-current={pathname.startsWith("/settings") ? "page" : undefined}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" /></svg>
+          </Link>
+        </div>
         <div className="community-nav-label">NETWORK</div>
         <nav className="community-nav">
           {navigation.filter(({ href }) => href !== "/admin/events" || isAdmin).map(({ href, label, marker }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
-            return <Link key={href} href={href} aria-current={active ? "page" : undefined} className="community-nav-link"><span className="community-nav-marker">{marker}</span>{label}<span className="community-nav-arrow" aria-hidden="true">↗</span></Link>;
+            const badge = href === "/connections" ? requests : href === "/messages" ? unread : 0;
+            const badgeLabel = href === "/connections" ? "new connection request" : "unread message";
+            const iconOnMobile = href === "/profile" || href === "/settings"; // shown as top-right icons on mobile instead
+            return (
+              <Link key={href} href={href} aria-current={active ? "page" : undefined} className={iconOnMobile ? "community-nav-link community-nav-desktop" : "community-nav-link"} aria-label={badge ? `${label}, ${badge} ${badgeLabel}${badge === 1 ? "" : "s"}` : undefined}>
+                <span className="community-nav-marker">{marker}</span>{label}
+                {badge > 0 && <span className="community-nav-badge" aria-hidden="true">{badge > 99 ? "99+" : badge}</span>}
+                <span className="community-nav-arrow" aria-hidden="true">↗</span>
+              </Link>
+            );
           })}
         </nav>
-        <form action="/auth/signout" method="post" className="community-signout-form">
-          <button type="submit" className="community-signout"><span aria-hidden="true">↗</span> Sign out</button>
-        </form>
         <Link className="community-back" href="/">← Summit home</Link>
       </aside>
       <div className="community-content">
@@ -84,4 +123,8 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
       </div>
     </div>
   );
+}
+
+function OutsideModalLogin({ children }: { children: ReactNode }) {
+  return useSearchParams().get("modal") === "1" ? null : <>{children}</>;
 }

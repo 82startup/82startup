@@ -3,6 +3,7 @@ import { copy } from "@/lib/copy";
 import { blockMember, cancelRequest, disconnect, respondToRequest, unblockMember } from "./actions";
 import { ActionForm } from "./action-form";
 import { ConnectDialog } from "./connect-dialog";
+import { MoreMenu } from "./more-menu";
 
 type Props = {
   memberId: string;
@@ -19,41 +20,45 @@ export function ConnectionPanel({ memberId, name, state, connectionId, note }: P
 
   if (state === "blocked") {
     return (
-      <section className="flex flex-col gap-2">
-        <p className="text-sm">{copy.connections.blocked}</p>
+      <section className="member-connection-panel">
+        <p className="member-connection-status">{copy.connections.blocked}</p>
         <ActionForm action={unblockMember} fields={member} label={copy.connections.unblock} />
       </section>
     );
   }
 
   return (
-    <section className="member-connection-panel flex flex-col gap-3">
+    <section className="member-connection-panel">
       {state === "none" && <ConnectDialog memberId={memberId} name={name || copy.attendance.member} />}
       {state === "sent" && (
-        <div className="flex flex-wrap items-center gap-3">
-          <span>{copy.connections.requestSent}</span>
+        <div className="member-connection-actions">
+          <span className="member-connection-status">{copy.connections.requestSent}</span>
           {connectionId && <ActionForm action={cancelRequest} fields={{ id: connectionId }} label={copy.connections.cancel} quiet />}
         </div>
       )}
       {state === "received" && (
-        <div className="flex flex-col gap-2">
-          {note && <p className="whitespace-pre-line text-sm"><span className="text-zinc-600 dark:text-zinc-400">{copy.connections.noteFrom}: </span>{note}</p>}
+        <div className="member-connection-received">
+          {note && <p className="connection-note"><span>{copy.connections.noteFrom}</span>{note}</p>}
           {connectionId && (
-            <div className="flex flex-wrap gap-3">
+            <div className="member-connection-actions">
               <ActionForm action={respondToRequest} fields={{ id: connectionId, value: "true" }} label={copy.connections.accept} />
-              <ActionForm action={respondToRequest} fields={{ id: connectionId, value: "false" }} label={copy.connections.decline} />
+              <ActionForm action={respondToRequest} fields={{ id: connectionId, value: "false" }} label={copy.connections.decline} secondary />
             </div>
           )}
         </div>
       )}
       {state === "connected" && (
-        <div className="flex flex-wrap items-center gap-3">
-          <span>{copy.connections.connected}</span>
-          <Link href={`/messages/${memberId}`} className="rounded border px-3 py-1 text-sm">{copy.messages.message}</Link>
-          <ActionForm action={disconnect} fields={member} label={copy.connections.disconnect} quiet />
+        <div className="member-connection-actions">
+          <span className="member-connection-status">{copy.connections.connected}</span>
+          <Link href={`/messages/${memberId}`} className="community-action">{copy.messages.message}</Link>
         </div>
       )}
-      <ActionForm action={blockMember} fields={member} label={copy.connections.block} quiet />
+      <div className="member-connection-secondary">
+        <MoreMenu label={copy.connections.more}>
+          {state === "connected" && <ActionForm action={disconnect} fields={member} label={copy.connections.disconnect} quiet />}
+          <ActionForm action={blockMember} fields={member} label={copy.connections.block} quiet />
+        </MoreMenu>
+      </div>
     </section>
   );
 }

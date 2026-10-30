@@ -1,5 +1,5 @@
 begin;
-select plan(22);
+select plan(24);
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('11111111-1111-1111-1111-111111111111', 'a@example.com', '{"full_name": "Ada Lee", "avatar_url": "https://example.com/a.png"}'),
@@ -36,6 +36,9 @@ select is((select name || '/' || job_title from public.profiles where id = '2222
 
 select throws_ok($$update public.profiles set role = 'admin' where id = '11111111-1111-1111-1111-111111111111'$$, '42501', null, 'a member cannot change their own role');
 select throws_ok($$update public.profiles set linkedin_url = 'https://evil.example.com/x' where id = '11111111-1111-1111-1111-111111111111'$$, '23514', null, 'linkedin_url must be a linkedin.com address');
+select throws_ok($$update public.profiles set kakao_url = 'https://evil.example.com/o/x' where id = '11111111-1111-1111-1111-111111111111'$$, '23514', null, 'kakao_url must be a kakao.com open chat, QR or channel link');
+update public.profiles set kakao_url = 'https://open.kakao.com/o/sAbC123' where id = '11111111-1111-1111-1111-111111111111';
+select is((select kakao_url from public.profiles where id = '11111111-1111-1111-1111-111111111111'), 'https://open.kakao.com/o/sAbC123', 'a member can add their own KakaoTalk link');
 select throws_ok($$update public.profiles set company_website = 'ftp://x.example.com' where id = '11111111-1111-1111-1111-111111111111'$$, '23514', null, 'company_website must be an http or https address');
 select throws_ok($$update public.profiles set company_website = 'https://' || repeat('w', 193) where id = '11111111-1111-1111-1111-111111111111'$$, '23514', null, 'company_website is at most 200 characters');
 select throws_ok($$update public.profiles set member_type = 'wizard' where id = '11111111-1111-1111-1111-111111111111'$$, '22P02', null, 'member type must be one of the six types');

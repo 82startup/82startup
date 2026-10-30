@@ -8,21 +8,32 @@ import { sendMessage, type MessageState } from "./actions";
 export function MessageForm({ memberId }: { memberId: string }) {
   const [state, formAction, pending] = useActionState<MessageState, FormData>(sendMessage, {});
   return (
-    <form key={state.sentAt ?? 0} action={formAction} className="flex flex-col items-start gap-2">
+    <form key={state.sentAt ?? 0} action={formAction} className="conversation-composer">
       <input type="hidden" name="member" value={memberId} />
       <textarea
         name="body"
         required
         maxLength={2000}
-        rows={3}
+        rows={1}
         placeholder={copy.messages.placeholder}
         aria-label={copy.messages.placeholder}
-        className="w-full rounded border p-2"
+        // Enter sends and Shift+Enter adds a line on a hardware keyboard. Never while an IME (Korean, Japanese) is composing
+        // (Safari reports the confirming Enter as keyCode 229), while a send is pending or on key repeat (no duplicates),
+        // and not on touch screens, where Enter stays a line break and the Send button sends.
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+          if (pending || event.repeat || window.matchMedia("(pointer: coarse)").matches) {
+            if (pending || event.repeat) event.preventDefault();
+            return;
+          }
+          event.preventDefault();
+          event.currentTarget.form?.requestSubmit();
+        }}
       />
-      <button type="submit" disabled={pending} className="rounded border px-3 py-1 text-sm disabled:opacity-50">
+      <button type="submit" disabled={pending} className="conversation-send">
         {pending ? copy.messages.sending : copy.messages.send}
       </button>
-      {state.error && <span role="alert" className="text-sm text-red-700">{state.error}</span>}
+      {state.error && <span role="alert" className="board-error conversation-error">{state.error}</span>}
     </form>
   );
 }

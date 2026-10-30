@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { copy } from "@/lib/copy";
-import { MEMBER_TYPES, type MemberType } from "@/lib/profile/schema";
+import { Toast } from "@/components/toast";
+import { KAKAO_ENABLED, MEMBER_TYPES, type MemberType } from "@/lib/profile/schema";
 import { updateProfile, type ProfileFormState } from "./actions";
 
 type Props = {
@@ -16,6 +17,7 @@ type Props = {
     company_website: string | null;
     bio: string;
     linkedin_url: string | null;
+    kakao_url: string | null;
     member_type: MemberType | null;
   };
 };
@@ -26,19 +28,18 @@ export function ProfileForm({ profile, setup = false, next = "/" }: Props) {
   const v = state.values;
 
   return (
-    <form key={v ? JSON.stringify(v) : "saved"} action={action} className="flex flex-col gap-4">
+    <form key={v ? JSON.stringify(v) : "saved"} action={action} className="profile-form">
       {setup && (
         <>
           <input type="hidden" name="setup" value="1" />
           <input type="hidden" name="next" value={next} />
-          <p className="rounded border p-3">{copy.profile.setupIntro}</p>
+          <p className="profile-notice">{copy.profile.setupIntro}</p>
         </>
       )}
-      {state.saved && <p role="status" className="rounded border p-3">{copy.profile.saved}</p>}
-      {err.save && <p role="alert" className="rounded border border-red-400 p-3 text-red-700">{err.save}</p>}
+      <Toast trigger={state} message={err.save ?? (state.saved ? copy.profile.saved : null)} tone={err.save ? "error" : "success"} />
 
       <Field label={copy.profile.memberType} required error={err.member_type}>
-        <select name="member_type" defaultValue={v?.member_type ?? profile.member_type ?? ""} required className="rounded border p-2">
+        <select name="member_type" defaultValue={v?.member_type ?? profile.member_type ?? ""} required>
           <option value="">{copy.profile.choose}</option>
           {MEMBER_TYPES.map((type) => (
             <option key={type} value={type}>{copy.profile.types[type]}</option>
@@ -46,45 +47,51 @@ export function ProfileForm({ profile, setup = false, next = "/" }: Props) {
         </select>
       </Field>
       <Field label={copy.profile.name} required error={err.name}>
-        <input name="name" defaultValue={v?.name ?? profile.name} required maxLength={100} className="rounded border p-2" />
+        <input name="name" defaultValue={v?.name ?? profile.name} required maxLength={100} />
       </Field>
       <Field label={copy.profile.company} required hint={copy.profile.companyHint} error={err.company_name}>
-        <input name="company_name" defaultValue={v?.company_name ?? profile.company_name} required maxLength={100} className="rounded border p-2" />
+        <input name="company_name" defaultValue={v?.company_name ?? profile.company_name} required maxLength={100} />
       </Field>
       <Field label={copy.profile.jobTitle} required error={err.job_title}>
-        <input name="job_title" defaultValue={v?.job_title ?? profile.job_title} required maxLength={120} className="rounded border p-2" />
+        <input name="job_title" defaultValue={v?.job_title ?? profile.job_title} required maxLength={120} />
       </Field>
       <Field label={copy.profile.companyWebsite} error={err.company_website}>
-        <input name="company_website" type="url" defaultValue={v?.company_website ?? profile.company_website ?? ""} maxLength={200} className="rounded border p-2" />
-      </Field>
-      <Field label={copy.profile.bio} error={err.bio}>
-        <textarea name="bio" defaultValue={v?.bio ?? profile.bio} maxLength={1000} rows={5} className="rounded border p-2" />
+        <input name="company_website" type="url" defaultValue={v?.company_website ?? profile.company_website ?? ""} maxLength={200} />
       </Field>
       <Field label={copy.profile.linkedin} error={err.linkedin_url}>
-        <input name="linkedin_url" type="url" defaultValue={v?.linkedin_url ?? profile.linkedin_url ?? ""} className="rounded border p-2" />
+        <input name="linkedin_url" type="url" defaultValue={v?.linkedin_url ?? profile.linkedin_url ?? ""} />
+      </Field>
+      {KAKAO_ENABLED && (
+      <Field label={copy.profile.kakao} hint={copy.profile.kakaoHint} error={err.kakao_url}>
+        <input name="kakao_url" type="url" defaultValue={v?.kakao_url ?? profile.kakao_url ?? ""} maxLength={200} placeholder="https://open.kakao.com/o/..." />
+      </Field>
+      )}
+      <Field label={copy.profile.bio} error={err.bio} wide>
+        <textarea name="bio" defaultValue={v?.bio ?? profile.bio} maxLength={1000} rows={5} />
       </Field>
 
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        {copy.profile.settingsNote} <Link href="/settings" className="underline">{copy.profile.settingsLink}</Link>.
-      </p>
-
-      <button type="submit" disabled={pending} className="rounded bg-black p-2 text-white disabled:opacity-50">
-        {setup ? copy.profile.saveAndContinue : copy.profile.save}
-      </button>
+      <div className="profile-form-footer">
+        <p>
+          {copy.profile.settingsNote} <Link href="/settings">{copy.profile.settingsLink}</Link>.
+        </p>
+        <button type="submit" disabled={pending} className="community-action">
+          {setup ? copy.profile.saveAndContinue : copy.profile.save}
+        </button>
+      </div>
     </form>
   );
 }
 
-function Field({ label, error, required = false, hint, children }: { label: string; error?: string; required?: boolean; hint?: string; children: React.ReactNode }) {
+function Field({ label, error, required = false, hint, wide = false, children }: { label: string; error?: string; required?: boolean; hint?: string; wide?: boolean; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1 text-sm font-medium">
-      <span>
+    <label className={wide ? "profile-field profile-field-wide" : "profile-field"}>
+      <span className="profile-field-label">
         {label}
-        {required && <span aria-hidden className="text-red-700"> *</span>}
+        {required && <span aria-hidden className="profile-required"> *</span>}
       </span>
-      {hint && <span className="font-normal text-zinc-600 dark:text-zinc-400">{hint}</span>}
       {children}
-      {error && <span role="alert" className="font-normal text-red-700">{error}</span>}
+      {hint && <span className="profile-field-hint">{hint}</span>}
+      {error && <span role="alert" className="profile-field-error">{error}</span>}
     </label>
   );
 }

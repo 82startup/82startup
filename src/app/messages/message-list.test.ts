@@ -34,9 +34,10 @@ describe("MessageList", () => {
     expect(html).not.toContain("<a ");
   });
 
-  it("shows a Post label only on messages that came from a post", () => {
+  it("shows messages that came from a post like any other message, without a Post label", () => {
     const html = render([msg({ id: "a", is_post: true, body: "news" }), msg({ id: "b", body: "chat" })]);
-    expect(html.match(/>Post</g)?.length).toBe(1);
+    expect(html).toContain("news");
+    expect(html).not.toMatch(/>Post</);
   });
 
   it("breaks a very long unbroken word instead of overflowing", () => {

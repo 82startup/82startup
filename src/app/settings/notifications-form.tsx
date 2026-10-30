@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { Toast } from "@/components/toast";
 import { copy } from "@/lib/copy";
 import { saveNotificationPreferences, type NotificationState } from "./notification-actions";
 
@@ -15,24 +16,25 @@ const BOXES = [
 export function NotificationsForm(props: Props) {
   const [state, formAction, pending] = useActionState<NotificationState, FormData>(saveNotificationPreferences, {});
   return (
-    <form action={formAction} className="flex flex-col items-start gap-3">
-      <fieldset className="flex flex-col gap-3">
-        <legend className="mb-1 text-sm font-medium">{copy.settings.emailMeWhen}</legend>
+    <form action={formAction} className="settings-form">
+      <fieldset className="settings-fieldset">
+        <legend>{copy.settings.emailMeWhen}</legend>
         {BOXES.map(({ name, key }) => (
-          <label key={name} className="flex flex-col gap-0.5 text-sm">
-            <span className="flex items-center gap-2 font-medium">
-              <input type="checkbox" name={name} defaultChecked={props[key]} />
-              {copy.settings.emails[key].title}
+          <label key={name} className="settings-option">
+            <span className="settings-option-copy">
+              <span className="settings-option-title">{copy.settings.emails[key].title}</span>
+              <span className="settings-option-text">{copy.settings.emails[key].text}</span>
             </span>
-            <span className="font-normal text-zinc-600 dark:text-zinc-400">{copy.settings.emails[key].text}</span>
+            <input type="checkbox" role="switch" className="settings-switch" name={name} defaultChecked={props[key]} />
           </label>
         ))}
       </fieldset>
-      <button type="submit" disabled={pending} className="rounded border px-3 py-1 text-sm disabled:opacity-50">
-        {copy.settings.save}
-      </button>
-      {state.saved && <span role="status" className="text-sm">{copy.settings.saved}</span>}
-      {state.error && <span role="alert" className="text-sm text-red-700">{state.error}</span>}
+      <div className="settings-footer">
+        <Toast trigger={state} message={state.error ?? (state.saved ? copy.settings.saved : null)} tone={state.error ? "error" : "success"} />
+        <button type="submit" disabled={pending} className="community-action">
+          {copy.settings.save}
+        </button>
+      </div>
     </form>
   );
 }

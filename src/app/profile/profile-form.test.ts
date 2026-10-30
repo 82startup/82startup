@@ -6,7 +6,7 @@ vi.mock("./actions", () => ({ updateProfile: vi.fn() }));
 
 const { ProfileForm } = await import("./profile-form");
 
-const profile = { name: "", job_title: "", company_name: "", company_website: null, bio: "", linkedin_url: null, member_type: null };
+const profile = { name: "", job_title: "", company_name: "", company_website: null, bio: "", linkedin_url: null, kakao_url: null, member_type: null };
 const html = renderToStaticMarkup(createElement(ProfileForm, { profile }));
 
 describe("ProfileForm field order", () => {
