@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
 import { createClient } from "@/lib/supabase/browser";
 
 const navigation = [
@@ -73,12 +73,8 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
     };
   }, [pathname]);
 
-  if (pathname === "/login") {
-    // The Summit sign-in dialog loads /login?modal=1 in an iframe and must never show the public header or signup bar
-    // (hiding them with CSS after the form arrived made them flash). Reading the query needs its own small Suspense,
-    // so it is done only here: elsewhere it would turn every route's prerendered shell into an empty fallback.
-    return <><Suspense fallback={null}><OutsideModalLogin>{header}</OutsideModalLogin></Suspense>{children}<Suspense fallback={null}><OutsideModalLogin>{signup}</OutsideModalLogin></Suspense>{overlay}</>;
-  }
+  // /login (the page and the Summit sign-in iframe) draws its own Summit layout, never the public header or signup bar.
+  if (pathname === "/login") return <>{children}{overlay}</>;
   if (!isCommunityRoute(pathname)) {
     return <>{header}{children}{signup}{overlay}</>;
   }
@@ -123,8 +119,4 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
       </div>
     </div>
   );
-}
-
-function OutsideModalLogin({ children }: { children: ReactNode }) {
-  return useSearchParams().get("modal") === "1" ? null : <>{children}</>;
 }

@@ -124,6 +124,12 @@ body {
 .member-type-tag[data-type="other"] { --tag-bg: #e8e7dc; --tag-ink: #55564c; }
 .member-card:hover .member-type-tag { border-color: var(--tag-ink); }
 .member-card[data-self] { border-color: var(--community-charcoal); box-shadow: inset 0 0 0 1px var(--community-charcoal); }
+.member-card-relation { display: inline-flex; width: fit-content; align-items: center; gap: 6px; margin-top: 4px; color: #6b5d12; font-size: 10px; font-weight: 700; letter-spacing: .08em; line-height: 1.2; text-transform: uppercase; }
+.member-card-relation::before { width: 7px; height: 7px; border-radius: 9999px; background: #a9aa9c; content: ""; }
+.member-card-relation[data-relation="connected"] { color: #1f8f47; }
+.member-card-relation[data-relation="connected"]::before { background: #2fbf5f; }
+.member-card-relation[data-relation="pending"]::before { background: #f26b1d; }
+.member-card-relation[data-relation="pending"] { color: #c2500f; }
 .member-card-you { display: inline-block; margin-left: 8px; padding: 3px 5px; background: var(--community-charcoal); color: var(--community-yellow); font-size: 9px; font-weight: 600; letter-spacing: .08em; line-height: 1; text-transform: uppercase; vertical-align: 2px; }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
@@ -424,3 +430,32 @@ a.connection-row-name:hover { text-decoration: underline; text-underline-offset:
   .profile-photo-row { align-items: flex-start; gap: 14px; }
   .profile-photo-row > :first-child, .profile-photo-preview { width: 64px; height: 64px; }
 }
+
+/* Sign-in: the standalone /login page and the Summit sign-in dialog share these Summit-styled forms. */
+.login-standalone { display: flex; min-height: 100dvh; flex-direction: column; align-items: center; background: #f6f5ed; color: #24251f; font-family: "IBM Plex Sans", "Noto Sans KR", sans-serif; }
+.login-bar { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 5%; border-bottom: 1px solid #b5ba3f; background: #f0fa4b; }
+.login-bar-brand { display: flex; align-items: center; gap: 12px; color: #24251f; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-decoration: none; }
+.login-bar-home { color: #24251f; font-size: 12px; font-weight: 500; letter-spacing: .04em; text-decoration: none; text-transform: uppercase; }
+.login-bar-home:hover { text-decoration: underline; text-underline-offset: 4px; }
+.login-card { width: min(520px, calc(100vw - 32px)); margin: clamp(40px, 10vh, 110px) 0 48px; border: 1px solid #24251f; background: #f6f5ed; box-shadow: 8px 8px 0 #24251f; }
+.login-card-head { padding: 22px 28px; border-bottom: 1px solid #b5ba3f; background: #f0fa4b; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.login-main { width: 100%; padding: 30px 32px 34px; color: #24251f; font-family: "IBM Plex Sans", "Noto Sans KR", sans-serif; }
+.login-main-modal { max-width: 560px; margin: 0 auto; padding: 30px 36px 34px; }
+body:has(.login-main-modal) { background: #f6f5ed !important; }
+.login-main h1 { margin: 0 0 24px; font-size: clamp(25px, 5vw, 32px); font-weight: 500; line-height: 1.2; letter-spacing: -.04em; }
+.login-forms { display: flex; flex-direction: column; gap: 14px; }
+.login-email-form { display: flex; flex-direction: column; gap: 10px; }
+.login-email-form label { font-size: 14px; font-weight: 500; }
+.login-email-form input[type=email] { width: 100%; height: 48px; padding: 0 12px; border: 1px solid #77796e; border-radius: 0; background: #fffef8; color: #24251f; font: inherit; font-size: 15px; outline: 0; }
+.login-email-form input[type=email]:focus { border-color: #24251f; }
+.login-turnstile { width: 100%; }
+.login-turnstile:empty { display: none; }
+.login-primary, .login-google { display: flex; width: 100%; min-height: 48px; align-items: center; justify-content: center; gap: 10px; border: 1px solid #24251f; border-radius: 0; font: 500 12px "IBM Plex Sans", "Noto Sans KR", sans-serif; letter-spacing: .04em; text-decoration: none; text-transform: uppercase; cursor: pointer; transition: background .15s, color .15s; }
+.login-primary { background: #24251f; color: #f0fa4b; }
+.login-primary:hover { background: #f0fa4b; color: #24251f; }
+.login-google { background: transparent; color: #24251f; }
+.login-google:hover { background: #fffef8; }
+.login-alt { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.login-notice { margin: 0; padding: 12px; border: 1px solid #b5ba3f; background: #f0fa4b; font-size: 14px; line-height: 1.5; }
+.login-notice-error { border-color: #a2301d; background: #fffef8; color: #a2301d; }
+@media (max-width: 560px) { .login-main, .login-main-modal { padding: 24px 22px 28px; } .login-card-head { padding: 18px 22px; } .login-bar-brand span { display: none; } }

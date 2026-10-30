@@ -12,7 +12,9 @@ export type MemberRow = {
   member_type: MemberType | null;
 };
 
-export function MemberCard({ member, self = false }: { member: MemberRow; self?: boolean }) {
+export type Relation = "connected" | "pending";
+
+export function MemberCard({ member, self = false, relation }: { member: MemberRow; self?: boolean; relation?: Relation }) {
   const detail = [member.job_title, member.company_name].filter(Boolean).join(" · ");
   return (
     <li className={self ? "members-grid-self" : undefined}>
@@ -21,6 +23,7 @@ export function MemberCard({ member, self = false }: { member: MemberRow; self?:
         <div className="member-card-copy">
           <span className="member-card-name">{member.name}{self && <span className="member-card-you">{copy.members.you}</span>}</span>
           {detail && <span className="member-card-detail">{detail}</span>}
+          {relation && <span className="member-card-relation" data-relation={relation}>{relation === "connected" ? copy.members.connected : copy.members.pending}</span>}
         </div>
         {member.member_type && <span className="member-type-tag" data-type={member.member_type}>{copy.profile.types[member.member_type]}</span>}
       </Link>

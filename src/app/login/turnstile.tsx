@@ -5,7 +5,8 @@ import { useEffect, useRef } from "react";
 const SCRIPT_ID = "cloudflare-turnstile";
 const SCRIPT_URL = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
-type TurnstileApi = { render: (el: HTMLElement, options: { sitekey: string }) => string; remove: (id: string) => void };
+type TurnstileOptions = { sitekey: string; appearance?: "always" | "execute" | "interaction-only"; theme?: "auto" | "light" | "dark"; size?: "normal" | "flexible" | "compact" };
+type TurnstileApi = { render: (el: HTMLElement, options: TurnstileOptions) => string; remove: (id: string) => void };
 declare global {
   interface Window {
     turnstile?: TurnstileApi;
@@ -35,7 +36,7 @@ function Check({ siteKey }: { siteKey: string }) {
   useEffect(() => {
     let widget: string | null = null;
     const stop = whenReady(() => {
-      if (box.current && window.turnstile && widget === null) widget = window.turnstile.render(box.current, { sitekey: siteKey });
+      if (box.current && window.turnstile && widget === null) widget = window.turnstile.render(box.current, { sitekey: siteKey, appearance: "interaction-only", theme: "light", size: "flexible" });
     });
     return () => {
       stop();
@@ -43,7 +44,9 @@ function Check({ siteKey }: { siteKey: string }) {
     };
   }, [siteKey]);
   // Inside the form, the check adds the hidden field "cf-turnstile-response" that the sign-in action sends to Supabase.
-  return <div ref={box} />;
+  // "interaction-only" keeps the widget out of sight unless Cloudflare needs the visitor to click it; "flexible" makes it
+  // as wide as the email field when it does appear.
+  return <div ref={box} className="login-turnstile" />;
 }
 
 // The Cloudflare Turnstile check for a form. With no site key (local development) nothing is shown and nothing is sent.

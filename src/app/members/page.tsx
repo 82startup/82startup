@@ -6,7 +6,7 @@ import { copy } from "@/lib/copy";
 import { PAGE_SIZE, parseMemberSearch } from "@/lib/members/search";
 import { MEMBER_TYPES } from "@/lib/profile/schema";
 import { createClient } from "@/lib/supabase/server";
-import { MemberCard, type MemberRow } from "./member-card";
+import { MemberCard, type MemberRow, type Relation } from "./member-card";
 
 export default function MembersPage({ searchParams }: PageProps<"/members">) {
   return (
@@ -37,7 +37,7 @@ async function MembersContent({ searchParams }: { searchParams: PageProps<"/memb
   const { q, type, page } = parseMemberSearch(await searchParams);
   const filtered = Boolean(q || type);
   // The directory search and (on page 1 of the full directory) the viewer's own card load together.
-  const [{ data, error }, { data: own }] = await Promise.all([
+  const [{ data, error }, { data: own }, { data: lists }] = await Promise.all([
     supabase.rpc("search_members", {
       p_query: q || null,
       p_type: type,
@@ -47,8 +47,15 @@ async function MembersContent({ searchParams }: { searchParams: PageProps<"/memb
     page === 1 && !filtered
       ? supabase.from("profiles").select("id, name, avatar_url, job_title, company_name, member_type, show_in_directory").eq("id", viewer).maybeSingle()
       : Promise.resolve({ data: null }),
+    // My connections and open requests, so each card can say Connected or Pending.
+    supabase.rpc("my_connection_lists"),
   ]);
   if (error) throw new Error(error.message);
+  const relation = new Map<string, Relation>();
+  for (const row of (lists ?? []) as Array<{ kind: string; member_id: string }>) {
+    if (row.kind === "connected") relation.set(row.member_id, "connected");
+    else if (row.kind === "sent" || row.kind === "received") relation.set(row.member_id, "pending");
+  }
 
   const found = (data ?? []) as (MemberRow & { total: number | string })[];
   const total = found.length > 0 ? Number(found[0].total) : 0;
@@ -95,7 +102,7 @@ async function MembersContent({ searchParams }: { searchParams: PageProps<"/memb
       ) : (
         <>
           <ul className="members-grid">
-            {rows.map((member) => <MemberCard key={member.id} member={member} self={member.id === viewer} />)}
+            {rows.map((member) => <MemberCard key={member.id} member={member} self={member.id === viewer} relation={relation.get(member.id)} />)}
           </ul>
           {lastPage > 1 && (
             <nav className="mt-6 flex items-center justify-between text-sm">

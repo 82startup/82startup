@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { copy, loginErrorText } from "@/lib/copy";
@@ -39,29 +40,31 @@ async function LoginContent({ searchParams }: { searchParams: PageProps<"/login"
   if (await isSignedIn()) {
     const next = safeNextPath(typeof params.next === "string" ? params.next : "/members");
     if (params.modal !== "1") redirect(next);
-    return <main className="mx-auto w-full max-w-sm p-6"><TopRedirect href={next} /></main>;
+    return <main className="login-main"><TopRedirect href={next} /></main>;
   }
   return (
-    <main data-modal-login={params.modal === "1" ? "" : undefined} className="mx-auto w-full max-w-sm p-6">
-      {params.modal === "1" && <style>{`
-        body:has(main[data-modal-login]){background:#f6f5ed!important;color:#24251f!important;font-family:'IBM Plex Sans','Noto Sans KR',Arial,sans-serif}
-        body:has(main[data-modal-login])>header,body:has(main[data-modal-login])>div.sticky{display:none!important}
-        main[data-modal-login]{width:100%;max-width:560px;padding:30px 36px 34px}
-        main[data-modal-login] h1{margin:0 0 25px;font-size:clamp(25px,5vw,32px);line-height:1.2;font-weight:500;letter-spacing:-.04em}
-        main[data-modal-login] .login-forms{gap:24px}
-        main[data-modal-login] .login-email-form{gap:10px}
-        main[data-modal-login] label{font-size:14px;font-weight:500}
-        main[data-modal-login] input[type=email]{height:48px;border:1px solid #77796e;border-radius:0;background:#fffef8;padding:0 12px;color:#24251f;outline:0}
-        main[data-modal-login] input[type=email]:focus{border-color:#24251f;box-shadow:0 0 0 2px #f0fa4b}
-        main[data-modal-login] button[type=submit],main[data-modal-login] a.login-google{min-height:48px;border:1px solid #24251f;border-radius:0;background:#24251f;color:#f0fa4b;font:500 12px 'IBM Plex Sans','Noto Sans KR',Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase}
-        main[data-modal-login] button[type=submit]:hover,main[data-modal-login] a.login-google:hover{background:#f0fa4b;color:#24251f}
-        main[data-modal-login] a.login-google{display:flex;align-items:center;justify-content:center;gap:10px;background:transparent;color:#24251f}main[data-modal-login] a.login-google:hover{background:#fffef8;color:#24251f}
-        main[data-modal-login] [role=status],main[data-modal-login] [role=alert]{border:1px solid #b5ba3f;border-radius:0;background:#f0fa4b;padding:12px;color:#24251f}
-        @media(max-width:560px){main[data-modal-login]{padding:24px 22px 28px}}
-      `}</style>}
+    <LoginShell modal={params.modal === "1"}>
       <h1 className="login-title">{copy.login.title}</h1>
       <LoginForms params={params} />
-    </main>
+    </LoginShell>
+  );
+}
+
+// The Summit look for both entry points: inside the Summit sign-in dialog (modal=1) just the form; opened on its own,
+// a yellow Summit bar and the same card the dialog shows.
+function LoginShell({ modal, children }: { modal: boolean; children: React.ReactNode }) {
+  if (modal) return <main className="login-main login-main-modal">{children}</main>;
+  return (
+    <div className="login-standalone">
+      <header className="login-bar">
+        <Link href="/" className="login-bar-brand"><img src="/assets/82startup-symbol.svg" alt="" width="34" height="34" /><span>82 STARTUP WEEK</span></Link>
+        <Link href="/" className="login-bar-home">← Summit home</Link>
+      </header>
+      <div className="login-card">
+        <div className="login-card-head">{copy.login.cardTitle}</div>
+        <main className="login-main">{children}</main>
+      </div>
+    </div>
   );
 }
 
@@ -73,26 +76,26 @@ async function LoginForms({ params }: { params: Awaited<PageProps<"/login">["sea
   const errorText = loginErrorText(error);
 
   return (
-    <div className="login-forms flex flex-col gap-6">
-      {sent && <p role="status" className="rounded border p-3">{copy.login.sent}</p>}
-      {errorText && <p role="alert" className="rounded border border-red-400 p-3 text-red-700">{errorText}</p>}
+    <div className="login-forms">
+      {sent && <p role="status" className="login-notice">{copy.login.sent}</p>}
+      {errorText && <p role="alert" className="login-notice login-notice-error">{errorText}</p>}
 
-      <form action={signInWithEmail} className="login-email-form flex flex-col gap-3">
+      <form action={signInWithEmail} className="login-email-form">
         <input type="hidden" name="next" value={next} />
         <input type="hidden" name="modal" value={params.modal === "1" ? "1" : ""} />
-        <label htmlFor="email" className="text-sm font-medium">{copy.login.emailLabel}</label>
-        <input id="email" name="email" type="email" required autoComplete="email" className="rounded border p-2" />
+        <label htmlFor="email">{copy.login.emailLabel}</label>
+        <input id="email" name="email" type="email" required autoComplete="email" placeholder="you@company.com" />
         <Turnstile />
-        <button type="submit" className="rounded bg-black p-2 text-white">{copy.login.emailButton}</button>
+        <button type="submit" className="login-primary">{copy.login.emailButton}</button>
       </form>
 
-      <div className="flex flex-col gap-3">
+      <div className="login-alt">
         {formTarget ? (
-          <a href={`/auth/google?next=${encodeURIComponent(next)}`} target="_top" className="login-google flex w-full items-center justify-center gap-2.5 rounded border p-2 text-center"><GoogleLogo />{copy.login.google}</a>
+          <a href={`/auth/google?next=${encodeURIComponent(next)}`} target="_top" className="login-google"><GoogleLogo />{copy.login.google}</a>
         ) : (
           <form action={signInWithGoogle}>
             <input type="hidden" name="next" value={next} />
-            <button type="submit" className="flex w-full items-center justify-center gap-2.5 rounded border p-2"><GoogleLogo />{copy.login.google}</button>
+            <button type="submit" className="login-google"><GoogleLogo />{copy.login.google}</button>
           </form>
         )}
       </div>

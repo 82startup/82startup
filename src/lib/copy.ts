@@ -10,6 +10,7 @@ export const copy = {
   nav: { signIn: "Sign in", profile: "Profile", settings: "Settings", signOut: "Sign out", events: "Events", members: "Members", connections: "Connections", messages: "Messages", admin: "Admin" },
   login: {
     title: "Sign in to 82 Startup",
+    cardTitle: "Join Community",
     emailLabel: "Email",
     emailButton: "Email me a sign-in link",
     google: "Continue with Google",
@@ -106,6 +107,8 @@ export const copy = {
   },
   members: {
     you: "You",
+    connected: "Connected",
+    pending: "Pending",
     title: "Members",
     search: "Search by name or company",
     type: "Type",
