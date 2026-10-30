@@ -262,3 +262,4 @@ Signed-in visitors must not be shown the sign-in form again. When a Supabase `sb
 ## Community redesign push — October 29, 2026
 
 The user explicitly requested a full check, community performance work and a push of all current changes as randyjlee. Verified GitHub account randyjlee with verified email randyjlee.hj@gmail.com; validate the exact candidate on an `integration/**` branch through CI, then push the same commit to default branch `main` without a PR or force push. The `kakao_url` migration was already applied to production. `.claude/` (local preview config) stays uncommitted. Community pages load their data in parallel (profile modal, conversation, members directory) and the sidebar badges use count functions.
+- `next.config.ts` pins `turbopack.root` to this project. Without it a `package-lock.json` in the home folder made Turbopack watch the whole home directory, causing endless Fast Refresh rebuilds and page reloads (flicker) in development.

@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const communityPreview = process.env.NODE_ENV === "development" && process.env.COMMUNITY_LOCAL_PREVIEW === "1";
@@ -23,6 +24,9 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
+    // Pin the root to this project. A stray ~/package-lock.json made Turbopack treat the home folder as the root and
+    // watch it, so any file change there triggered a rebuild and endless page reloads in development.
+    root: path.join(__dirname),
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],
