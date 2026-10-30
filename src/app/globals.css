@@ -114,7 +114,7 @@ body {
 .member-card > :first-child { width: 52px; height: 52px; }
 .member-card-copy { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
 .member-card-name { overflow: hidden; font-size: 15px; font-weight: 600; line-height: 1.25; text-overflow: ellipsis; }
-.member-card-detail { overflow: hidden; color: #6f7065; font-size: 12px; line-height: 1.4; text-overflow: ellipsis; }
+.member-card-detail { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; color: #6f7065; font-size: 12px; line-height: 1.4; text-overflow: ellipsis; }
 .member-type-tag { --tag-bg: #e8e7dc; --tag-ink: #55564c; justify-self: end; padding: 6px 8px; border: 1px solid color-mix(in srgb, var(--tag-ink) 30%, transparent); background: var(--tag-bg); color: var(--tag-ink); font-size: 9px; font-weight: 600; letter-spacing: .055em; line-height: 1; text-transform: uppercase; white-space: nowrap; }
 .member-type-tag[data-type="startup"] { --tag-bg: #f0fa4b; --tag-ink: #24251f; }
 .member-type-tag[data-type="investor"] { --tag-bg: #24251f; --tag-ink: #f0fa4b; }
