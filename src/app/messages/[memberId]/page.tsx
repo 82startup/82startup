@@ -6,6 +6,7 @@ import { Avatar } from "@/components/avatar";
 import { copy } from "@/lib/copy";
 import { createClient } from "@/lib/supabase/server";
 import { MarkRead } from "../mark-read";
+import { ConversationBody } from "../conversation-body";
 import { MessageForm } from "../message-form";
 import { MessageList, type ThreadMessage } from "../message-list";
 import { RefreshButton } from "../refresh-button";
@@ -66,7 +67,7 @@ async function Conversation({ params, searchParams }: { params: PageProps<"/mess
           <RefreshButton />
         </header>
         {messages.some((m) => m.is_unread) && <MarkRead memberId={memberId} />}
-        <div className="conversation-body">
+        <ConversationBody latestId={messages.at(-1)?.id ?? null}>
           {(hasMore || before) && (
             <div className="conversation-paging">
               {hasMore && <Link href={`/messages/${memberId}?before=${encodeURIComponent(messages[0].created_at)}`}>{copy.messages.earlier}</Link>}
@@ -74,7 +75,7 @@ async function Conversation({ params, searchParams }: { params: PageProps<"/mess
             </div>
           )}
           <MessageList messages={messages} name={name} avatarUrl={member.avatar_url} />
-        </div>
+        </ConversationBody>
         <MessageForm memberId={memberId} />
       </div>
     </>

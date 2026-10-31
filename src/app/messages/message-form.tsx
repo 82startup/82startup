@@ -1,16 +1,24 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { copy } from "@/lib/copy";
 import { sendMessage, type MessageState } from "./actions";
 
-// The box under a conversation. After a successful send the form is rebuilt, which clears the text.
+// The box under a conversation. After a successful send the text clears and the box keeps focus, so the keyboard
+// stays open on phones for the next message.
 export function MessageForm({ memberId }: { memberId: string }) {
   const [state, formAction, pending] = useActionState<MessageState, FormData>(sendMessage, {});
+  const box = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (!state.sentAt || !box.current) return;
+    box.current.value = "";
+    box.current.focus({ preventScroll: true });
+  }, [state.sentAt]);
   return (
-    <form key={state.sentAt ?? 0} action={formAction} className="conversation-composer">
+    <form action={formAction} className="conversation-composer">
       <input type="hidden" name="member" value={memberId} />
       <textarea
+        ref={box}
         name="body"
         required
         maxLength={2000}
@@ -30,7 +38,8 @@ export function MessageForm({ memberId }: { memberId: string }) {
           event.currentTarget.form?.requestSubmit();
         }}
       />
-      <button type="submit" disabled={pending} className="conversation-send">
+      {/* Pressing Send must not take focus from the box, or the phone keyboard closes. */}
+      <button type="submit" disabled={pending} className="conversation-send" onPointerDown={(event) => event.preventDefault()}>
         {pending ? copy.messages.sending : copy.messages.send}
       </button>
       {state.error && <span role="alert" className="board-error conversation-error">{state.error}</span>}
