@@ -11,12 +11,13 @@ vi.mock("./actions", () => ({
   unblockMember: vi.fn(),
 }));
 
-const { ConnectionPanel } = await import("./connection-panel");
+const { ConnectionMoreMenu, ConnectionPanel } = await import("./connection-panel");
 
 const ID = "11111111-2222-3333-4444-555555555555";
 const CID = "99999999-2222-3333-4444-555555555555";
 const render = (state: string, note = "") =>
   renderToStaticMarkup(createElement(ConnectionPanel, { memberId: ID, name: "Bo B", state, connectionId: CID, note }));
+const renderMore = (state: string) => renderToStaticMarkup(createElement(ConnectionMoreMenu, { memberId: ID, state }));
 
 describe("ConnectionPanel", () => {
   it("shows nothing on your own profile or for an unavailable member", () => {
@@ -24,7 +25,7 @@ describe("ConnectionPanel", () => {
     expect(render("unavailable")).toBe("");
   });
 
-  it("offers a Connect button that opens a popup with the note box, Send and Cancel, and offers Block", () => {
+  it("offers a Connect button that opens a popup with the note box, Send and Cancel", () => {
     const html = render("none");
     expect(html).toContain("<dialog");
     expect(html).not.toContain("<dialog open");
@@ -34,7 +35,6 @@ describe("ConnectionPanel", () => {
     expect(html).toContain(">Send</button>");
     expect(html).toContain(">Cancel</button>");
     expect(html).toContain(">Connect</button>");
-    expect(html).toContain("Block");
     expect(html).toContain(`value="${ID}"`);
   });
 
@@ -63,14 +63,28 @@ describe("ConnectionPanel", () => {
     expect(render("received", "<script>x</script>")).toContain("&lt;script&gt;x&lt;/script&gt;");
   });
 
-  it("shows Connected with Disconnect, and Unblock for a blocked member", () => {
+  it("shows Connected with Message, and Unblock for a blocked member", () => {
     const connected = render("connected");
     expect(connected).toContain("Connected");
-    expect(connected).toContain("Disconnect");
     expect(connected).toContain(`href="/messages/${ID}"`);
     const blocked = render("blocked");
     expect(blocked).toContain("You blocked this member.");
     expect(blocked).toContain("Unblock");
     expect(blocked).not.toContain("Connect</button>");
+  });
+});
+
+describe("ConnectionMoreMenu", () => {
+  it("offers Block, plus Disconnect once connected, in the profile header menu", () => {
+    expect(renderMore("none")).toContain("Block");
+    expect(renderMore("none")).not.toContain("Disconnect");
+    expect(renderMore("connected")).toContain("Disconnect");
+    expect(renderMore("connected")).toContain("Block");
+  });
+
+  it("shows nothing on your own profile, an unavailable member or a blocked member", () => {
+    expect(renderMore("self")).toBe("");
+    expect(renderMore("unavailable")).toBe("");
+    expect(renderMore("blocked")).toBe("");
   });
 });

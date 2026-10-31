@@ -88,6 +88,9 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
         </Link>
         {/* Mobile only: profile and settings as icons in the brand row, so the tabs never scroll. */}
         <div className="community-mobile-actions">
+          <Link href="/" className="community-icon-action" aria-label="Summit home" title="Summit home">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3.5 10.5 12 3.8l8.5 6.7" /><path d="M5.8 9v11h4.4v-6h3.6v6h4.4V9" /></svg>
+          </Link>
           <Link href="/profile" className="community-icon-action" aria-label="My profile" title="My profile" aria-current={pathname.startsWith("/profile") ? "page" : undefined}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8" /><path d="M4.8 20c.9-3.9 3.7-6 7.2-6s6.3 2.1 7.2 6" /></svg>
           </Link>

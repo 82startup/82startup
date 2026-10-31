@@ -53,12 +53,20 @@ export function ConnectionPanel({ memberId, name, state, connectionId, note }: P
           <Link href={`/messages/${memberId}`} className="community-action">{copy.messages.message}</Link>
         </div>
       )}
-      <div className="member-connection-secondary">
-        <MoreMenu label={copy.connections.more}>
-          {state === "connected" && <ActionForm action={disconnect} fields={member} label={copy.connections.disconnect} quiet />}
-          <ActionForm action={blockMember} fields={member} label={copy.connections.block} quiet />
-        </MoreMenu>
-      </div>
     </section>
+  );
+}
+
+// Disconnect and Block for another member's profile, shown at the top right of the profile header.
+export function ConnectionMoreMenu({ memberId, state }: { memberId: string; state: string }) {
+  if (state === "self" || state === "unavailable" || state === "blocked") return null;
+  const member = { member: memberId };
+  return (
+    <div className="member-detail-more">
+      <MoreMenu label={copy.connections.more}>
+        {state === "connected" && <ActionForm action={disconnect} fields={member} label={copy.connections.disconnect} quiet />}
+        <ActionForm action={blockMember} fields={member} label={copy.connections.block} quiet />
+      </MoreMenu>
+    </div>
   );
 }

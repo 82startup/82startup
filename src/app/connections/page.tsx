@@ -80,6 +80,14 @@ function MemberRow({ row }: { row: Row }) {
           )}
           {detail && <span className="connection-row-detail">{detail}</span>}
         </div>
+        {row.kind === "connected" && (
+          <div className="connection-row-more">
+            <MoreMenu label={copy.connections.more}>
+              <ActionForm action={disconnect} fields={{ member: row.member_id }} label={copy.connections.disconnect} quiet />
+              <ActionForm action={blockMember} fields={{ member: row.member_id }} label={copy.connections.block} quiet />
+            </MoreMenu>
+          </div>
+        )}
       </div>
       {row.kind === "received" && row.note && (
         <p className="connection-note"><span>{copy.connections.noteFrom}</span>{row.note}</p>
@@ -95,13 +103,7 @@ function MemberRow({ row }: { row: Row }) {
           <ActionForm action={cancelRequest} fields={{ id: row.connection_id }} label={copy.connections.cancel} quiet />
         )}
         {row.kind === "connected" && (
-          <>
-            <Link href={`/messages/${row.member_id}`} className="community-action">{copy.messages.message}</Link>
-            <MoreMenu label={copy.connections.more}>
-              <ActionForm action={disconnect} fields={{ member: row.member_id }} label={copy.connections.disconnect} quiet />
-              <ActionForm action={blockMember} fields={{ member: row.member_id }} label={copy.connections.block} quiet />
-            </MoreMenu>
-          </>
+          <Link href={`/messages/${row.member_id}`} className="community-action">{copy.messages.message}</Link>
         )}
         {row.kind === "blocked" && <ActionForm action={unblockMember} fields={{ member: row.member_id }} label={copy.connections.unblock} quiet />}
       </div>

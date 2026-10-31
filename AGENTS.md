@@ -251,7 +251,7 @@ Signed-in visitors must not be shown the sign-in form again. When a Supabase `sb
 - The homepage hero's secondary action is a Join Community underlined text link (`.text-link.community-entry`, the former Explore link style) that behaves exactly like the header button: the sign-in modal when signed out, `/members` (labelled Community) when signed in. It replaces the Explore the summit text link.
 - The homepage hero no longer shows the SIX EVENTS. NEW CONNECTIONS. ENDLESS POSSIBILITIES. note; the hero ends with its actions.
 - Sign out lives only on Settings (an Account card with a plain `POST /auth/signout` form), on desktop and mobile; the community sidebar no longer has a Sign out button, and `← Summit home` sits at its bottom.
-- Mobile community header (<=760px): a sticky compact brand row with icon buttons at the top right for My profile and Settings (yellow when current; no Summit home button on mobile), then Members, Connections, Messages (and Admin for admins) as equal-width underlined tabs that never scroll (yellow text and underline when current), with smaller badges. Desktop keeps the full sidebar list.
+- Mobile community header (<=760px): a sticky compact brand row with icon buttons at the top right for My profile and Settings (yellow when current), preceded by a Summit home icon linking to `/` (added October 31, 2026), then Members, Connections, Messages (and Admin for admins) as equal-width underlined tabs that never scroll (yellow text and underline when current), with smaller badges. Desktop keeps the full sidebar list.
 - Every Summit page (Overview, Schedule, Speakers, Venue, Tickets) ends with a charcoal community card just above the footer, exactly as wide as the page content above it (between the `--rail` lines), on the paper background with 72px (48px mobile) of paper below it so it never touches the yellow footer: the user's Memoji, an `82 Startup Community ✳` eyebrow, a page-specific English title with Korean description (`communityCopy` in `public/app.js`), and a yellow Join Community button (`.community-entry`, so sign-in modal or `/members`). It is part of the shared `footer` template, so prerendered and client pages match; stacked with a full-width button at <=800px. Copy only describes real community features (directory, connections, messages, who is attending).
 - The large standalone Summit actions (hero Get your tickets, ticket CTA box, community card) share one size: at least 260px wide and 58px tall (54px at <=800px) with label and arrow spread; hero and community buttons go full width at <=800px. Compact buttons such as the event timeline actions keep their own 36px sizing. This supersedes applying the size to every `.button`.
 - The homepage hero has 60px of space below its action buttons (Get your tickets / Community), at every breakpoint. This adds to the earlier hero spacing values.
@@ -271,3 +271,23 @@ The user explicitly requested a full check, community performance work and a pus
 ### Login, Turnstile and member relation push — October 29, 2026
 The user explicitly requested push and deployment of the Summit-styled `/login`, hidden flexible Turnstile, matched community card padding and member Connected/Pending badges. Same workflow: randyjlee with verified email, CI on `integration/**`, push the same commit to `main`, verify the Vercel Git rollout read-only.
 - Member card job/company text shows at most two lines and ends with an ellipsis when longer.
+
+## Mobile hero community link and larger mobile sponsor logos
+
+At <=800px the hero Join Community / Community text link spans the action width with its label and arrow centered, at 16px (48px tap height). Mobile rolling sponsor logos are 35% larger: NAVER 123px, Altos 119px, KOVA 178px wide, in 220px items with 96px minimum height. Desktop is unchanged. `style.css` cache version 162. Keep changes local without commit, push or deployment.
+
+### Full-width mobile CTA and sponsor inquiry buttons
+At <=800px the ticket CTA box button (Get your tickets) and the sponsor inquiry Reach out button fill their content width, with label and arrow spread. Desktop sizing is unchanged. `style.css` cache version 163. Keep changes local without commit, push or deployment.
+
+### Mobile menu over blurred page
+At <=800px the open navigation menu is a charcoal (`#24251f`) panel with yellow links, and the page behind it is covered by a fixed `.menu-backdrop` (8px backdrop blur, light charcoal tint) while the header stays sharp above it. Tapping the backdrop or pressing Escape closes the menu; `body.menu-open` marks the state. `style.css` cache version 164, `app.js` 127. Keep changes local without commit, push or deployment.
+
+## Community mobile and profile action polish — October 31, 2026
+- Mobile community shell rows are `auto minmax(0, 1fr)` and the sidebar grid uses `align-content: start`, so a short page while navigating never stretches the mobile header.
+- On mobile, Messages locks the shell to `100dvh` (overflow hidden) with the content as a flex column; the conversation composer stays pinned above the browser toolbar (safe-area bottom margin). This supersedes the fixed `calc(100dvh - 104px)` height.
+- The ⋮ More actions menu sits at the top right of the profile header (`ConnectionMoreMenu`) and of each Connections card (beside the name); Message fills the Connections card action row. The profile Connect button is full width and 48px tall. This supersedes the footer/bottom-row ⋮ placement.
+- The Investor member type tag uses rose (`#fbdde3` / `#8a2140`) instead of charcoal/yellow, so it no longer reads as a button.
+- Keep these changes local without commit, push or deployment.
+
+### Mobile polish push — October 31, 2026
+The user explicitly requested pushing the current changes to main (mobile hero community link, larger mobile sponsor logos, full-width mobile CTA/sponsor buttons, blurred mobile menu, community header/messages/profile action fixes, Investor tag color and mobile Summit home icon). Same workflow: randyjlee with verified email, CI on `integration/**`, push the same commit to `main`, verify the Vercel Git rollout read-only. `.claude/` stays uncommitted.

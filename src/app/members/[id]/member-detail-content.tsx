@@ -5,7 +5,7 @@ import { Avatar } from "@/components/avatar";
 import { copy } from "@/lib/copy";
 import { KAKAO_ENABLED, type MemberType } from "@/lib/profile/schema";
 import { createClient } from "@/lib/supabase/server";
-import { ConnectionPanel } from "@/app/connections/connection-panel";
+import { ConnectionMoreMenu, ConnectionPanel } from "@/app/connections/connection-panel";
 import { MemberEvents, type MemberEvent } from "./member-events";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -109,6 +109,7 @@ export async function MemberDetailContent({ params, showBack = false }: {
         {member.id === viewer && (
           <Link href="/profile" className="member-icon-link member-edit-link" aria-label={copy.members.edit} title={copy.members.edit}><EditIcon /></Link>
         )}
+        <ConnectionMoreMenu memberId={id} state={state} />
       </header>
 
       {member.bio && <p className="member-detail-bio">{member.bio}</p>}
