@@ -297,3 +297,4 @@ At <=800px: the Venue 3D map heading, caption and full-screen link are left-alig
 
 ### iPhone message composer and keyboard — October 31, 2026
 On mobile the message composer text is 16px so iPhone does not zoom the page when it is focused. While Messages is open, `VisibleHeight` (`src/app/messages/visible-height.tsx`) sets `--visible-height` to `visualViewport.height` and holds the page at the top; the mobile Messages shell uses `height: var(--visible-height, 100dvh)`, so the composer stays above the on-screen keyboard. Pushed to main through integration CI at the user's explicit request.
+- Turbopack's filesystem cache is off for dev and build (`experimental.turbopackFileSystemCache{ForDev,ForBuild}: false` in `next.config.ts`). With it on, Vercel builds restored `.next/cache` and kept shipping the previous globals.css, so commit 0e0d54e deployed without its CSS fix; the local dev server also served stale CSS until restarted.

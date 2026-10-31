@@ -21,6 +21,12 @@ const nextConfig: NextConfig = {
       ...["/assets/:path*", "/venue-map/vendor/:path*", "/venue-map/assets/:path*", "/style.css", "/app.js", "/event-data.js", "/event-photos.js", "/glyph-ember-preview.js", "/hero-glitch.js", "/company-logos.js"].map(source => ({ source, headers: cache })),
     ];
   },
+  experimental: {
+    // Turbopack's on-disk cache kept serving an old globals.css (through the Tailwind loader) after it changed, in
+    // `next dev` and in Vercel builds that restore .next/cache, so a CSS fix never reached production. Always compile fresh.
+    turbopackFileSystemCacheForDev: false,
+    turbopackFileSystemCacheForBuild: false,
+  },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
