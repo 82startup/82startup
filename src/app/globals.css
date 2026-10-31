@@ -401,7 +401,8 @@ a.connection-row-name:hover { text-decoration: underline; text-underline-offset:
   .member-filter-clear { justify-self: start; }
   .members-grid { grid-template-columns: 1fr; gap: 10px; }
   /* Messages fills exactly the visible screen below the header, so the composer stays pinned above the browser toolbar. */
-  .community-shell:has(.messages-shell) { height: 100dvh; min-height: 0; overflow: hidden; }
+  /* --visible-height (set by VisibleHeight) is the area above the iPhone keyboard; 100dvh until it is known. */
+  .community-shell:has(.messages-shell) { height: var(--visible-height, 100dvh); min-height: 0; overflow: hidden; }
   .community-shell:has(.messages-shell) > .community-content { display: flex; min-height: 0; flex-direction: column; padding-bottom: 0; }
   .community-content > main.messages-shell { height: auto; min-height: 0; flex: 1; margin: 0 -18px; }
   .messages-frame { grid-template-columns: 1fr; }
@@ -414,6 +415,8 @@ a.connection-row-name:hover { text-decoration: underline; text-underline-offset:
   .conversation-body { padding: 14px; }
   .conversation-message { max-width: 82%; }
   .conversation-composer { margin: 6px 12px max(12px, env(safe-area-inset-bottom)); }
+  /* 16px text: iPhone zooms the page in when an input with smaller text is focused. */
+  .community-content .conversation-composer textarea { font-size: 16px; }
   .member-card { min-height: 100px; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; padding: 12px; }
   .member-card > :first-child { width: 44px; height: 44px; }
   .member-type-tag { grid-column: 3; justify-self: end; margin-top: 0; }

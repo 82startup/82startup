@@ -294,3 +294,6 @@ The user explicitly requested pushing the current changes to main (mobile hero c
 
 ## Venue, schedule and menu mobile tidy — October 31, 2026 (pushed to main at user request)
 At <=800px: the Venue 3D map heading, caption and full-screen link are left-aligned on the same inset as the venue details, and Open in Google Maps fills the width; the 3D map full-screen action is a black full-width button (yellow label, 54px); Schedule day tabs form one full-width stack (52px tall, 14px left-aligned labels); the open menu links are 18px with 22px gaps. Desktop is unchanged. `style.css` cache version 167. Pushed to main through integration CI at the user's explicit request; Vercel Git integration deploys it.
+
+### iPhone message composer and keyboard — October 31, 2026
+On mobile the message composer text is 16px so iPhone does not zoom the page when it is focused. While Messages is open, `VisibleHeight` (`src/app/messages/visible-height.tsx`) sets `--visible-height` to `visualViewport.height` and holds the page at the top; the mobile Messages shell uses `height: var(--visible-height, 100dvh)`, so the composer stays above the on-screen keyboard. Pushed to main through integration CI at the user's explicit request.
