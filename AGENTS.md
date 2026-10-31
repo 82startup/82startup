@@ -291,3 +291,6 @@ At <=800px the open navigation menu is a charcoal (`#24251f`) panel with yellow 
 
 ### Mobile polish push — October 31, 2026
 The user explicitly requested pushing the current changes to main (mobile hero community link, larger mobile sponsor logos, full-width mobile CTA/sponsor buttons, blurred mobile menu, community header/messages/profile action fixes, Investor tag color and mobile Summit home icon). Same workflow: randyjlee with verified email, CI on `integration/**`, push the same commit to `main`, verify the Vercel Git rollout read-only. `.claude/` stays uncommitted.
+
+## Venue, schedule and menu mobile tidy — October 31, 2026 (pushed to main at user request)
+At <=800px: the Venue 3D map heading, caption and full-screen link are left-aligned on the same inset as the venue details, and Open in Google Maps fills the width; the 3D map full-screen action is a black full-width button (yellow label, 54px); Schedule day tabs form one full-width stack (52px tall, 14px left-aligned labels); the open menu links are 18px with 22px gaps. Desktop is unchanged. `style.css` cache version 167. Pushed to main through integration CI at the user's explicit request; Vercel Git integration deploys it.
