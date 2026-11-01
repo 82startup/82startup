@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { copy } from "@/lib/copy";
 import { getEvent } from "@/lib/events/queries";
-import { formatEventTime, venueDetail } from "@/lib/events/format";
-import { EventDescription } from "@/components/event-description";
-import { hostLabel } from "@/lib/external/url";
-import { AttendanceActions, AttendanceCount } from "./attendance";
+import { Attendees } from "./attendance";
 
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
   const { slug } = await params;
@@ -24,12 +20,28 @@ export async function generateMetadata({ params }: PageProps<"/events/[slug]">):
 
 export default function EventPage({ params }: PageProps<"/events/[slug]">) {
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
-      <Suspense fallback={<p>{copy.events.loading}</p>}>
+    <main className="event-page">
+      <Suspense fallback={<p className="settings-intro">{copy.events.loading}</p>}>
         <EventDetail params={params} />
       </Suspense>
     </main>
   );
+}
+
+// The event date in its own timezone, like "TUE, MAR 16, 2027" (or "WED, MAR 17 – THU, MAR 18, 2027" across days).
+function eventDate(startIso: string, endIso: string | null, timeZone: string): string {
+  const format = (iso: string, withYear: boolean) => {
+    const options: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric", ...(withYear ? { year: "numeric" } : {}) };
+    try {
+      return new Intl.DateTimeFormat("en-US", { timeZone, ...options }).format(new Date(iso));
+    } catch {
+      return new Intl.DateTimeFormat("en-US", { timeZone: "UTC", ...options }).format(new Date(iso));
+    }
+  };
+  const start = format(startIso, true);
+  if (!endIso) return start.toUpperCase();
+  const end = format(endIso, true);
+  return (start === end ? start : `${format(startIso, false)} – ${end}`).toUpperCase();
 }
 
 async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["params"] }) {
@@ -37,35 +49,15 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
   const { slug } = await params;
   const event = await getEvent(slug);
   if (!event) notFound();
-  const where = venueDetail(event);
-  const ended = new Date(event.end_at ?? event.start_at) < new Date();
-  const external = event.source === "external";
 
   return (
-    <article className="flex flex-col gap-4">
-      <Link href="/events" className="text-sm text-zinc-600 dark:text-zinc-400">← {copy.events.allEvents}</Link>
-      {event.cover_url && (
-        // eslint-disable-next-line @next/next/no-img-element -- Luma-hosted image; no image optimizer configured
-        <img src={event.cover_url} alt={copy.events.cover} referrerPolicy="no-referrer" className="w-full rounded object-cover" />
-      )}
-      <h1 className="text-2xl font-semibold">{event.title}</h1>
-      {external && event.external_host && (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">{copy.events.addedFrom} {hostLabel(event.external_host)}</p>
-      )}
-      <p>{formatEventTime(event.start_at, event.end_at, event.timezone)}</p>
-      {where && <p>{where}</p>}
-      <AttendanceCount eventId={event.id} />
-      <a
-        href={event.luma_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="self-start rounded bg-black px-4 py-2 text-white dark:bg-white dark:text-black"
-      >
-        {copy.events.getTickets}
-      </a>
-      {!ended && !external && <p className="text-sm text-zinc-600 dark:text-zinc-400">{copy.attendance.note}</p>}
-      <AttendanceActions event={event} />
-      <EventDescription markdown={event.description_md} fallback={event.description} />
-    </article>
+    <>
+      <header className="event-detail-head">
+        <p className="event-detail-date">{eventDate(event.start_at, event.end_at, event.timezone)}</p>
+        <h1>{event.title}</h1>
+        <a href={event.luma_url} target="_blank" rel="noopener noreferrer" className="community-action event-detail-tickets">{copy.events.getTickets}</a>
+      </header>
+      <Attendees event={event} />
+    </>
   );
 }

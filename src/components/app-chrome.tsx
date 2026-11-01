@@ -3,15 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { copy } from "@/lib/copy";
 import { createClient } from "@/lib/supabase/browser";
 
 const navigation = [
   { href: "/members", label: "Members", marker: "01" },
-  { href: "/connections", label: "Connections", marker: "02" },
-  { href: "/messages", label: "Messages", marker: "03" },
-  { href: "/profile", label: "My profile", marker: "04" },
-  { href: "/settings", label: "Settings", marker: "05" },
-  { href: "/admin/events", label: "Admin", marker: "06" },
+  { href: "/events", label: "Week 2027", marker: "02" },
+  { href: "/connections", label: "Connections", marker: "03" },
+  { href: "/messages", label: "Messages", marker: "04" },
+  { href: "/profile", label: "My profile", marker: "05" },
+  { href: "/settings", label: "Settings", marker: "06" },
+  { href: "/admin/events", label: "Admin", marker: "07" },
 ];
 
 function isCommunityRoute(pathname: string): boolean {
@@ -84,7 +86,7 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
       <aside className="community-sidebar" aria-label="Community navigation">
         <Link className="community-brand" href="/members">
           <span className="community-brand-mark" aria-hidden="true"><img src="/assets/82startup-symbol.svg" alt="" /></span>
-          <span><strong>82 STARTUP WEEK</strong><small>COMMUNITY</small></span>
+          <span><strong>82 STARTUP</strong><small>COMMUNITY</small></span>
         </Link>
         {/* Mobile only: profile and settings as icons in the brand row, so the tabs never scroll. */}
         <div className="community-mobile-actions">
@@ -101,7 +103,7 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
         <div className="community-nav-label">NETWORK</div>
         <nav className="community-nav">
           {navigation.filter(({ href }) => href !== "/admin/events" || isAdmin).map(({ href, label, marker }) => {
-            const active = pathname === href || pathname.startsWith(`${href}/`);
+            const active = (pathname === href || pathname.startsWith(`${href}/`)) && !(href === "/events" && pathname.startsWith("/events/submit"));
             const badge = href === "/connections" ? requests : href === "/messages" ? unread : 0;
             const badgeLabel = href === "/connections" ? "new connection request" : "unread message";
             const iconOnMobile = href === "/profile" || href === "/settings"; // shown as top-right icons on mobile instead
@@ -114,7 +116,21 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
             );
           })}
         </nav>
-        <Link className="community-back" href="/">← Summit home</Link>
+        {/* Desktop only: quieter links grouped under a rule at the bottom of the sidebar. */}
+        <div className="community-foot">
+          <Link className="community-foot-link" href="/events/submit" aria-current={pathname.startsWith("/events/submit") ? "page" : undefined}>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            Event Request
+          </Link>
+          <a className="community-foot-link" href={copy.signupBar.url} target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="1" /><path d="m4 7 8 6 8-6" /></svg>
+            Email Subscription
+          </a>
+          <Link className="community-foot-link" href="/">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>
+            Summit Home
+          </Link>
+        </div>
       </aside>
       <div className="community-content">
         {children}

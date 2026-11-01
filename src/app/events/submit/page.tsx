@@ -10,8 +10,11 @@ import { WithdrawButton } from "./withdraw-button";
 
 export default function SubmitEventPage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
-      <h1 className="text-2xl font-semibold">{copy.eventRequests.title}</h1>
+    <main className="settings-page event-request-page">
+      <header className="event-request-head">
+        <h1>{copy.eventRequests.title}</h1>
+        <p>{copy.eventRequests.intro}</p>
+      </header>
       <Suspense>
         <SubmitContent />
       </Suspense>
@@ -40,21 +43,27 @@ async function SubmitContent() {
 
   return (
     <>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">{copy.eventRequests.intro}</p>
-      <RequestForm />
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">{copy.eventRequests.yours}</h2>
+      <section className="settings-card">
+        <RequestForm />
+      </section>
+      <section className="settings-card">
+        <h2>{copy.eventRequests.yours}</h2>
         {rows.length === 0 ? (
-          <p className="text-sm">{copy.eventRequests.none}</p>
+          <p className="settings-intro">{copy.eventRequests.none}</p>
         ) : (
-          <ul className="flex flex-col gap-3">
+          <ul className="event-request-list">
             {rows.map((r) => (
-              <li key={r.id} className="flex flex-col gap-1 rounded border p-3 text-sm">
-                <span className="font-medium">{copy.eventRequests.status[r.status]} · {hostLabel(r.host)}</span>
-                <span className="break-all text-zinc-600 dark:text-zinc-400">{r.url}</span>
-                {r.note && <span>{r.note}</span>}
-                {r.status === "rejected" && r.reject_reason && <span>{copy.eventRequests.reason} {r.reject_reason}</span>}
-                {r.status === "approved" && r.event_slug && <Link href={`/events/${r.event_slug}`} className="underline">{copy.eventRequests.viewEvent}</Link>}
+              <li key={r.id} className="event-request-row">
+                <div className="event-request-info">
+                  <div className="event-request-meta">
+                    <span className="event-request-status" data-status={r.status}>{copy.eventRequests.status[r.status]}</span>
+                    <span className="event-request-host">{hostLabel(r.host)}</span>
+                  </div>
+                  <a href={r.url} target="_blank" rel="noopener noreferrer" className="event-request-url">{r.url}</a>
+                  {r.note && <p className="event-request-note">{r.note}</p>}
+                  {r.status === "rejected" && r.reject_reason && <p className="event-request-note">{copy.eventRequests.reason} {r.reject_reason}</p>}
+                </div>
+                {r.status === "approved" && r.event_slug && <Link href={`/events/${r.event_slug}`} className="community-action community-action-secondary">{copy.eventRequests.viewEvent}</Link>}
                 {r.status === "pending" && <WithdrawButton id={r.id} />}
               </li>
             ))}

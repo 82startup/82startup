@@ -41,3 +41,14 @@ export async function getAttendanceTotal(eventId: string): Promise<number> {
   if (error) throw new Error(error.message);
   return data?.[0]?.total ?? 0;
 }
+
+// Pictures of the members who most recently said they are attending (at most ten, newest first; null = no picture).
+// Public, like the total. If the database function is missing (update not applied yet) the timeline shows no faces.
+export async function getAttendeeFaces(eventId: string): Promise<(string | null)[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("events", `attendance-${eventId}`);
+  const { data, error } = await anonClient().rpc("event_attendee_faces", { p_event: eventId });
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as { avatar_url: string | null }[]).map((row) => row.avatar_url);
+}

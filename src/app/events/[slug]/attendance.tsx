@@ -1,103 +1,57 @@
 import Link from "next/link";
-import { Avatar } from "@/components/avatar";
+import { MemberCard, type MemberRow, type Relation } from "@/app/members/member-card";
 import { copy } from "@/lib/copy";
-import { getAttendanceTotal } from "@/lib/events/queries";
 import type { PublicEvent } from "@/lib/events/types";
 import { createClient } from "@/lib/supabase/server";
-import { setAttending, setListVisibility } from "./actions";
-import { EventSwitch } from "./event-switch";
 
-type Mine = { status: "registered" | "cancelled"; source: "luma" | "self"; show_in_list: boolean };
-type Attendee = { member_id: string; name: string; job_title: string; company_name: string; avatar_url: string | null };
+type Attendee = Omit<MemberRow, "id" | "member_type"> & { member_id: string; member_type?: MemberRow["member_type"] };
 
-// "N attending", for everyone. If the attendance functions are not available (for example the database update has not
-// been applied yet), the event page still works and simply shows no count.
-export async function AttendanceCount({ eventId }: { eventId: string }) {
-  let total = 0;
-  try {
-    total = await getAttendanceTotal(eventId);
-  } catch {
-    return null;
-  }
-  if (total <= 0) return null;
-  return <p>{total} {copy.attendance.count}</p>;
-}
-
-// The buttons for a logged-in member (or the sign-in prompt) and the members-only list.
-export async function AttendanceActions({ event }: { event: PublicEvent }) {
+// Who's attending, as the same cards as the member directory (three columns). The list is members-only in the
+// database, so a visitor who is not signed in gets a sign-in prompt instead.
+export async function Attendees({ event }: { event: PublicEvent }) {
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
-  const signedIn = Boolean(claims?.claims.sub);
-  const ended = new Date(event.end_at ?? event.start_at) < new Date();
+  const viewer = claims?.claims.sub;
 
-  if (!signedIn) {
-    if (ended) return null;
+  if (!viewer) {
     return (
-      <p>
-        <Link href={`/login?next=/events/${event.slug}`} className="underline">{copy.attendance.signIn}</Link>
-      </p>
+      <section className="event-attendees">
+        <h2>{copy.attendance.who}</h2>
+        <p className="settings-intro">
+          <Link href={`/login?next=/events/${event.slug}`} className="event-detail-link">{copy.attendance.signInToSee}</Link>
+        </p>
+      </section>
     );
   }
 
-  const [mineResult, attendeesResult] = await Promise.all([
-    supabase.rpc("my_attendance", { p_event: event.id }),
+  const [{ data, error }, { data: lists }] = await Promise.all([
     supabase.rpc("event_attendees", { p_event: event.id }),
+    supabase.rpc("my_connection_lists"),
   ]);
-  const mine = (mineResult.error ? null : (mineResult.data?.[0] ?? null)) as Mine | null;
-  const attendees = (attendeesResult.error ? [] : (attendeesResult.data ?? [])) as Attendee[];
-
-  const registered = mine?.status === "registered";
-  const viaLuma = registered && mine?.source === "luma";
-  const viaSelf = registered && mine?.source === "self";
+  const attendees = (error ? [] : (data ?? [])) as Attendee[];
+  const relation = new Map<string, Relation>();
+  for (const row of (lists ?? []) as Array<{ kind: string; member_id: string }>) {
+    if (row.kind === "connected") relation.set(row.member_id, "connected");
+    else if (row.kind === "sent" || row.kind === "received") relation.set(row.member_id, "pending");
+  }
 
   return (
-    <div className="flex flex-col gap-4">
-      {!ended && (
-        <div className="flex flex-wrap items-start gap-3">
-          {viaLuma ? (
-            <p>{copy.attendance.onLuma}</p>
-          ) : (
-            <EventSwitch
-              action={setAttending}
-              eventId={event.id}
-              slug={event.slug}
-              active={viaSelf}
-              label={copy.attendance.attend}
-              activeLabel={copy.attendance.cancel}
+    <section className="event-attendees">
+      <h2>{copy.attendance.who}{attendees.length > 0 && <span className="community-section-count">{attendees.length}</span>}</h2>
+      {attendees.length === 0 ? (
+        <p className="settings-intro">{copy.attendance.none}</p>
+      ) : (
+        <ul className="members-grid">
+          {attendees.map((a) => (
+            <MemberCard
+              key={a.member_id}
+              member={{ id: a.member_id, name: a.name || copy.attendance.member, avatar_url: a.avatar_url, job_title: a.job_title, company_name: a.company_name, member_type: a.member_type ?? null }}
+              self={a.member_id === viewer}
+              relation={relation.get(a.member_id)}
             />
-          )}
-          {registered && (
-            <EventSwitch
-              action={setListVisibility}
-              eventId={event.id}
-              slug={event.slug}
-              active={mine?.show_in_list ?? true}
-              label={`${copy.attendance.showInList}: ${copy.attendance.off}`}
-              activeLabel={`${copy.attendance.showInList}: ${copy.attendance.on}`}
-              toggle
-            />
-          )}
-        </div>
+          ))}
+        </ul>
       )}
-      {attendees.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-lg font-semibold">{copy.attendance.who}</h2>
-          <ul className="flex flex-col gap-1">
-            {attendees.map((a) => {
-              const detail = [a.job_title, a.company_name].filter(Boolean).join(", ");
-              return (
-                <li key={a.member_id} className="flex items-center gap-2">
-                  <Avatar name={a.name} url={a.avatar_url} size={28} />
-                  <span>
-                    <Link href={`/members/${a.member_id}`} className="font-medium underline">{a.name || copy.attendance.member}</Link>
-                    {detail && <span className="text-zinc-600 dark:text-zinc-400"> · {detail}</span>}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      )}
-    </div>
+    </section>
   );
 }

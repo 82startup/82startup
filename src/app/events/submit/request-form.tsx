@@ -31,25 +31,23 @@ function RequestSteps({ onSent }: { onSent: () => void }) {
   const preview = cancelled ? null : (manual ?? state.preview ?? null);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="event-request-form">
       {!preview && (
-        <form action={(formData) => { setCancelled(false); setManual(null); formAction(formData); }} className="flex flex-col items-start gap-2">
-          <label className="flex w-full flex-col gap-1 text-sm font-medium">
-            {t.link}
-            <input name="link" type="url" required maxLength={500} className="rounded border p-2 text-sm font-normal" />
-          </label>
-          <div className="flex flex-wrap items-center gap-3">
-            <button type="submit" disabled={pending} className="rounded border px-3 py-1 text-sm disabled:opacity-50">{pending ? copy.externalAdmin.reading : copy.externalAdmin.read}</button>
-            {state.fillByHand && (
-              <button type="button" onClick={() => setManual(EMPTY(state.fillByHand!.url, state.fillByHand!.host))} className="text-sm underline">{copy.externalAdmin.byHand}</button>
-            )}
+        <form action={(formData) => { setCancelled(false); setManual(null); formAction(formData); }} className="event-request-link">
+          <label htmlFor="event-request-link" className="profile-field-label">{t.link}</label>
+          <div className="event-request-link-row">
+            <input id="event-request-link" name="link" type="url" required maxLength={500} placeholder="https://luma.com/…" />
+            <button type="submit" disabled={pending} className="community-action">{pending ? copy.externalAdmin.reading : copy.externalAdmin.read}</button>
           </div>
-          {state.error && <span role="alert" className="text-sm text-red-700">{state.error}</span>}
+          {state.fillByHand && (
+            <button type="button" onClick={() => setManual(EMPTY(state.fillByHand!.url, state.fillByHand!.host))} className="action-quiet event-request-byhand">{copy.externalAdmin.byHand}</button>
+          )}
+          {state.error && <span role="alert" className="profile-field-error">{state.error}</span>}
         </form>
       )}
       {preview && (
-        <div className="flex flex-col gap-3">
-          <h2 className="font-semibold">{copy.externalAdmin.previewTitle}</h2>
+        <div className="event-request-preview">
+          <h2>{copy.externalAdmin.previewTitle}</h2>
           <ExternalEventForm
             initial={preview}
             action={submitEventRequest}
@@ -63,7 +61,7 @@ function RequestSteps({ onSent }: { onSent: () => void }) {
               </label>
             }
           />
-          <button type="button" onClick={() => { setManual(null); setCancelled(true); }} className="self-start text-sm underline">{copy.externalAdmin.cancel}</button>
+          <button type="button" onClick={() => { setManual(null); setCancelled(true); }} className="action-quiet event-request-cancel">{copy.externalAdmin.cancel}</button>
         </div>
       )}
     </div>

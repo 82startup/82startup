@@ -1,6 +1,6 @@
 # 82 Startup Summit 2027
 
-A responsive, buildless conference website with soft abstract botanical and contour-gradient images, the restored Blacksmith acid-yellow/pale-blue theme with warm-paper sections, and IBM Plex Sans Medium with Google Noto Sans KR for Korean. The latest user correction restores the earlier yellow/blue atmosphere, superseding the off-white theme introduced with the image update. Image or font changes must preserve the chosen theme unless explicitly requested. The requested main title is three lines: “82 Stratup” / “Summit 2027” / “in San Francisco.” (spelling preserved as requested). Serve `dist/` with any static HTTP server. Pages: index.html, schedule.html, speakers.html, venue.html, tickets.html.
+A responsive, buildless conference website with soft abstract botanical and contour-gradient images, the restored Blacksmith acid-yellow/pale-blue theme with warm-paper sections, and IBM Plex Sans Medium with Google Noto Sans KR for Korean. The latest user correction restores the earlier yellow/blue atmosphere, superseding the off-white theme introduced with the image update. Image or font changes must preserve the chosen theme unless explicitly requested. The requested main title is three lines: “82 Startup” / “Summit 2027” / “in San Francisco.” (spelling preserved as requested). Serve `dist/` with any static HTTP server. Pages: index.html, schedule.html, speakers.html, venue.html, tickets.html.
 
 Event details come from the organizer's Google Doc. Session details, speakers, prices, and checkout URL are awaiting confirmation. Tickets allow selecting a day pass, optional dinner, or the separately sold reception; this is not a reservation or payment. Set the `checkoutUrl` constant in `dist/app.js` to an organizer-approved checkout URL to enable the external purchase action.
 
@@ -18,7 +18,7 @@ Bottom footer wording is exactly `SUMMIT 2027` in very large, IBM Plex Sans Medi
 
 The latest typography reference supersedes all prior Google Sans and Pixelify Sans treatments: IBM Plex Sans Medium (500) is used for regular English and the footer; the latest home-title-only exception is Zen Dots (400), with uppercase display per the latest request. Korean retains Noto Sans KR.
 
-The home hero date/location label is restored to its original small scale: 11px desktop and 9px on smaller screens. The three-line Zen Dots title is uppercase, with `82 STRATUP` at 62% size.
+The home hero date/location label is restored to its original small scale: 11px desktop and 9px on smaller screens. The three-line Zen Dots title is uppercase, with `82 STARTUP` at 62% size.
 
 The large footer uses IBM Plex Sans Bold (700), with bottom padding removed and a tight line box so the lettering sits against the page bottom. This supersedes its earlier Medium weight and padded placement.
 
@@ -250,11 +250,11 @@ Use “Every connection has a story.” as the visible photo-section title, repl
 
 ### Homepage hero Week title hierarchy
 
-The homepage hero reads 82 STRATUP / WEEK 2027 / IN SAN FRANCISCO. Keep the first two lines at the same full Zen Dots size (first line 1em, replacing the former .62em). Make the location line .5em with a 12px minimum. Preserve uppercase, glitch behavior and other section/footer/event names; this change is specific to the hero.
+The homepage hero reads 82 STARTUP / WEEK 2027 / IN SAN FRANCISCO. Keep the first two lines at the same full Zen Dots size (first line 1em, replacing the former .62em). Make the location line .5em with a 12px minimum. Preserve uppercase, glitch behavior and other section/footer/event names; this change is specific to the hero.
 
 ### Equal hero title line sizes
 
-All three homepage hero lines (82 STRATUP / WEEK 2027 / IN SAN FRANCISCO.) use the same 1em Zen Dots font size. This immediately supersedes the .5em location size from the previous instruction.
+All three homepage hero lines (82 STARTUP / WEEK 2027 / IN SAN FRANCISCO.) use the same 1em Zen Dots font size. This immediately supersedes the .5em location size from the previous instruction.
 
 ### VIP title in IBM Plex Sans
 

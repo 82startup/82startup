@@ -57,7 +57,7 @@ function LoginShell({ modal, children }: { modal: boolean; children: React.React
   return (
     <div className="login-standalone">
       <header className="login-bar">
-        <Link href="/" className="login-bar-brand"><img src="/assets/82startup-symbol.svg" alt="" width="34" height="34" /><span>82 STARTUP WEEK</span></Link>
+        <Link href="/" className="login-bar-brand"><img src="/assets/82startup-symbol.svg" alt="" width="34" height="34" /><span>82 STARTUP</span></Link>
         <Link href="/" className="login-bar-home">← Summit home</Link>
       </header>
       <div className="login-card">

@@ -7,10 +7,10 @@ import { withdrawEventRequest } from "./actions";
 export function WithdrawButton({ id }: { id: string }) {
   const [state, formAction, pending] = useActionState(withdrawEventRequest, {});
   return (
-    <form action={formAction} className="flex flex-col items-start">
+    <form action={formAction} className="action-form">
       <input type="hidden" name="id" value={id} />
-      <button type="submit" disabled={pending} className="rounded border px-2 py-1 text-xs disabled:opacity-50">{copy.eventRequests.withdraw}</button>
-      {state.error && <span role="alert" className="text-xs text-red-700">{state.error}</span>}
+      <button type="submit" disabled={pending} className="action-quiet">{copy.eventRequests.withdraw}</button>
+      {state.error && <span role="alert">{state.error}</span>}
     </form>
   );
 }

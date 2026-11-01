@@ -17,7 +17,7 @@ type Props = {
 export function EventSwitch({ action, eventId, slug, active, label, activeLabel, toggle = false }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
   return (
-    <form action={formAction} className="flex flex-col items-start gap-1">
+    <form action={formAction} className="action-form">
       <input type="hidden" name="id" value={eventId} />
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="value" value={String(!active)} />
@@ -25,11 +25,11 @@ export function EventSwitch({ action, eventId, slug, active, label, activeLabel,
         type="submit"
         disabled={pending}
         aria-pressed={toggle ? active : undefined}
-        className={`rounded border px-3 py-1 text-sm disabled:opacity-50 ${toggle && active ? "bg-black text-white dark:bg-white dark:text-black" : ""}`}
+        className={toggle || active ? "community-action community-action-secondary" : "community-action"}
       >
         {active ? activeLabel : label}
       </button>
-      {state.error && <span role="alert" className="text-sm text-red-700">{state.error}</span>}
+      {state.error && <span role="alert">{state.error}</span>}
     </form>
   );
 }
