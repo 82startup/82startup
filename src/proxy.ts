@@ -11,7 +11,7 @@ export async function proxy(request: NextRequest) {
       /^\/(?:schedule|speakers|venue|tickets)\.html$/.test(pathname) ||
       /^\/(?:assets|venue-map|licenses)(?:\/|$)/.test(pathname) ||
       /^\/(?:app|event-data|event-photos|glyph-ember-preview|hero-glitch|company-logos)\.js$/.test(pathname) ||
-      pathname === "/style.css") {
+      pathname === "/style.css" || pathname === "/robots.txt" || pathname === "/sitemap.xml") {
     return NextResponse.next();
   }
   return updateSession(request);

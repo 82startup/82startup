@@ -5,9 +5,13 @@ import { SiteHeader } from "@/components/site-header";
 import { SignupBar } from "@/components/signup-bar";
 import { AppChrome } from "@/components/app-chrome";
 
+// The public Summit pages are static HTML with their own metadata; everything rendered here is the members-only
+// community (sign-in, directory, messages, settings, admin), which search engines should not index.
 export const metadata: Metadata = {
-  title: "82 Startup",
-  description: "Events and community for Korean founders, investors and builders.",
+  metadataBase: new URL("https://82startup.com"),
+  title: { default: "82 Startup Community", template: "%s · 82 Startup Community" },
+  description: "The community of 82 Startup Week: Korean founders, investors and builders.",
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children, modal }: { children: ReactNode; modal: ReactNode }) {
