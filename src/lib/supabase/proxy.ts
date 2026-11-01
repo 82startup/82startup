@@ -24,6 +24,14 @@ export async function updateSession(request: NextRequest) {
   // A signed-in member whose profile lacks the four required fields can only open the setup screen (and sign out).
   const sub = data?.claims.sub;
   const { pathname, search } = request.nextUrl;
+  // The community is members-only: a visitor who is not signed in goes to sign-in first, then back to the same page.
+  if (!sub && isMembersOnlyPath(pathname)) {
+    const login = new URL("/login", request.url);
+    login.searchParams.set("next", `${pathname}${search}`);
+    const redirect = NextResponse.redirect(login);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
+  }
   if (sub && !isGateOpenPath(pathname)) {
     const now = new Date();
     if (!cookieMatches(request.cookies.get(GATE_COOKIE)?.value, sub, now)) {
@@ -46,4 +54,11 @@ export async function updateSession(request: NextRequest) {
     }
   }
   return response;
+}
+
+// Community pages (not sign-in, auth callbacks, APIs or unsubscribe links, which handle their own access).
+const MEMBERS_ONLY = /^\/(?:members|member|events|connections|messages|profile|settings|admin|speakers|sponsors)(?:\/|$)/;
+
+export function isMembersOnlyPath(pathname: string): boolean {
+  return MEMBERS_ONLY.test(pathname);
 }

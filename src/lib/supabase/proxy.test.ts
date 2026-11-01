@@ -19,11 +19,37 @@ beforeEach(() => {
 });
 
 describe("updateSession gate", () => {
-  it("lets a visitor through without asking the database", async () => {
+  it("sends a signed-out visitor from any community page to sign-in, remembering the page", async () => {
     getClaims.mockResolvedValue({ data: null });
-    const res = await updateSession(req("/events"));
-    expect(res.status).toBe(200);
-    expect(res.headers.get("location")).toBeNull();
+    for (const [path, next] of [
+      ["/events", "/events"],
+      ["/events/82-startup-summit-2027-o8h0gkcl", "/events/82-startup-summit-2027-o8h0gkcl"],
+      ["/events/submit", "/events/submit"],
+      ["/members?q=ada", "/members?q=ada"],
+      ["/members/abc", "/members/abc"],
+      ["/messages/abc", "/messages/abc"],
+      ["/connections", "/connections"],
+      ["/profile", "/profile"],
+      ["/settings", "/settings"],
+      ["/admin/events", "/admin/events"],
+      ["/speakers/person", "/speakers/person"],
+      ["/sponsors", "/sponsors"],
+    ] as const) {
+      const res = await updateSession(req(path));
+      expect(res.status).toBe(307);
+      const location = new URL(res.headers.get("location")!);
+      expect(location.pathname).toBe("/login");
+      expect(location.searchParams.get("next")).toBe(next);
+    }
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("lets a signed-out visitor reach sign-in, auth callbacks, APIs and unsubscribe links", async () => {
+    getClaims.mockResolvedValue({ data: null });
+    for (const path of ["/login?next=/members", "/auth/callback?code=x", "/auth/google", "/api/event-attendance", "/api/me", "/unsubscribe?t=x", "/eventsfoo"]) {
+      const res = await updateSession(req(path));
+      expect(res.headers.get("location")).toBeNull();
+    }
     expect(rpc).not.toHaveBeenCalled();
   });
 
