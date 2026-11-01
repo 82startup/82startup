@@ -11,7 +11,7 @@ const boundary=app.indexOf('if(document.getElementById(\'app\').dataset.prerende
 if(boundary<0)throw new Error('Landing template boundary was not found');
 const template=app.slice(0,boundary);
 const fonts='https://fonts.googleapis.com/css2?family=Zen+Dots&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap';
-const image='https://82startup.vercel.app/assets/og-startup-week-2027-zen-dots.jpg';
+const image='https://82startup.com/assets/og-startup-week-2027-zen-dots.jpg';
 for(const route of ['index','schedule','speakers','venue','tickets']){
  const file=resolve(root,`public/${route}.html`);
  let html=await readFile(file,'utf8');
@@ -22,7 +22,7 @@ for(const route of ['index','schedule','speakers','venue','tickets']){
  html=html.replace(/<!-- social:start -->[\s\S]*?<!-- social:end -->/,'');
  const title=html.match(/<title>(.*?)<\/title>/)[1];
  const description=html.match(/<meta name="description" content="([^"]*)"/)[1];
- const url=`https://82startup.vercel.app/${route==='index'?'':route+'.html'}`;
+ const url=`https://82startup.com/${route==='index'?'':route+'.html'}`;
  const social=`<!-- social:start --><link rel="canonical" href="${url}"><meta property="og:type" content="website"><meta property="og:site_name" content="82 Startup Week 2027"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}"><meta property="og:url" content="${url}"><meta property="og:image" content="${image}"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="82 Startup Week 2027 — March 15–21, SF Bay Area"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${title}"><meta name="twitter:description" content="${description}"><meta name="twitter:image" content="${image}"><meta name="twitter:image:alt" content="82 Startup Week 2027 — March 15–21, SF Bay Area"><!-- social:end -->`;
  html=html.replace('</head>',social+'</head>');
  if(!html.includes('fonts.googleapis.com/css2'))html=html.replace('<link rel="stylesheet" href="style.css',`<link rel="stylesheet" href="${fonts}"><link rel="stylesheet" href="style.css`);

@@ -7,7 +7,7 @@ const FROM = "82 Startup <notifications@send.82startup" + "s.com>";
 export function siteUrl(): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL;
   if (configured) return configured.replace(/\/+$/, "");
-  return process.env.NODE_ENV === "production" ? "https://82startup.vercel.app" : "http://localhost:3000";
+  return process.env.NODE_ENV === "production" ? "https://82startup.com" : "http://localhost:3000";
 }
 
 // Production sends through Resend (needs RESEND_API_KEY); local development drops the email into the local mailbox.

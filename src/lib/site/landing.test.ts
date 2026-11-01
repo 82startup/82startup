@@ -11,7 +11,7 @@ describe("public landing release", () => {
     expect(html).toContain(`data-prerendered="${page}"`);
     expect(html).toContain('<main id="main"');
     expect(html).toMatch(/<h1>/);
-    expect(html).toContain('property="og:image" content="https://82startup.vercel.app/assets/og-startup-week-2027-zen-dots.jpg"');
+    expect(html).toContain('property="og:image" content="https://82startup.com/assets/og-startup-week-2027-zen-dots.jpg"');
     expect(html).toContain('name="twitter:card" content="summary_large_image"');
     expect(html).toContain('property="og:image:width" content="1200"');
     expect(html).toContain('property="og:image:height" content="630"');

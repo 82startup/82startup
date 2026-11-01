@@ -10,7 +10,7 @@ export type PageResult =
   | { ok: false; reason: "blocked" | "timeout" | "too_large" | "not_html" | "status" | "network" | "redirects" };
 
 const DEFAULTS = { timeoutMs: 5000, maxBytes: 2 * 1024 * 1024, maxRedirects: 3 };
-const USER_AGENT = "82 Startup event reader (+https://82startup.vercel.app)";
+const USER_AGENT = "82 Startup event reader (+https://82startup.com)";
 
 type DnsLookup = (hostname: string, options: dns.LookupAllOptions, callback: (err: NodeJS.ErrnoException | null, addresses: dns.LookupAddress[]) => void) => void;
 

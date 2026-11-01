@@ -14,7 +14,7 @@ export function requestOrigin(request: Request): URL {
       : internal.protocol.slice(0, -1);
     const candidate = new URL(`${protocol}://${host}`);
     const hostname = candidate.hostname.toLowerCase();
-    if (LOCAL_HOSTS.has(hostname) || hostname === "82startup.vercel.app" || hostname.endsWith(".vercel.app")) {
+    if (LOCAL_HOSTS.has(hostname) || hostname === "82startup.com" || hostname === "www.82startup.com" || hostname.endsWith(".vercel.app")) {
       return candidate;
     }
   } catch {
