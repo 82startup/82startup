@@ -112,8 +112,8 @@ if(route==='schedule'){
  function selectDay(day){
   document.querySelectorAll('.tab').forEach(tab=>{tab.setAttribute('aria-selected',String(tab.dataset.day===day));tab.tabIndex=tab.dataset.day===day?0:-1;});panel.setAttribute('aria-labelledby','tab-'+day);
   panel.innerHTML=summitProgram.events.filter(event=>event.days.includes(day)).map(event=>{
-   const time=event.id==='summit'?(day==='17'?'09:00 시작':'18:00 종료'):event.time.replace(' PDT','');
-   return `<article class="calendar-event"><div class="calendar-event-time">${time}<small>MAR ${day} · PDT</small></div><div><h3>${event.title}</h3><p class="calendar-event-location">${event.date} · ${event.venue}</p><p>${event.summary}</p>${event.id==='summit'?'<small>3/17 09:00 시작 · 3/18 18:00 종료 · 상세 세션 시간은 추후 공개</small>':''}${attendeeLink(event)}</div><div class="calendar-event-actions"><span>${eventPrice(event)}</span>${eventTicket(event)}</div></article>`;
+   const time=event.id==='summit'?'09:00–18:00':event.time.replace(' PDT','');
+   return `<article class="calendar-event"><div class="calendar-event-time">${time}<small>MAR ${day} · PDT</small></div><div><h3>${event.title}${({summit:' (Day Only)',expo:' (Booth Only)','founders-funders':' (Night Only)','community-evening':' (Night Only)'})[event.id]||''}</h3><p class="calendar-event-location">${event.date} · ${event.venue}</p><p>${event.summary}</p>${event.id==='summit'?'<small>3/17 09:00 시작 · 3/18 18:00 종료 · 상세 세션 시간은 추후 공개</small>':''}${attendeeLink(event)}</div><div class="calendar-event-actions"><span>${eventPrice(event)}</span>${eventTicket(event)}</div></article>`;
   }).join('');applyAttendees();
  }
  const tabs=[...document.querySelectorAll('.tab')];tabs.forEach(tab=>{tab.addEventListener('click',()=>selectDay(tab.dataset.day));tab.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const index=tabs.indexOf(tab),next=event.key==='Home'?0:event.key==='End'?tabs.length-1:(index+(event.key==='ArrowRight'?1:tabs.length-1))%tabs.length;selectDay(tabs[next].dataset.day);tabs[next].focus();});});

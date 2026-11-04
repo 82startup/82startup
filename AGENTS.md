@@ -333,3 +333,8 @@ After a send, the composer clears in place and keeps focus (no form remount; Sen
 - Every Summit link into the community (View Who's Attending, Event Request and any other link to members/events/connections/messages/profile/settings/admin/speakers/sponsors paths) opens the Summit sign-in dialog for a signed-out visitor, with `/login?next=<that page>&modal=1`, and continues to that page after sign-in. Signed-in visitors follow the link normally. Modifier-clicks (new tab) fall through to the server gate.
 - Server gate: `updateSession` (`src/lib/supabase/proxy.ts`, `isMembersOnlyPath`) redirects any signed-out request for those community paths to `/login?next=<path+query>`, so no community page, including `/events` and event pages, renders for visitors. `/login`, `/auth/*`, `/api/*` and `/unsubscribe` stay open. This supersedes the earlier public `/events` list and visitor sign-in prompt on event pages.
 - Push and deployment authorized — November 1, 2026: the user asked to push and deploy this members-only entry change set (View Schedules hero link, sign-in dialog for Summit community links, server gate). Same integration CI → main → Vercel Git workflow.
+
+## Schedule time and title labels — November 3, 2026
+- On the Schedule page the Summit time column reads `09:00–18:00` on both March 17 and 18 (instead of 시작/종료).
+- Schedule titles carry suffixes from one map in `public/app.js` (calendar event template): Summit `(Day Only)`, Expo `(Booth Only)`, Founders & Funders Evening and Community Evening `(Night Only)`. Homepage timeline and Tickets titles are unchanged. `app.js` cache version 146.
+- Push and deployment authorized — November 3, 2026: same integration CI → main → Vercel Git workflow.
