@@ -766,3 +766,16 @@ body{font-weight:500}h1,h2,h3,.hero h1,.footer-word,.stat strong{font-family:'IB
 /* Who's attending link on each homepage timeline event (count filled from /api/event-attendance). */.program-attendees{display:flex;align-items:center;gap:10px;width:fit-content;flex-wrap:wrap;margin-top:20px;color:var(--fg);font-size:12px;font-weight:600;text-decoration:underline;text-underline-offset:4px;text-decoration-color:#9a9c8c}.program-attendees:hover{text-decoration-color:var(--fg)}.program-attendees-count:empty{display:none}
 /* Recent attendee pictures as overlapping circles beside the timeline link (user request). */.program-attendees[hidden]{display:none}.program-attendees-faces{display:flex;align-items:center}.program-attendees-faces:empty{display:none}.program-attendees-faces>*{display:block;flex:none;width:26px;height:26px;border-radius:50%!important;object-fit:cover;background:#e2e1d4;box-shadow:0 0 0 2px var(--paper)}.program-attendees-faces>*+*{margin-left:-8px}.program-attendees-ghost{overflow:hidden}
 /* Who's attending below each Schedule event description (user request). */.calendar-event .program-attendees{margin:20px 0 0}
+
+/* Redesigned footer (user request, Nov 5 2026): no oversized wordmark; brand left, United Korean Founders logo right, links and copyright on a ruled row below. */
+#app>footer.wrap{padding:0 var(--rail);overflow:visible}
+.footer{display:block;max-width:none;margin:0;padding:56px 0 36px;font-size:13px;line-height:1.4}
+.footer-top{display:flex;align-items:center;justify-content:space-between;gap:32px;padding-bottom:40px}
+.footer-brand{display:inline-flex;align-items:center;gap:14px;min-width:0}.footer-brand img{display:block;width:34px;height:34px;flex:none}
+.footer-brand span{display:grid;gap:4px}.footer-brand{color:var(--fg)}.footer-brand strong{font-size:19.5px;font-weight:600;letter-spacing:.06em;color:var(--fg)}.footer-brand small{font-size:12px;color:#5c5e2a;letter-spacing:.02em}
+.footer-partner{display:block;width:auto;height:40.6px;flex:none}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-top:22px;border-top:1px solid rgba(36,37,31,.22)}
+.footer .footer-bottom nav{display:flex;flex-wrap:wrap;gap:8px 26px;font-size:13px;font-weight:500;letter-spacing:.02em;color:var(--fg)}.footer .footer-bottom nav a{color:var(--fg);opacity:1}
+.footer-copy{font-size:12px;color:#5c5e2a;white-space:nowrap;text-align:right}
+@media(max-width:800px){#app>footer.wrap{padding:0 10px}.footer{padding:40px 16px 28px}.footer-top{flex-direction:column;align-items:flex-start;gap:28px;padding-bottom:30px}.footer-partner{height:32.2px}.footer-bottom{flex-direction:column;align-items:flex-start;gap:20px}.footer .footer-bottom nav{gap:12px 22px;font-size:14px}.footer-copy{text-align:left}}
+.program-art.art-07{background:radial-gradient(ellipse at 100% 0%,#afe2cd 0%,transparent 63%),radial-gradient(ellipse at 22% 0%,#7f8fe0 0%,transparent 66%),radial-gradient(ellipse at -5% 110%,#8550b3 0%,transparent 65%),radial-gradient(ellipse at 85% 120%,#d5a68e 0%,transparent 65%),#2d5f74}

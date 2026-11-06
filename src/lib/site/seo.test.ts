@@ -23,10 +23,10 @@ describe("public SEO", () => {
     }
   });
 
-  it("describes the six events as structured data where they are listed", () => {
+  it("describes the seven events as structured data where they are listed", () => {
     for (const page of ["index", "schedule", "tickets"]) {
       const events = graph(page).filter((node) => node["@type"] === "Event");
-      expect(events).toHaveLength(6);
+      expect(events).toHaveLength(7);
       for (const event of events) {
         expect(event.startDate).toMatch(/^2027-03-\d\dT/);
         expect((event.offers as Array<{ url: string }>)[0].url).toMatch(/^https:\/\/luma\.com\//);

@@ -15,7 +15,7 @@ const image='https://82startup.com/assets/og-startup-week-2027-zen-dots.jpg';
 const origin='https://82startup.com';
 // Search titles and descriptions, one per page (each description is unique and says what that page offers).
 const seo={
- index:{title:'82 Startup Week 2027 · March 15–21, San Francisco',description:'Korean founders, investors and builders meet in San Francisco, March 15–21, 2027: six events including the 82 Startup Summit and Expo at Fort Mason Center. 한인 창업가·투자자 네트워킹 위크.'},
+ index:{title:'82 Startup Week 2027 · March 15–21, San Francisco',description:'Korean founders, investors and builders meet in San Francisco, March 15–21, 2027: seven events including the 82 Startup Summit and Expo at Fort Mason Center. 한인 창업가·투자자 네트워킹 위크.'},
  schedule:{title:'Schedule · 82 Startup Week 2027 in San Francisco',description:'Day-by-day schedule of 82 Startup Week 2027: Opening Night at Salesforce Tower, the Summit and Expo at Fort Mason Center, Founders & Funders, Community Evening and the VIP After Party.'},
  speakers:{title:'Speakers · 82 Startup Week 2027',description:'82 Startup Summit speakers — 김정상 (IonQ), Edward Kim (Gusto), Cal Henderson (Slack) and Eric Kim (Good Water Capital). 새로운 관점을 여는 창업가와 빌더들의 이야기.'},
  venue:{title:'Venue · Fort Mason Center | 82 Startup Week 2027',description:'The 82 Startup Summit and Expo take place at Fort Mason Center, 2 Marina Blvd, San Francisco. Venue details, directions and an interactive 3D floor plan.'},
@@ -25,7 +25,7 @@ const program=vm.runInContext(data+'\nsummitProgram',vm.createContext({}),{timeo
 const escapeAttr=v=>v.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 const organization={'@type':'Organization','@id':`${origin}/#organization`,name:'82 Startup',url:`${origin}/`,logo:`${origin}/assets/82startup-symbol.svg`};
 const eventLd=e=>({'@type':'Event','@id':`${origin}/#${e.id}`,name:e.title,description:e.summary,startDate:e.start,endDate:e.end,eventStatus:'https://schema.org/EventScheduled',eventAttendanceMode:'https://schema.org/OfflineEventAttendanceMode',location:{'@type':'Place',name:e.venue,address:{'@type':'PostalAddress',streetAddress:e.address.split(',')[0],addressLocality:'San Francisco',addressRegion:'CA',postalCode:(e.address.match(/\b\d{5}\b/)||[''])[0],addressCountry:'US'}},image:[`${origin}/assets/og-startup-week-2027-zen-dots.jpg`],organizer:{'@id':`${origin}/#organization`},offers:e.prices.map(([name,price])=>({'@type':'Offer',name,price,priceCurrency:'USD',url:e.ticketUrl,availability:'https://schema.org/InStock'}))});
-// Structured data: the organization and site on the homepage, and the six events wherever they are listed.
+// Structured data: the organization and site on the homepage, and the seven events wherever they are listed.
 const structured=route=>{
  const graph=[organization];
  if(route==='index')graph.push({'@type':'WebSite','@id':`${origin}/#website`,name:'82 Startup Week 2027',url:`${origin}/`,inLanguage:['ko','en'],publisher:{'@id':`${origin}/#organization`}});

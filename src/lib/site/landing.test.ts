@@ -24,7 +24,7 @@ describe("public landing release", () => {
     expect(home).toContain("<strong>March 15—21, 2027</strong>");
     expect(read("public/tickets.html")).toContain("MARCH 15—21, 2027");
     const events = read("public/event-data.js");
-    for (const destination of ["8faq28ez", "sell0ikl", "9qj9ujht", "6vy0xhk9", "yu4fof7p"]) {
+    for (const destination of ["8faq28ez", "sell0ikl", "cqmpiwl5", "9qj9ujht", "6vy0xhk9", "yu4fof7p"]) {
       expect(events).toContain(`https://luma.com/${destination}`);
       expect(home).toContain(`https://luma.com/${destination}`);
     }
