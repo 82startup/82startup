@@ -1,0 +1,152 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useRef, useState, useTransition } from "react";
+import { Toast } from "@/components/toast";
+import { copy } from "@/lib/copy";
+import { cleanBody, cleanTitle, MAX_IMAGES } from "@/lib/boards/form";
+import { BOARD_IMAGE_BUCKET, boardImagePath } from "@/lib/boards/images";
+import { makeBoardImageBlob } from "@/lib/boards/resize";
+import { checkSourceFile } from "@/lib/profile/photo";
+import { PhotoError } from "@/lib/profile/resize";
+import { createClient } from "@/lib/supabase/browser";
+import { createBoardPost } from "../../actions";
+
+type Picked = { id: string; blob: Blob; url: string };
+type Notice = { message: string; tone: "error" | "success" };
+
+export function NewPostForm({ slug, userId }: { slug: string; userId: string }) {
+  const router = useRouter();
+  const input = useRef<HTMLInputElement>(null);
+  const [picked, setPicked] = useState<Picked[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<{ title?: string; body?: string }>({});
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [reading, setReading] = useState(false);
+  const [saving, startSaving] = useTransition();
+
+  async function onPick(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setReading(true);
+    const added: Picked[] = [];
+    let message: string | null = null;
+    for (const file of Array.from(files)) {
+      if (picked.length + added.length >= MAX_IMAGES) {
+        message = copy.boards.errors.tooManyImages;
+        break;
+      }
+      const check = checkSourceFile(file);
+      if (check !== "ok") {
+        message = copy.photo.errors[check];
+        continue;
+      }
+      try {
+        const blob = await makeBoardImageBlob(file);
+        added.push({ id: crypto.randomUUID(), blob, url: URL.createObjectURL(blob) });
+      } catch (e) {
+        message = e instanceof PhotoError && e.kind === "tooBig" ? copy.photo.errors.tooBig : copy.photo.errors.decode;
+      }
+    }
+    setPicked((current) => [...current, ...added]);
+    if (message) setNotice({ message, tone: "error" });
+    setReading(false);
+    if (input.current) input.current.value = "";
+  }
+
+  function removePicked(id: string) {
+    setPicked((current) => {
+      const gone = current.find((image) => image.id === id);
+      if (gone) URL.revokeObjectURL(gone.url);
+      return current.filter((image) => image.id !== id);
+    });
+  }
+
+  async function removeUploaded(paths: string[]) {
+    if (paths.length === 0) return;
+    try {
+      await createClient().storage.from(BOARD_IMAGE_BUCKET).remove(paths);
+    } catch {
+      console.error("board image cleanup failed");
+    }
+  }
+
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const title = cleanTitle(String(form.get("title") ?? ""));
+    const body = cleanBody(String(form.get("body") ?? ""));
+    setFieldErrors({ title: title ? undefined : copy.boards.errors.title, body: body ? undefined : copy.boards.errors.body });
+    if (!title || !body) return;
+
+    startSaving(async () => {
+      const supabase = createClient();
+      const postId = crypto.randomUUID();
+      const paths: string[] = [];
+      for (const [index, image] of picked.entries()) {
+        const path = boardImagePath(userId, postId, index + 1);
+        const { error } = await supabase.storage.from(BOARD_IMAGE_BUCKET).upload(path, image.blob, { contentType: "image/jpeg", cacheControl: "31536000" });
+        if (error) {
+          await removeUploaded(paths);
+          setNotice({ message: copy.boards.errors.upload, tone: "error" });
+          return;
+        }
+        paths.push(path);
+      }
+      const data = new FormData();
+      data.set("slug", slug);
+      data.set("postId", postId);
+      data.set("title", title);
+      data.set("body", body);
+      for (const path of paths) data.append("image", path);
+      const result = await createBoardPost(data);
+      if (result.error || !result.postId) {
+        await removeUploaded(paths);
+        setNotice({ message: result.error ?? copy.boards.errors.save, tone: "error" });
+        return;
+      }
+      router.push(`/boards/${slug}/${result.postId}`);
+    });
+  }
+
+  const busy = saving || reading;
+  return (
+    <form className="board-form" onSubmit={onSubmit} noValidate>
+      <label className="profile-field">
+        <span className="profile-field-label">{copy.boards.form.title}</span>
+        <input name="title" maxLength={120} placeholder={copy.boards.form.titlePlaceholder} autoComplete="off" />
+        {fieldErrors.title && <span className="profile-field-error" role="alert">{fieldErrors.title}</span>}
+      </label>
+      <label className="profile-field">
+        <span className="profile-field-label">{copy.boards.form.body}</span>
+        <textarea name="body" rows={10} maxLength={5000} placeholder={copy.boards.form.bodyPlaceholder} />
+        {fieldErrors.body && <span className="profile-field-error" role="alert">{fieldErrors.body}</span>}
+      </label>
+      <div className="profile-field">
+        <span className="profile-field-label">{copy.boards.form.images}</span>
+        <span className="profile-field-hint">{copy.boards.form.imagesHint}</span>
+        {picked.length > 0 && (
+          <ul className="board-form-images">
+            {picked.map((image) => (
+              <li key={image.id}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- local preview of the picture about to be uploaded */}
+                <img src={image.url} alt="" />
+                <button type="button" className="board-form-remove" aria-label={copy.boards.form.removeImage} onClick={() => removePicked(image.id)}>×</button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {picked.length < MAX_IMAGES && (
+          <label className="community-action community-action-secondary board-form-pick" aria-disabled={busy || undefined}>
+            {copy.boards.form.addImages}
+            <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden disabled={busy} onChange={(event) => void onPick(event.target.files)} />
+          </label>
+        )}
+      </div>
+      <div className="board-form-footer">
+        <Link className="action-quiet" href={`/boards/${slug}`}>{copy.boards.cancel}</Link>
+        <button type="submit" className="community-action" disabled={busy}>{saving ? copy.boards.form.publishing : copy.boards.form.publish}</button>
+      </div>
+      <Toast trigger={notice} message={notice?.message} tone={notice?.tone} />
+    </form>
+  );
+}
