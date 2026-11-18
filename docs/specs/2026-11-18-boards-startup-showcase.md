@@ -25,8 +25,8 @@ The new tables, functions, routes and copy all use the `board` prefix so the two
 
 ## Database
 
-Two timestamped migrations: `20261118100000_boards.sql` (everything below) and `20261118110000_board_edit.sql` (editing, see "Editing"
-below). Neither is applied to production until the owner asks. Every table is closed (`revoke all` from public, anon, authenticated, service_role); all access is through
+Three timestamped migrations: `20261118100000_boards.sql` (everything below), `20261118110000_board_edit.sql` (editing, see "Editing"
+below) and `20261118120000_board_edit_followups.sql` (the comment-edit block rule and a row lock on post edits). None is applied to production until the owner asks. Every table is closed (`revoke all` from public, anon, authenticated, service_role); all access is through
 `security definer` functions with `set search_path = ''`, and each function is granted explicitly to `authenticated` only
 (production has no default grants).
 
@@ -63,7 +63,7 @@ below). Neither is applied to production until the owner asks. Every table is cl
   active board; refuses `22023` a profile with an empty name. `p_images` is the full ordered list (kept paths plus new ones). It returns the
   picture paths that are no longer in the post; the application removes those files with the member's own session (the storage delete
   policy allows own files). A failed removal is logged, not fatal.
-- `update_board_comment(p_id, p_body)`: author only, text 1 to 1,000 after trimming.
+- `update_board_comment(p_id, p_body)`: author only, text 1 to 1,000 after trimming. From the third migration it follows the block rule: a comment author blocked by or blocking the post's author gets `P0002`, as for an unknown comment. The same migration makes `update_board_post` lock the post row (`for update`) so concurrent edits serialise.
 - `board_post` and `board_comments_page` gain a final `can_edit` column (true for the author only); `can_delete` is unchanged.
 - Picture file names: new pictures are stored as `<author id>/<post id>/<uuid>.jpg` with a random lower-case uuid. They are uploaded with a
   one-year cache lifetime, so a replaced picture must get a new address. Old `1.jpg` to `4.jpg` names stay valid. The `create_board_post`

@@ -1,5 +1,5 @@
 begin;
-select plan(54);
+select plan(63);
 
 -- A authors the post, B comments, C is an admin.
 insert into auth.users (id, email) values
@@ -78,6 +78,21 @@ set local role authenticated;
 select lives_ok($$select public.update_board_comment('dddddddd-3300-0000-0000-000000000001', '  New comment  ')$$, 'the commenter edits');
 select is((select body from public.board_comments_page('aaaaaaaa-3300-0000-0000-000000000001', null, 50)), 'New comment', 'the comment is trimmed and saved');
 
+-- ===== B: blocks between the commenter and the post author stop comment edits
+reset role;
+insert into public.member_blocks (blocker_id, blocked_id) values ('bbbbbbbb-3300-0000-0000-00000000000a', 'bbbbbbbb-3300-0000-0000-00000000000b');
+set local role authenticated;
+select throws_ok($$select public.update_board_comment('dddddddd-3300-0000-0000-000000000001', 'blocked edit')$$, 'P0002', null, 'a commenter blocked by the post author cannot edit their comment');
+reset role;
+delete from public.member_blocks where blocker_id = 'bbbbbbbb-3300-0000-0000-00000000000a' and blocked_id = 'bbbbbbbb-3300-0000-0000-00000000000b';
+insert into public.member_blocks (blocker_id, blocked_id) values ('bbbbbbbb-3300-0000-0000-00000000000b', 'bbbbbbbb-3300-0000-0000-00000000000a');
+set local role authenticated;
+select throws_ok($$select public.update_board_comment('dddddddd-3300-0000-0000-000000000001', 'blocked edit')$$, 'P0002', null, 'a commenter who blocked the post author cannot edit their comment');
+reset role;
+delete from public.member_blocks where blocker_id = 'bbbbbbbb-3300-0000-0000-00000000000b' and blocked_id = 'bbbbbbbb-3300-0000-0000-00000000000a';
+set local role authenticated;
+select lives_ok($$select public.update_board_comment('dddddddd-3300-0000-0000-000000000001', 'New comment again')$$, 'after the blocks are removed the commenter can edit again');
+
 -- ===== storage and create_board_post, as B
 select lives_ok($$insert into storage.objects (bucket_id, name) values ('board-images', 'bbbbbbbb-3300-0000-0000-00000000000b/aaaaaaaa-3300-0000-0000-000000000001/cccccccc-3300-0000-0000-00000000000b.jpg')$$, 'a member adds a uuid-named picture in their own folder');
 select lives_ok($$insert into storage.objects (bucket_id, name) values ('board-images', 'bbbbbbbb-3300-0000-0000-00000000000b/aaaaaaaa-3300-0000-0000-000000000001/1.jpg')$$, 'and a 1.jpg picture');
@@ -100,8 +115,19 @@ select is((select can_delete from public.board_post('aaaaaaaa-3300-0000-0000-000
 select is((select can_edit from public.board_comments_page('aaaaaaaa-3300-0000-0000-000000000001', null, 50)), false, 'an admin is not offered comment editing');
 select is((select can_delete from public.board_comments_page('aaaaaaaa-3300-0000-0000-000000000001', null, 50)), true, 'but may delete comments');
 
+-- ===== A: removing every picture
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-3300-0000-0000-00000000000a","role":"authenticated"}', true);
+select is((select public.update_board_post('aaaaaaaa-3300-0000-0000-000000000001', 'T3', 'B3', '{}')), array['bbbbbbbb-3300-0000-0000-00000000000a/aaaaaaaa-3300-0000-0000-000000000001/cccccccc-3300-0000-0000-00000000000a.jpg','bbbbbbbb-3300-0000-0000-00000000000a/aaaaaaaa-3300-0000-0000-000000000001/2.jpg'], 'an empty picture list returns every previous path');
+select is((select cardinality(images) from public.board_post('aaaaaaaa-3300-0000-0000-000000000001')), 0, 'and leaves the post without pictures');
+
 -- ===== grants
 reset role;
+select ok(has_function_privilege('authenticated', 'public.board_post(uuid)', 'execute'), 'members may call board_post');
+select ok(not has_function_privilege('anon', 'public.board_post(uuid)', 'execute'), 'visitors may not call board_post');
+select ok(has_function_privilege('authenticated', 'public.board_comments_page(uuid,timestamptz,integer)', 'execute'), 'members may call board_comments_page');
+select ok(not has_function_privilege('anon', 'public.board_comments_page(uuid,timestamptz,integer)', 'execute'), 'visitors may not call board_comments_page');
 select ok(has_function_privilege('authenticated', 'public.update_board_post(uuid,text,text,text[])', 'execute'), 'members may call update_board_post');
 select ok(not has_function_privilege('anon', 'public.update_board_post(uuid,text,text,text[])', 'execute'), 'visitors may not call update_board_post');
 select ok(has_function_privilege('authenticated', 'public.update_board_comment(uuid,text)', 'execute'), 'members may call update_board_comment');

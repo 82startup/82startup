@@ -78,6 +78,7 @@ export async function updateBoardPost(formData: FormData): Promise<CreatePostRes
     }
   }
   revalidatePath(`/boards/${slug}/${postId}`);
+  revalidatePath(`/boards/${slug}/${postId}/edit`);
   revalidatePath(`/boards/${slug}`);
   return { postId };
 }
