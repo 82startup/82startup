@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { copy } from "@/lib/copy";
 import { cleanBody, cleanTitle, MAX_IMAGES } from "@/lib/boards/form";
-import { isOwnBoardImagePath } from "@/lib/boards/images";
+import { BOARD_IMAGE_BUCKET, isBoardImagePath, isOwnBoardImagePath } from "@/lib/boards/images";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type CreatePostResult = { error?: string; postId?: string };
@@ -40,4 +41,33 @@ export async function createBoardPost(formData: FormData): Promise<CreatePostRes
   }
   revalidatePath(`/boards/${slug}`);
   return { postId };
+}
+
+export type DeletePostResult = { error?: string };
+
+// The database lets only the author or an admin delete, and returns the image paths. The files are then removed with the
+// server-only client (an admin's own session may not delete another member's files). Failing to remove a file is logged, not fatal.
+export async function deleteBoardPost(formData: FormData): Promise<DeletePostResult> {
+  const slug = String(formData.get("slug") ?? "");
+  const postId = String(formData.get("postId") ?? "");
+  if (!SLUG.test(slug) || !UUID.test(postId)) return { error: copy.boards.errors.delete };
+
+  const supabase = await createClient();
+  const { data: claims } = await supabase.auth.getClaims();
+  if (!claims?.claims.sub) redirect(`/login?next=${encodeURIComponent(`/boards/${slug}/${postId}`)}`);
+
+  const { data, error } = await supabase.rpc("delete_board_post", { p_id: postId });
+  if (error) return { error: copy.boards.errors.delete };
+
+  const paths = ((data ?? []) as string[]).filter(isBoardImagePath);
+  if (paths.length > 0) {
+    try {
+      const { error: removeError } = await createAdminClient().storage.from(BOARD_IMAGE_BUCKET).remove(paths);
+      if (removeError) console.error("board image cleanup failed");
+    } catch {
+      console.error("board image cleanup failed");
+    }
+  }
+  revalidatePath(`/boards/${slug}`);
+  redirect(`/boards/${slug}`);
 }
