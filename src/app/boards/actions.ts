@@ -43,7 +43,46 @@ export async function createBoardPost(formData: FormData): Promise<CreatePostRes
   return { postId };
 }
 
-export type DeletePostResult = { error?: string };
+// Only the author may change a post (the database checks). The browser has uploaded any new pictures first; `image` is the final
+// ordered list (kept paths plus new ones). Pictures dropped from the post are removed from storage with the member's own session.
+export async function updateBoardPost(formData: FormData): Promise<CreatePostResult> {
+  const slug = String(formData.get("slug") ?? "");
+  const postId = String(formData.get("postId") ?? "");
+  const title = cleanTitle(String(formData.get("title") ?? ""));
+  const body = cleanBody(String(formData.get("body") ?? ""));
+  const images = formData.getAll("image").map(String);
+  if (!SLUG.test(slug) || !UUID.test(postId)) return { error: copy.boards.errors.save };
+  if (!title) return { error: copy.boards.errors.title };
+  if (!body) return { error: copy.boards.errors.body };
+  if (images.length > MAX_IMAGES) return { error: copy.boards.errors.tooManyImages };
+
+  const supabase = await createClient();
+  const { data: claims } = await supabase.auth.getClaims();
+  const userId = claims?.claims.sub;
+  if (!userId) redirect(`/login?next=${encodeURIComponent(`/boards/${slug}/${postId}/edit`)}`);
+  if (!images.every((path) => isOwnBoardImagePath(path, userId, postId))) return { error: copy.boards.errors.save };
+
+  const { data, error } = await supabase.rpc("update_board_post", { p_id: postId, p_title: title, p_body: body, p_images: images });
+  if (error) {
+    if (error.code === "P0002") return { error: copy.boards.errors.notFound };
+    return { error: copy.boards.errors.save };
+  }
+
+  const removed = ((data ?? []) as string[]).filter(isBoardImagePath);
+  if (removed.length > 0) {
+    try {
+      const { error: removeError } = await supabase.storage.from(BOARD_IMAGE_BUCKET).remove(removed);
+      if (removeError) console.error("board image cleanup failed");
+    } catch {
+      console.error("board image cleanup failed");
+    }
+  }
+  revalidatePath(`/boards/${slug}/${postId}`);
+  revalidatePath(`/boards/${slug}`);
+  return { postId };
+}
+
+export type DeletePostResult ={ error?: string };
 
 // The database lets only the author or an admin delete, and returns the image paths. The files are then removed with the
 // server-only client (an admin's own session may not delete another member's files). Failing to remove a file is logged, not fatal.

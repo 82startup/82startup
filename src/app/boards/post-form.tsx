@@ -6,12 +6,12 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { Toast } from "@/components/toast";
 import { copy } from "@/lib/copy";
 import { cleanBody, cleanTitle, MAX_IMAGES } from "@/lib/boards/form";
-import { BOARD_IMAGE_BUCKET, boardImagePath } from "@/lib/boards/images";
+import { BOARD_IMAGE_BUCKET, boardImagePath, boardImagePublicUrl } from "@/lib/boards/images";
 import { makeBoardImageBlob } from "@/lib/boards/resize";
 import { checkSourceFile } from "@/lib/profile/photo";
 import { PhotoError } from "@/lib/profile/resize";
 import { createClient } from "@/lib/supabase/browser";
-import { createBoardPost } from "../../actions";
+import { createBoardPost, updateBoardPost } from "./actions";
 
 type Picked = { id: string; blob: Blob; url: string };
 class UploadFailed extends Error {}
@@ -23,11 +23,16 @@ function isRedirect(error: unknown): boolean {
 
 type Notice = { message: string; tone: "error" | "success" };
 
-export function NewPostForm({ slug, userId }: { slug: string; userId: string }) {
+type Initial = { postId: string; title: string; body: string; images: string[] };
+
+export function PostForm({ slug, userId, mode, initial }: { slug: string; userId: string; mode: "create" | "edit"; initial?: Initial }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const [picked, setPicked] = useState<Picked[]>([]);
+  // Pictures already stored with the post (edit mode), by path; removing one here drops it when the post is saved.
+  const initialImages = useRef<string[]>(initial?.images ?? []);
+  const [kept, setKept] = useState<string[]>(initial?.images ?? []);
   const [fieldErrors, setFieldErrors] = useState<{ title?: string; body?: string }>({});
   const [notice, setNotice] = useState<Notice | null>(null);
   const [reading, setReading] = useState(false);
@@ -41,6 +46,7 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
       for (const image of current) URL.revokeObjectURL(image.url);
       return [];
     });
+    setKept(initialImages.current);
     setFieldErrors({});
   }
   useEffect(() => {
@@ -54,7 +60,7 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
     const added: Picked[] = [];
     let message: string | null = null;
     for (const file of Array.from(files)) {
-      if (picked.length + added.length >= MAX_IMAGES) {
+      if (kept.length + picked.length + added.length >= MAX_IMAGES) {
         message = copy.boards.errors.tooManyImages;
         break;
       }
@@ -84,6 +90,10 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
     });
   }
 
+  function removeKept(path: string) {
+    setKept((current) => current.filter((candidate) => candidate !== path));
+  }
+
   async function removeUploaded(paths: string[]) {
     if (paths.length === 0) return;
     try {
@@ -103,10 +113,10 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
 
     startSaving(async () => {
       const supabase = createClient();
-      const postId = crypto.randomUUID();
+      const postId = initial?.postId ?? crypto.randomUUID();
       const paths: string[] = [];
       try {
-        for (const [index, image] of picked.entries()) {
+        for (const image of picked) {
           const path = boardImagePath(userId, postId, crypto.randomUUID());
           const { error } = await supabase.storage.from(BOARD_IMAGE_BUCKET).upload(path, image.blob, { contentType: "image/jpeg", cacheControl: "31536000" });
           if (error) throw new UploadFailed();
@@ -122,10 +132,11 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
       data.set("postId", postId);
       data.set("title", title);
       data.set("body", body);
-      for (const path of paths) data.append("image", path);
+      const finalPaths = mode === "edit" ? [...kept, ...paths] : paths;
+      for (const path of finalPaths) data.append("image", path);
       let result: Awaited<ReturnType<typeof createBoardPost>>;
       try {
-        result = await createBoardPost(data);
+        result = mode === "edit" ? await updateBoardPost(data) : await createBoardPost(data);
       } catch (e) {
         // The server redirects an expired session to /login; Next rejects the call with that redirect so its boundary can navigate.
         if (isRedirect(e)) throw e;
@@ -148,19 +159,26 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
     <form ref={formRef} className="board-form" onSubmit={onSubmit} noValidate>
       <label className="profile-field">
         <span className="profile-field-label">{copy.boards.form.title}</span>
-        <input name="title" maxLength={120} placeholder={copy.boards.form.titlePlaceholder} autoComplete="off" />
+        <input name="title" defaultValue={initial?.title} maxLength={120} placeholder={copy.boards.form.titlePlaceholder} autoComplete="off" />
         {fieldErrors.title && <span className="profile-field-error" role="alert">{fieldErrors.title}</span>}
       </label>
       <label className="profile-field">
         <span className="profile-field-label">{copy.boards.form.body}</span>
-        <textarea name="body" rows={10} maxLength={5000} placeholder={copy.boards.form.bodyPlaceholder} />
+        <textarea name="body" defaultValue={initial?.body} rows={10} maxLength={5000} placeholder={copy.boards.form.bodyPlaceholder} />
         {fieldErrors.body && <span className="profile-field-error" role="alert">{fieldErrors.body}</span>}
       </label>
       <div className="profile-field">
         <span className="profile-field-label">{copy.boards.form.images}</span>
         <span className="profile-field-hint">{copy.boards.form.imagesHint}</span>
-        {picked.length > 0 && (
+        {kept.length + picked.length > 0 && (
           <ul className="board-form-images">
+            {kept.map((path) => (
+              <li key={path}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- our own public bucket; no image optimizer configured */}
+                <img src={boardImagePublicUrl(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "", path) ?? ""} alt="" />
+                <button type="button" className="board-form-remove" aria-label={copy.boards.form.removeImage} onClick={() => removeKept(path)}>×</button>
+              </li>
+            ))}
             {picked.map((image) => (
               <li key={image.id}>
                 {/* eslint-disable-next-line @next/next/no-img-element -- local preview of the picture about to be uploaded */}
@@ -170,7 +188,7 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
             ))}
           </ul>
         )}
-        {picked.length < MAX_IMAGES && (
+        {kept.length + picked.length < MAX_IMAGES && (
           <label className="community-action community-action-secondary board-form-pick" aria-disabled={busy || undefined}>
             {copy.boards.form.addImages}
             <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" multiple className="visually-hidden" disabled={busy} onChange={(event) => void onPick(event.target.files)} />
@@ -178,8 +196,8 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
         )}
       </div>
       <div className="board-form-footer">
-        <Link className="action-quiet" href={`/boards/${slug}`}>{copy.boards.cancel}</Link>
-        <button type="submit" className="community-action" disabled={busy}>{saving ? copy.boards.form.publishing : copy.boards.form.publish}</button>
+        <Link className="action-quiet" href={initial ? `/boards/${slug}/${initial.postId}` : `/boards/${slug}`}>{copy.boards.cancel}</Link>
+        <button type="submit" className="community-action" disabled={busy}>{mode === "edit" ? (saving ? copy.boards.form.saving : copy.boards.form.save) : saving ? copy.boards.form.publishing : copy.boards.form.publish}</button>
       </div>
       <Toast trigger={notice} message={notice?.message} tone={notice?.tone} />
     </form>

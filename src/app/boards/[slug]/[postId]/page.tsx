@@ -57,9 +57,12 @@ async function PostContent({ params }: { params: PageProps<"/boards/[slug]/[post
             ))}
           </div>
         )}
-        {post.can_delete && (
+        {(post.can_edit || post.can_delete) && (
           <footer className="board-article-foot">
-            <DeletePostButton slug={slug} postId={post.id} />
+            {post.can_edit && (
+              <Link className="community-action community-action-secondary" href={`/boards/${slug}/${post.id}/edit`}>{copy.boards.edit}</Link>
+            )}
+            {post.can_delete && <DeletePostButton slug={slug} postId={post.id} />}
           </footer>
         )}
       </article>

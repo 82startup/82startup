@@ -615,6 +615,7 @@ body:has(.login-main-modal) { background: #f6f5ed !important; }
 .board-article-images { display: flex; flex-direction: column; gap: 12px; }
 .board-article-images img { width: 100%; height: auto; border: 1px solid #d7d6c9; }
 .board-article-foot { display: flex; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #d7d6c9; }
+.board-article-foot { align-items: center; gap: 12px; }
 .board-delete-confirm { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; }
 @media (max-width: 520px) { .board-article { padding: 16px; } }
 

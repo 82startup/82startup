@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { copy } from "@/lib/copy";
 import { getBoards, requireViewer } from "@/lib/boards/queries";
-import { NewPostForm } from "./new-post-form";
+import { PostForm } from "../../post-form";
 
 export default function NewBoardPostPage({ params }: PageProps<"/boards/[slug]/new">) {
   return (
@@ -29,7 +29,7 @@ async function NewPostContent({ params }: { params: PageProps<"/boards/[slug]/ne
           <p>{board.title}</p>
         </div>
       </header>
-      <NewPostForm slug={slug} userId={userId} />
+      <PostForm mode="create" slug={slug} userId={userId} />
     </>
   );
 }

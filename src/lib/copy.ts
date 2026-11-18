@@ -382,6 +382,8 @@ export const copy = {
     back: "Back to the board",
     cancel: "Cancel",
     delete: "Delete",
+    edit: "Edit",
+    editPost: "Edit post",
     deleteConfirm: "Delete this post?",
     deleteYes: "Yes, delete",
     commentsCount: "{n} comments",
@@ -397,6 +399,8 @@ export const copy = {
       removeImage: "Remove image",
       publish: "Post",
       publishing: "Posting…",
+      save: "Save",
+      saving: "Saving…",
     },
     errors: {
       title: "Enter a title of 1 to 120 characters.",
