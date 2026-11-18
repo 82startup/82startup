@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Toast } from "@/components/toast";
 import { copy } from "@/lib/copy";
 import { cleanBody, cleanTitle, MAX_IMAGES } from "@/lib/boards/form";
@@ -25,12 +25,28 @@ type Notice = { message: string; tone: "error" | "success" };
 
 export function NewPostForm({ slug, userId }: { slug: string; userId: string }) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const [picked, setPicked] = useState<Picked[]>([]);
   const [fieldErrors, setFieldErrors] = useState<{ title?: string; body?: string }>({});
   const [notice, setNotice] = useState<Notice | null>(null);
   const [reading, setReading] = useState(false);
   const [saving, startSaving] = useTransition();
+
+  // Always start (and start again) from an empty form: this page stays alive in the background after a post is published,
+  // so without a reset the next "New post" would show the previous title, text and pictures.
+  function resetForm() {
+    formRef.current?.reset();
+    setPicked((current) => {
+      for (const image of current) URL.revokeObjectURL(image.url);
+      return [];
+    });
+    setFieldErrors({});
+  }
+  useEffect(() => {
+    // The cleanup runs when this page is left (kept alive but hidden) or unmounted, so coming back to it finds an empty form.
+    return () => resetForm();
+  }, []);
 
   async function onPick(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -122,13 +138,14 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
         setNotice({ message: result.error ?? copy.boards.errors.save, tone: "error" });
         return;
       }
+      resetForm();
       router.push(`/boards/${slug}/${result.postId}`);
     });
   }
 
   const busy = saving || reading;
   return (
-    <form className="board-form" onSubmit={onSubmit} noValidate>
+    <form ref={formRef} className="board-form" onSubmit={onSubmit} noValidate>
       <label className="profile-field">
         <span className="profile-field-label">{copy.boards.form.title}</span>
         <input name="title" maxLength={120} placeholder={copy.boards.form.titlePlaceholder} autoComplete="off" />

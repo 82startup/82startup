@@ -566,18 +566,28 @@ body:has(.login-main-modal) { background: #f6f5ed !important; }
 .board-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
 .board-head h1 { margin: 0; }
 .board-head p { max-width: 620px; margin: 10px 0 0; color: #6f7065; font-size: 14px; line-height: 1.6; }
-.board-posts { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
-.board-card { display: flex; flex-direction: column; border: 1px solid #c8c8ba; background: #fffef8; }
+.board-posts { display: flex; flex-direction: column; margin: 0; padding: 0; border: 1px solid #c8c8ba; background: #fffef8; list-style: none; }
+.board-row + .board-row { border-top: 1px solid #d7d6c9; }
+.board-row-link { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 14px 18px; color: var(--community-charcoal); text-decoration: none; transition: background .15s ease; }
+.board-row-link:hover { background: var(--community-paper); }
+.board-row-thumb { display: block; width: 64px; height: 64px; overflow: hidden; border: 1px solid #d7d6c9; background: #e8e7da; }
+.board-row-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.board-row-main { display: flex; min-width: 0; flex-direction: column; gap: 5px; }
+.board-row-title { overflow: hidden; font-size: 16px; font-weight: 600; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.board-row-meta { overflow: hidden; color: #6f7065; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.board-row-side { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; white-space: nowrap; }
+.board-row-side time { color: #8a8b7f; font-size: 12px; }
+.board-row-count { color: #6f7065; font-size: 12px; }
+@media (max-width: 520px) {
+  .board-row-link { grid-template-columns: 48px minmax(0, 1fr); gap: 12px; padding: 12px; }
+  .board-row-thumb { width: 48px; height: 48px; }
+  .board-row-side { grid-column: 2; flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; }
+}
 .board-card-author { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 16px 18px 0; color: var(--community-charcoal); text-decoration: none; }
 .board-card-author-copy { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
 .board-card-author-name { font-size: 14px; font-weight: 600; }
 .board-card-author-detail { overflow: hidden; color: #6f7065; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .board-card-author time { color: #8a8b7f; font-size: 12px; }
-.board-card-body { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px 18px; color: var(--community-charcoal); text-decoration: none; }
-.board-card-title { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
-.board-card-preview { margin: 0; color: #55564c; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
-.board-card-image { width: 100%; max-height: 320px; object-fit: cover; border: 1px solid #d7d6c9; }
-.board-card-body:hover .board-card-title { text-decoration: underline; }
 .board-pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 @media (max-width: 760px) {
   .board-head { flex-direction: column; align-items: stretch; }
@@ -608,7 +618,6 @@ body:has(.login-main-modal) { background: #f6f5ed !important; }
 .board-delete-confirm { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; }
 @media (max-width: 520px) { .board-article { padding: 16px; } }
 
-.board-card-count { color: #6f7065; font-size: 12px; }
 .board-comments { display: flex; flex-direction: column; gap: 16px; }
 .board-comments h2 { margin: 0; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; }
 .board-comment-list { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }

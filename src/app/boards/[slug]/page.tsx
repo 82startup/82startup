@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { copy } from "@/lib/copy";
 import { BOARD_PAGE_SIZE, getBoardPosts, getBoards, requireViewer } from "@/lib/boards/queries";
-import { PostCard } from "./post-card";
+import { PostRow } from "./post-row";
 
 export default function BoardPage({ params, searchParams }: PageProps<"/boards/[slug]">) {
   return (
@@ -47,7 +47,7 @@ async function BoardContent({ params, searchParams }: { params: PageProps<"/boar
         <p className="settings-intro">{copy.boards.empty}</p>
       ) : (
         <ul className="board-posts">
-          {posts.map((post) => <PostCard key={post.id} post={post} slug={slug} />)}
+          {posts.map((post) => <PostRow key={post.id} post={post} slug={slug} />)}
         </ul>
       )}
       <nav className="board-pager" aria-label="Pages">
