@@ -1,5 +1,5 @@
 begin;
-select plan(25);
+select plan(30);
 
 -- A owns the post, B comments, C is an admin.
 insert into auth.users (id, email) values
@@ -62,6 +62,38 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-2200-0000-0000-00000000000b","role":"authenticated"}', true);
 select lives_ok($$select public.delete_board_comment((select id from public.board_comments_page('33333333-3333-3333-3333-333333333333', null, 50) limit 1))$$, 'a member deletes their own comment');
 select is((select comment_count from public.board_post('33333333-3333-3333-3333-333333333333')), 28, 'the count goes down again');
+
+-- ===== count follows the comments, including when a commenter's account is deleted
+reset role;
+insert into auth.users (id, email) values
+  ('bbbbbbbb-2200-0000-0000-00000000000d', 'd@bcomment.test'),
+  ('bbbbbbbb-2200-0000-0000-00000000000e', 'e@bcomment.test');
+update public.profiles set name = 'Dan D' where id = 'bbbbbbbb-2200-0000-0000-00000000000d';
+update public.profiles set name = 'Eve E' where id = 'bbbbbbbb-2200-0000-0000-00000000000e';
+insert into public.board_posts (id, board_id, author_id, title, body)
+  select '44444444-4444-4444-4444-444444444444', id, 'bbbbbbbb-2200-0000-0000-00000000000a', 'Post 2', 'Body' from public.boards where slug = 'showcase';
+insert into public.board_comments (post_id, author_id, body) values
+  ('44444444-4444-4444-4444-444444444444', 'bbbbbbbb-2200-0000-0000-00000000000d', 'one'),
+  ('44444444-4444-4444-4444-444444444444', 'bbbbbbbb-2200-0000-0000-00000000000d', 'two'),
+  ('44444444-4444-4444-4444-444444444444', 'bbbbbbbb-2200-0000-0000-00000000000b', 'three');
+select is((select comment_count from public.board_posts where id = '44444444-4444-4444-4444-444444444444'), 3, 'the trigger counts inserted comments');
+delete from auth.users where id = 'bbbbbbbb-2200-0000-0000-00000000000d';
+select is((select comment_count from public.board_posts where id = '44444444-4444-4444-4444-444444444444'), 1, 'deleting a commenter''s account lowers the count');
+
+-- ===== blocks: a blocked pair cannot comment, either way
+insert into public.member_blocks (blocker_id, blocked_id) values ('bbbbbbbb-2200-0000-0000-00000000000a', 'bbbbbbbb-2200-0000-0000-00000000000e');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-2200-0000-0000-00000000000e","role":"authenticated"}', true);
+select throws_ok($$select public.create_board_comment('44444444-4444-4444-4444-444444444444', 'hi')$$, 'P0002', null, 'a member blocked by the post author cannot comment');
+reset role;
+delete from public.member_blocks where blocker_id = 'bbbbbbbb-2200-0000-0000-00000000000a';
+insert into public.member_blocks (blocker_id, blocked_id) values ('bbbbbbbb-2200-0000-0000-00000000000e', 'bbbbbbbb-2200-0000-0000-00000000000a');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-2200-0000-0000-00000000000e","role":"authenticated"}', true);
+select throws_ok($$select public.create_board_comment('44444444-4444-4444-4444-444444444444', 'hi')$$, 'P0002', null, 'and neither can a member who blocked the author');
+reset role;
+delete from public.member_blocks where blocked_id = 'bbbbbbbb-2200-0000-0000-00000000000a';
+select lives_ok($$delete from public.board_posts where id = '44444444-4444-4444-4444-444444444444'$$, 'deleting a post with comments cascades without error');
 
 -- ===== cascade and grants
 reset role;

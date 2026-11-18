@@ -47,47 +47,13 @@ One timestamped migration. Every table is closed (`revoke all` from public, anon
     `<caller id>/<uuid>/<n>.jpg`, `allow_images`, the at-most-4 rule and the per-board limit (`post_limit_per_day` in any 24 hours,
     errcode `P0001`); returns the new post id. `p_id` is chosen by the browser because the image paths contain it. It refuses (errcode `22023`) a caller whose profile name is empty.
   - `delete_board_post(p_id)`: the author or an admin (`is_admin`); the storage objects are removed by the application after the row is gone.
-  - `board_comments_page(p_post, p_after, p_limit)` (oldest first), `create_board_comment(p_post, p_body)` (also refuses, `22023`, a profile with an empty name) (at most 30 comments per caller in any hour,
-    `P0001`; increments `comment_count` in the same transaction), `delete_board_comment(p_id)` (author or admin; decrements the count).
-- **Storage**: public bucket `board-images`, JPEG only, 500 KB per file. Policies mirror `avatars`: a member may insert, select and delete
-  only objects whose name matches `^<their id>/<uuid>/<1-4>\.jpg$`; no update rule, so nothing can be overwritten.
-- Admins cannot read anything the members' own screens do not already show.
-
-## Screens and routing
-
-- `/boards/[slug]`: header (board title and description, a **New post** action), then the post list newest first with an **Older posts** link (`?before=<time>`) and a **Newest posts** link back. A post card shows the author (avatar, name, `job · company`; selecting the author opens the existing `/members/[id]` modal),
-  the title, the first lines of the text, the first image, the comment count and the time. An unknown or inactive slug is a 404.
-- `/boards/[slug]/new`: title, text and an image picker (up to 4; each is resized in the browser to at most 1,600 px on the long side and
-  saved as JPEG, as profile photos are). Errors appear beside their fields; a save result appears as a toast. On success go to the post.
-- `/boards/[slug]/[postId]`: the full post and its images; a delete action for the author or an admin; from phase 2, the comments and
-  the comment box.
-- **Menu**: `app-chrome.tsx` shows one entry per active board after Week 2027, labelled with the board title, active on any
-  `/boards/<slug>` route. On mobile the entries join the equal-width tab row; if a second board makes the row too tight, group
-  the boards into one entry then.
-- Styling reuses the community classes (`.community-action`, `.community-action-secondary`, `.action-quiet`), square borders, the Summit
-  palette, no focus rings and no left-edge accent lines.
-- **Access wiring** (all three must change or the boards would be public or indexed): `isCommunityRoute` in `src/components/app-chrome.tsx`,
-  `isMembersOnlyPath` in `src/lib/supabase/proxy.ts` (signed-out requests go to `/login?next=...`), and `src/app/robots.ts` (disallow `/boards`).
-  `src/lib/site/seo.test.ts` is extended for the new route.
-
-## Phases
-
-1. **Phase 1**: the whole migration (including comment tables and functions), boards in the menu, list, new post with images, post
-   detail, delete, the three access-wiring changes, tests and docs.
-2. **Phase 2**: the comment UI on the post detail (list, write, delete) and the comment count on cards.
-
-## Errors and edge cases
-
-Deviations and decisions recorded after the build:
-- Text is trimmed with an explicit whitespace class (`\s` plus U+00A0, U+2000-U+200B, U+3000, U+FEFF) in SQL and the matching class in JS (`src/lib/boards/form.ts`).
-- The comment count is shown on post cards; comments on a post are read as at most the oldest 50, with no pagination in this version (known limitation).
-- Posting is an explicit act of publishing, so an author is shown with name, job, company and picture even when they hid themselves from the member directory (documented decision).
-- If `createBoardPost` fails ambiguously (the call throws), uploaded images are deliberately NOT deleted, since the post may exist.
-- Deleting a post removes its image files with the server-only service-role client, after the database authorised the delete.
-
+  - `board_comments_page(p_post, p_after, p_limit)` (oldest first), `create_board_comment(p_post, p_body)` (at most 30 comments per caller in any hour,
+    `P0001`; refuses `22023` a profile with an empty name; refuses `P0002` an unknown post or one whose author is blocked by or blocking the caller; reading is unchanged),
+    `delete_board_comment(p_id)` (author or admin). `comment_count` (never negative) is maintained by an after insert/delete trigger on `board_comments`, so cascades
+    such as deleting a commenter's account keep it right.
 - Over the limit: the form shows a message that the daily post limit (or hourly comment limit) was reached; it does not say when posting reopens.
 - A failed image upload leaves no post: images are uploaded first under a client-generated post id, then `create_board_post` is called;
-  if the call fails, the uploaded files are deleted again by the application. Orphans from a crash between the two steps are tolerated.
+  on a definite error (not when the call itself throws), the uploaded files are deleted again by the application. Orphans from a crash between the two steps are tolerated.
 - Deleting an account deletes its posts and comments (cascade); its image files are not removed by this version (noted as a known gap).
 - Long unbroken text wraps; images are shown with fixed aspect boxes so a tall image cannot break the layout.
 

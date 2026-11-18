@@ -46,7 +46,7 @@ async function BoardContent({ params, searchParams }: { params: PageProps<"/boar
       {posts.length === 0 ? (
         <p className="settings-intro">{copy.boards.empty}</p>
       ) : (
-        <ul className="board-list">
+        <ul className="board-posts">
           {posts.map((post) => <PostCard key={post.id} post={post} slug={slug} />)}
         </ul>
       )}

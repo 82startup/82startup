@@ -403,7 +403,7 @@ export const copy = {
       body: "Write text of 1 to 5,000 characters.",
       tooManyImages: "You can add up to 4 images.",
       upload: "We could not upload an image. Try again.",
-      limit: "You have reached the daily post limit for this board. Try again tomorrow.",
+      limit: "You have reached the daily post limit for this board. Try again later.",
       notFound: "This board is not available.",
       save: "We could not save your post. Try again.",
       delete: "We could not delete this post. Try again.",

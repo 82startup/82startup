@@ -387,7 +387,7 @@ a.connection-row-name:hover { text-decoration: underline; text-underline-offset:
   .community-icon-action[aria-current="page"] { background: var(--community-yellow); color: var(--community-charcoal); }
   .community-icon-action svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
   .community-nav { grid-column: 1 / -1; grid-row: 2; flex-direction: row; gap: 0; margin: 0 -16px; padding: 0; overflow: hidden; border-top: 1px solid #3d3e36; }
-  .community-nav-link { min-width: 0; min-height: 46px; flex: 1 1 0; justify-content: center; gap: 6px; padding: 0 6px; border-bottom: 2px solid transparent; font-size: 13px; }
+  .community-nav-link { min-width: 0; min-height: 46px; flex: 1 1 0; justify-content: center; gap: 6px; padding: 0 6px; border-bottom: 2px solid transparent; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .community-nav-link:hover, .community-nav-link[aria-current="page"] { background: transparent; color: var(--community-yellow); border-bottom-color: var(--community-yellow); }
   .community-nav-badge { min-width: 17px; height: 17px; padding: 0 5px; font-size: 10px; }
   .community-nav-marker, .community-nav-arrow { display: none; }
@@ -566,7 +566,7 @@ body:has(.login-main-modal) { background: #f6f5ed !important; }
 .board-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
 .board-head h1 { margin: 0; }
 .board-head p { max-width: 620px; margin: 10px 0 0; color: #6f7065; font-size: 14px; line-height: 1.6; }
-.board-list { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.board-posts { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
 .board-card { display: flex; flex-direction: column; border: 1px solid #c8c8ba; background: #fffef8; }
 .board-card-author { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 16px 18px 0; color: var(--community-charcoal); text-decoration: none; }
 .board-card-author-copy { display: flex; min-width: 0; flex-direction: column; gap: 2px; }

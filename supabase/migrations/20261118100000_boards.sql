@@ -20,7 +20,7 @@ create table public.board_posts (
   title text not null check (char_length(title) between 1 and 120),
   body text not null check (char_length(body) between 1 and 5000),
   images text[] not null default '{}' check (cardinality(images) <= 4),
-  comment_count integer not null default 0,
+  comment_count integer not null default 0 check (comment_count >= 0),
   created_at timestamptz not null default clock_timestamp()
 );
 create index board_posts_board_idx on public.board_posts (board_id, created_at desc, id);
@@ -226,6 +226,7 @@ declare
   uid uuid := (select auth.uid());
   clean_body text := regexp_replace(coalesce(p_body, ''), '^[\s  -​　﻿]+|[\s  -​　﻿]+$', '', 'g');
   new_id uuid;
+  post_author uuid;
 begin
   if uid is null then
     raise exception 'not signed in' using errcode = '28000';
@@ -233,7 +234,8 @@ begin
   if coalesce((select pr.name from public.profiles pr where pr.id = uid), '') = '' then
     raise exception 'profile name is required' using errcode = '22023';
   end if;
-  if not exists (select 1 from public.board_posts p join public.boards b on b.id = p.board_id where p.id = p_post and b.is_active) then
+  select p.author_id into post_author from public.board_posts p join public.boards b on b.id = p.board_id where p.id = p_post and b.is_active;
+  if not found or public.is_blocked_either_way(uid, post_author) then
     raise exception 'post not found' using errcode = 'P0002';
   end if;
   if clean_body = '' then
@@ -246,10 +248,28 @@ begin
     raise exception 'too many comments' using errcode = 'P0001';
   end if;
   insert into public.board_comments (post_id, author_id, body) values (p_post, uid, clean_body) returning id into new_id;
-  update public.board_posts p set comment_count = p.comment_count + 1 where p.id = p_post;
   return new_id;
 end
 $$;
+
+-- The trigger owns comment_count, so deleting a commenter's account (which cascades) keeps it right.
+create function public.board_comment_count_sync()
+returns trigger
+language plpgsql security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'INSERT' then
+    update public.board_posts p set comment_count = greatest(p.comment_count + 1, 0) where p.id = new.post_id;
+  else
+    update public.board_posts p set comment_count = greatest(p.comment_count - 1, 0) where p.id = old.post_id;
+  end if;
+  return null;
+end
+$$;
+revoke all on function public.board_comment_count_sync() from public, anon, authenticated, service_role;
+create trigger board_comments_count_sync after insert or delete on public.board_comments
+  for each row execute function public.board_comment_count_sync();
 
 create function public.delete_board_comment(p_id uuid)
 returns void
@@ -258,18 +278,15 @@ set search_path = ''
 as $$
 declare
   uid uuid := (select auth.uid());
-  owner_post uuid;
 begin
   if uid is null then
     raise exception 'not signed in' using errcode = '28000';
   end if;
   delete from public.board_comments c
-  where c.id = p_id and (c.author_id = uid or public.is_admin())
-  returning c.post_id into owner_post;
+  where c.id = p_id and (c.author_id = uid or public.is_admin());
   if not found then
     raise exception 'comment not found' using errcode = 'P0002';
   end if;
-  update public.board_posts p set comment_count = greatest(p.comment_count - 1, 0) where p.id = owner_post;
 end
 $$;
 

@@ -156,7 +156,7 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
         {picked.length < MAX_IMAGES && (
           <label className="community-action community-action-secondary board-form-pick" aria-disabled={busy || undefined}>
             {copy.boards.form.addImages}
-            <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden disabled={busy} onChange={(event) => void onPick(event.target.files)} />
+            <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" multiple className="visually-hidden" disabled={busy} onChange={(event) => void onPick(event.target.files)} />
           </label>
         )}
       </div>
