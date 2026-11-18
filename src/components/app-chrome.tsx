@@ -5,16 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { copy } from "@/lib/copy";
 import { createClient } from "@/lib/supabase/browser";
-
-const navigation = [
-  { href: "/members", label: "Members", marker: "01" },
-  { href: "/events", label: "Week 2027", marker: "02" },
-  { href: "/connections", label: "Connections", marker: "03" },
-  { href: "/messages", label: "Messages", marker: "04" },
-  { href: "/profile", label: "My profile", marker: "05" },
-  { href: "/settings", label: "Settings", marker: "06" },
-  { href: "/admin/events", label: "Admin", marker: "07" },
-];
+import { buildNavigation, type BoardLink } from "./navigation";
 
 function isCommunityRoute(pathname: string): boolean {
   return /^\/(?:events|members|member|boards|connections|messages|profile|settings|admin|speakers|sponsors)(?:\/|$)/.test(pathname);
@@ -25,6 +16,8 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
   const [isAdmin, setIsAdmin] = useState(false);
   const [requests, setRequests] = useState(0); // connection requests waiting for my answer, shown on Connections
   const [unread, setUnread] = useState(0); // unread messages across conversations, shown on Messages
+  const [boards, setBoards] = useState<BoardLink[]>([]); // active boards, one left-menu entry each
+  const navigation = buildNavigation(boards);
 
   useEffect(() => {
     if (!isCommunityRoute(pathname)) return;
@@ -39,12 +32,14 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
           return;
         }
         // Counts only: the same small functions the public header uses, not the full lists.
-        const [admin, waiting, unreadCount] = await Promise.all([
+        const [admin, waiting, unreadCount, boardList] = await Promise.all([
           supabase.rpc("is_admin"),
           supabase.rpc("pending_request_count"),
           supabase.rpc("unread_message_count"),
+          supabase.rpc("list_boards"),
         ]);
         if (!current) return;
+        setBoards(boardList.error ? [] : ((boardList.data ?? []) as BoardLink[]));
         setIsAdmin(!admin.error && admin.data === true);
         setRequests(waiting.error ? 0 : Number(waiting.data) || 0);
         setUnread(unreadCount.error ? 0 : Number(unreadCount.data) || 0);
