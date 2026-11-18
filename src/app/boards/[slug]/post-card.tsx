@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Avatar } from "@/components/avatar";
+import { copy } from "@/lib/copy";
 import { formatPostDate, previewText } from "@/lib/boards/format";
 import { boardImagePublicUrl } from "@/lib/boards/images";
 import type { BoardPostRow } from "@/lib/boards/types";
@@ -25,6 +26,7 @@ export function PostCard({ post, slug }: { post: BoardPostRow; slug: string }) {
           // eslint-disable-next-line @next/next/no-img-element -- our own public bucket; no image optimizer configured
           <img className="board-card-image" src={cover} alt="" loading="lazy" />
         )}
+        <span className="board-card-count">{post.comment_count === 1 ? copy.boards.commentsCountOne : copy.boards.commentsCount.replace("{n}", String(post.comment_count))}</span>
       </Link>
     </li>
   );

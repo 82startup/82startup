@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { BoardPostRow, BoardSummary } from "./types";
+import type { BoardCommentRow, BoardPostRow, BoardSummary } from "./types";
 
 export const BOARD_PAGE_SIZE = 20;
 
@@ -33,4 +33,11 @@ export async function getBoardPost(id: string): Promise<BoardPostRow | null> {
   if (error) throw new Error("post unavailable");
   const rows = (data ?? []) as BoardPostRow[];
   return rows[0] ?? null;
+}
+
+export async function getBoardComments(postId: string): Promise<BoardCommentRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("board_comments_page", { p_post: postId, p_after: null, p_limit: 50 });
+  if (error) throw new Error("comments unavailable");
+  return (data ?? []) as BoardCommentRow[];
 }

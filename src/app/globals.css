@@ -607,3 +607,17 @@ body:has(.login-main-modal) { background: #f6f5ed !important; }
 .board-article-foot { display: flex; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #d7d6c9; }
 .board-delete-confirm { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; }
 @media (max-width: 520px) { .board-article { padding: 16px; } }
+
+.board-card-count { color: #6f7065; font-size: 12px; }
+.board-comments { display: flex; flex-direction: column; gap: 16px; }
+.board-comments h2 { margin: 0; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; }
+.board-comment-list { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.board-comment { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; }
+.board-comment-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 13px; }
+.board-comment-meta a { color: var(--community-charcoal); font-weight: 600; text-decoration: none; }
+.board-comment-meta time { color: #8a8b7f; font-size: 12px; }
+.board-comment p { margin: 4px 0 0; color: #3a3b33; font-size: 14px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.board-comment-form { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.board-comment-form textarea { width: 100%; padding: 10px 12px; font-size: 14px; line-height: 1.6; resize: vertical; }
+.board-comment-form textarea:focus { border-color: var(--community-charcoal); }
+@media (max-width: 760px) { .board-comment-form .community-action { width: 100%; min-height: 48px; } }

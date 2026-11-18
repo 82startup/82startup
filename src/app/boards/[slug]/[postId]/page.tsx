@@ -7,6 +7,7 @@ import { copy } from "@/lib/copy";
 import { formatPostDate } from "@/lib/boards/format";
 import { boardImagePublicUrl } from "@/lib/boards/images";
 import { getBoardPost, requireViewer } from "@/lib/boards/queries";
+import { Comments } from "./comments";
 import { DeletePostButton } from "./delete-post-button";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -62,6 +63,7 @@ async function PostContent({ params }: { params: PageProps<"/boards/[slug]/[post
           </footer>
         )}
       </article>
+      <Comments slug={slug} postId={post.id} />
     </>
   );
 }
