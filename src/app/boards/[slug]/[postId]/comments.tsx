@@ -3,6 +3,7 @@ import { Avatar } from "@/components/avatar";
 import { copy } from "@/lib/copy";
 import { formatPostDate } from "@/lib/boards/format";
 import { getBoardComments } from "@/lib/boards/queries";
+import { CommentBody } from "./comment-body";
 import { CommentForm } from "./comment-form";
 import { DeleteCommentButton } from "./delete-comment-button";
 
@@ -26,7 +27,7 @@ export async function Comments({ slug, postId }: { slug: string; postId: string 
                   <time dateTime={comment.created_at}>{formatPostDate(comment.created_at)}</time>
                   {comment.can_delete && <DeleteCommentButton slug={slug} postId={postId} commentId={comment.id} />}
                 </div>
-                <p>{comment.body}</p>
+                <CommentBody slug={slug} postId={postId} commentId={comment.id} body={comment.body} canEdit={comment.can_edit} />
               </div>
             </li>
           ))}

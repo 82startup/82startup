@@ -630,4 +630,7 @@ body:has(.login-main-modal) { background: #f6f5ed !important; }
 .board-comment-form { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
 .board-comment-form textarea { width: 100%; padding: 10px 12px; font-size: 14px; line-height: 1.6; resize: vertical; }
 .board-comment-form textarea:focus { border-color: var(--community-charcoal); }
+.board-comment-edit { margin-top: 6px; }
+.board-comment-edit-actions { display: flex; gap: 10px; align-items: center; }
+.board-comment-edit-button { margin-top: 2px; font-size: 12px; }
 @media (max-width: 760px) { .board-comment-form .community-action { width: 100%; min-height: 48px; } }

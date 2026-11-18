@@ -419,6 +419,10 @@ export const copy = {
       send: "Comment",
       sending: "Sending…",
       delete: "Delete",
+      edit: "Edit",
+      save: "Save",
+      saving: "Saving…",
+      cancel: "Cancel",
       errors: {
         invalid: "Write a comment of 1 to 1,000 characters.",
         limit: "You have reached the limit of 30 comments an hour. Try again later.",

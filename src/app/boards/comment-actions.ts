@@ -39,6 +39,25 @@ export async function createBoardComment(_prev: CommentState, formData: FormData
   return { sentAt: Date.now() };
 }
 
+export async function updateBoardComment(_prev: CommentState, formData: FormData): Promise<CommentState> {
+  const slug = String(formData.get("slug") ?? "");
+  const postId = String(formData.get("postId") ?? "");
+  const commentId = String(formData.get("commentId") ?? "");
+  const body = cleanComment(String(formData.get("body") ?? ""));
+  if (!SLUG.test(slug) || !UUID.test(postId) || !UUID.test(commentId)) return { error: copy.boards.comments.errors.save };
+  if (!body) return { error: copy.boards.comments.errors.invalid };
+
+  const supabase = await memberSession(`/boards/${slug}/${postId}`);
+  const { error } = await supabase.rpc("update_board_comment", { p_id: commentId, p_body: body });
+  if (error) {
+    if (error.code === "22023" || error.code === "22001") return { error: copy.boards.comments.errors.invalid };
+    return { error: copy.boards.comments.errors.save };
+  }
+  revalidatePath(`/boards/${slug}/${postId}`);
+  revalidatePath(`/boards/${slug}`);
+  return { sentAt: Date.now() };
+}
+
 export async function deleteBoardComment(formData: FormData): Promise<DeleteCommentResult> {
   const slug = String(formData.get("slug") ?? "");
   const postId = String(formData.get("postId") ?? "");
