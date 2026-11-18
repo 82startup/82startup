@@ -82,7 +82,7 @@ export async function updateBoardPost(formData: FormData): Promise<CreatePostRes
   return { postId };
 }
 
-export type DeletePostResult ={ error?: string };
+export type DeletePostResult = { error?: string };
 
 // The database lets only the author or an admin delete, and returns the image paths. The files are then removed with the
 // server-only client (an admin's own session may not delete another member's files). Failing to remove a file is logged, not fatal.

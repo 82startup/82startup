@@ -36,7 +36,7 @@ async function EditPostContent({ params }: { params: PageProps<"/boards/[slug]/[
           </p>
         </div>
       </header>
-      <PostForm mode="edit" slug={slug} userId={userId} initial={{ postId: post.id, title: post.title, body: post.body, images: post.images }} />
+      <PostForm key={JSON.stringify([post.id, post.title, post.body, post.images])} mode="edit" slug={slug} userId={userId} initial={{ postId: post.id, title: post.title, body: post.body, images: post.images }} />
     </>
   );
 }
