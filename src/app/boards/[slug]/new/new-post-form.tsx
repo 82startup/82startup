@@ -14,6 +14,13 @@ import { createClient } from "@/lib/supabase/browser";
 import { createBoardPost } from "../../actions";
 
 type Picked = { id: string; blob: Blob; url: string };
+class UploadFailed extends Error {}
+
+function isRedirect(error: unknown): boolean {
+  const digest = (error as { digest?: unknown } | null)?.digest;
+  return typeof digest === "string" && digest.startsWith("NEXT_REDIRECT");
+}
+
 type Notice = { message: string; tone: "error" | "success" };
 
 export function NewPostForm({ slug, userId }: { slug: string; userId: string }) {
@@ -82,15 +89,17 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
       const supabase = createClient();
       const postId = crypto.randomUUID();
       const paths: string[] = [];
-      for (const [index, image] of picked.entries()) {
-        const path = boardImagePath(userId, postId, index + 1);
-        const { error } = await supabase.storage.from(BOARD_IMAGE_BUCKET).upload(path, image.blob, { contentType: "image/jpeg", cacheControl: "31536000" });
-        if (error) {
-          await removeUploaded(paths);
-          setNotice({ message: copy.boards.errors.upload, tone: "error" });
-          return;
+      try {
+        for (const [index, image] of picked.entries()) {
+          const path = boardImagePath(userId, postId, index + 1);
+          const { error } = await supabase.storage.from(BOARD_IMAGE_BUCKET).upload(path, image.blob, { contentType: "image/jpeg", cacheControl: "31536000" });
+          if (error) throw new UploadFailed();
+          paths.push(path);
         }
-        paths.push(path);
+      } catch {
+        await removeUploaded(paths);
+        setNotice({ message: copy.boards.errors.upload, tone: "error" });
+        return;
       }
       const data = new FormData();
       data.set("slug", slug);
@@ -98,7 +107,16 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
       data.set("title", title);
       data.set("body", body);
       for (const path of paths) data.append("image", path);
-      const result = await createBoardPost(data);
+      let result: Awaited<ReturnType<typeof createBoardPost>>;
+      try {
+        result = await createBoardPost(data);
+      } catch (e) {
+        // The server redirects an expired session to /login; Next rejects the call with that redirect so its boundary can navigate.
+        if (isRedirect(e)) throw e;
+        // The outcome is unknown (the post may exist), so the uploaded pictures are kept.
+        setNotice({ message: copy.boards.errors.save, tone: "error" });
+        return;
+      }
       if (result.error || !result.postId) {
         await removeUploaded(paths);
         setNotice({ message: result.error ?? copy.boards.errors.save, tone: "error" });
