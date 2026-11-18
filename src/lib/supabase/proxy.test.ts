@@ -34,6 +34,8 @@ describe("updateSession gate", () => {
       ["/admin/events", "/admin/events"],
       ["/speakers/person", "/speakers/person"],
       ["/sponsors", "/sponsors"],
+      ["/boards/showcase", "/boards/showcase"],
+      ["/boards/showcase/new", "/boards/showcase/new"],
     ] as const) {
       const res = await updateSession(req(path));
       expect(res.status).toBe(307);

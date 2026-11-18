@@ -17,7 +17,7 @@ const navigation = [
 ];
 
 function isCommunityRoute(pathname: string): boolean {
-  return /^\/(?:events|members|member|connections|messages|profile|settings|admin|speakers|sponsors)(?:\/|$)/.test(pathname);
+  return /^\/(?:events|members|member|boards|connections|messages|profile|settings|admin|speakers|sponsors)(?:\/|$)/.test(pathname);
 }
 
 export function AppChrome({ header, signup, children, overlay }: { header: ReactNode; signup: ReactNode; children: ReactNode; overlay: ReactNode }) {

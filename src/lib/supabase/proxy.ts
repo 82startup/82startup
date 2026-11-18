@@ -57,7 +57,7 @@ export async function updateSession(request: NextRequest) {
 }
 
 // Community pages (not sign-in, auth callbacks, APIs or unsubscribe links, which handle their own access).
-const MEMBERS_ONLY = /^\/(?:members|member|events|connections|messages|profile|settings|admin|speakers|sponsors)(?:\/|$)/;
+const MEMBERS_ONLY = /^\/(?:members|member|events|boards|connections|messages|profile|settings|admin|speakers|sponsors)(?:\/|$)/;
 
 export function isMembersOnlyPath(pathname: string): boolean {
   return MEMBERS_ONLY.test(pathname);

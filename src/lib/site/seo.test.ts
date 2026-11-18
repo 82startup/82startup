@@ -40,7 +40,7 @@ describe("public SEO", () => {
     const urls = pages.map((page) => `https://82startup.com/${page === "index" ? "" : `${page}.html`}`);
     expect(sitemap().map((entry) => entry.url).sort()).toEqual(urls.sort());
     const rules = robots().rules as { disallow: string[] };
-    for (const path of ["/members", "/messages", "/api/", "/admin"]) expect(rules.disallow).toContain(path);
+    for (const path of ["/members", "/messages", "/boards", "/api/", "/admin"]) expect(rules.disallow).toContain(path);
     expect(robots().sitemap).toBe("https://82startup.com/sitemap.xml");
   });
 });
