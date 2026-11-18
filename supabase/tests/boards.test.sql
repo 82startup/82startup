@@ -1,5 +1,5 @@
 begin;
-select plan(37);
+select plan(41);
 
 -- A (author), B (other member), C (admin).
 insert into auth.users (id, email) values
@@ -25,6 +25,18 @@ select throws_ok($$select * from public.board_posts$$, '42501', null, 'members c
 select throws_ok($$insert into public.board_posts (board_id, author_id, title, body) select id, 'bbbbbbbb-1100-0000-0000-00000000000a', 't', 'b' from public.boards$$, '42501', null, 'members cannot write the posts table');
 select throws_ok($$select public.create_board_post('11111111-1111-1111-1111-111111111111', 'showcase', E'  \n ', 'body', '{}')$$, '22023', null, 'an empty title is refused');
 select throws_ok($$select public.create_board_post('11111111-1111-1111-1111-111111111111', 'showcase', 'title', '   ', '{}')$$, '22023', null, 'an empty text is refused');
+select throws_ok($$select public.create_board_post('11111111-1111-1111-1111-111111111111', 'showcase', E'\u00a0', 'body', '{}')$$, '22023', null, 'a title of only a no-break space is refused');
+select throws_ok($$select public.create_board_post('11111111-1111-1111-1111-111111111111', 'showcase', 'title', E'\u200b', '{}')$$, '22023', null, 'a text of only a zero-width space is refused');
+select throws_ok($$select public.create_board_post('11111111-1111-1111-1111-111111111111', 'showcase', E'\u3000', 'body', '{}')$$, '22023', null, 'a title of only an ideographic space is refused');
+reset role;
+update public.profiles set name = '' where id = 'bbbbbbbb-1100-0000-0000-00000000000a';
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-1100-0000-0000-00000000000a","role":"authenticated"}', true);
+select throws_ok($$select public.create_board_post('11111111-1111-1111-1111-111111111111', 'showcase', 'title', 'body', '{}')$$, '22023', null, 'a member without a name cannot post');
+reset role;
+update public.profiles set name = 'Ann A' where id = 'bbbbbbbb-1100-0000-0000-00000000000a';
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"bbbbbbbb-1100-0000-0000-00000000000a","role":"authenticated"}', true);
 select throws_ok($$select public.create_board_post('11111111-1111-1111-1111-111111111111', 'showcase', repeat('x', 121), 'body', '{}')$$, '22001', null, 'a title over 120 characters is refused');
 select throws_ok($$select public.create_board_post('11111111-1111-1111-1111-111111111111', 'showcase', 'title', repeat('x', 5001), '{}')$$, '22001', null, 'a text over 5000 characters is refused');
 select throws_ok($$select public.create_board_post('11111111-1111-1111-1111-111111111111', 'nope', 'title', 'body', '{}')$$, 'P0002', null, 'an unknown board is refused');

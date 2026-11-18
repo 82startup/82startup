@@ -110,12 +110,15 @@ as $$
 declare
   uid uuid := (select auth.uid());
   board public.boards;
-  clean_title text := regexp_replace(coalesce(p_title, ''), '^\s+|\s+$', '', 'g');
-  clean_body text := regexp_replace(coalesce(p_body, ''), '^\s+|\s+$', '', 'g');
+  clean_title text := regexp_replace(coalesce(p_title, ''), '^[\s  -​　﻿]+|[\s  -​　﻿]+$', '', 'g');
+  clean_body text := regexp_replace(coalesce(p_body, ''), '^[\s  -​　﻿]+|[\s  -​　﻿]+$', '', 'g');
   paths text[] := coalesce(p_images, '{}');
 begin
   if uid is null then
     raise exception 'not signed in' using errcode = '28000';
+  end if;
+  if coalesce((select pr.name from public.profiles pr where pr.id = uid), '') = '' then
+    raise exception 'profile name is required' using errcode = '22023';
   end if;
   if p_id is null then
     raise exception 'post id is required' using errcode = '22023';
