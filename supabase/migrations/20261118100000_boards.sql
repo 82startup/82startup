@@ -184,3 +184,98 @@ grant execute on function public.board_posts_page(text, timestamptz, integer) to
 grant execute on function public.board_post(uuid) to authenticated;
 grant execute on function public.create_board_post(uuid, text, text, text, text[]) to authenticated;
 grant execute on function public.delete_board_post(uuid) to authenticated;
+
+-- Comments. Oldest first; at most 30 per member per hour; deleted by their author or an admin.
+create table public.board_comments (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references public.board_posts (id) on delete cascade,
+  author_id uuid not null references public.profiles (id) on delete cascade,
+  body text not null check (char_length(body) between 1 and 1000),
+  created_at timestamptz not null default clock_timestamp()
+);
+create index board_comments_post_idx on public.board_comments (post_id, created_at, id);
+create index board_comments_author_idx on public.board_comments (author_id, created_at desc);
+alter table public.board_comments enable row level security;
+revoke all on public.board_comments from public, anon, authenticated, service_role;
+
+create function public.board_comments_page(p_post uuid, p_after timestamptz, p_limit integer)
+returns table (id uuid, body text, created_at timestamptz, author_id uuid, author_name text, author_job_title text,
+               author_company text, author_avatar text, can_delete boolean)
+language sql stable security definer
+set search_path = ''
+as $$
+  select c.id, c.body, c.created_at, c.author_id, pr.name, pr.job_title, pr.company_name, pr.avatar_url,
+         (c.author_id = (select auth.uid()) or public.is_admin())
+  from public.board_comments c
+  join public.board_posts p on p.id = c.post_id
+  join public.boards b on b.id = p.board_id
+  join public.profiles pr on pr.id = c.author_id
+  where (select auth.uid()) is not null
+    and c.post_id = p_post and b.is_active
+    and (p_after is null or c.created_at > p_after)
+  order by c.created_at, c.id
+  limit least(greatest(coalesce(p_limit, 50), 1), 50)
+$$;
+
+create function public.create_board_comment(p_post uuid, p_body text)
+returns uuid
+language plpgsql security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := (select auth.uid());
+  clean_body text := regexp_replace(coalesce(p_body, ''), '^[\s  -​　﻿]+|[\s  -​　﻿]+$', '', 'g');
+  new_id uuid;
+begin
+  if uid is null then
+    raise exception 'not signed in' using errcode = '28000';
+  end if;
+  if coalesce((select pr.name from public.profiles pr where pr.id = uid), '') = '' then
+    raise exception 'profile name is required' using errcode = '22023';
+  end if;
+  if not exists (select 1 from public.board_posts p join public.boards b on b.id = p.board_id where p.id = p_post and b.is_active) then
+    raise exception 'post not found' using errcode = 'P0002';
+  end if;
+  if clean_body = '' then
+    raise exception 'comment is empty' using errcode = '22023';
+  end if;
+  if char_length(clean_body) > 1000 then
+    raise exception 'comment is too long' using errcode = '22001';
+  end if;
+  if (select count(*) from public.board_comments c where c.author_id = uid and c.created_at > now() - interval '1 hour') >= 30 then
+    raise exception 'too many comments' using errcode = 'P0001';
+  end if;
+  insert into public.board_comments (post_id, author_id, body) values (p_post, uid, clean_body) returning id into new_id;
+  update public.board_posts p set comment_count = p.comment_count + 1 where p.id = p_post;
+  return new_id;
+end
+$$;
+
+create function public.delete_board_comment(p_id uuid)
+returns void
+language plpgsql security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := (select auth.uid());
+  owner_post uuid;
+begin
+  if uid is null then
+    raise exception 'not signed in' using errcode = '28000';
+  end if;
+  delete from public.board_comments c
+  where c.id = p_id and (c.author_id = uid or public.is_admin())
+  returning c.post_id into owner_post;
+  if not found then
+    raise exception 'comment not found' using errcode = 'P0002';
+  end if;
+  update public.board_posts p set comment_count = greatest(p.comment_count - 1, 0) where p.id = owner_post;
+end
+$$;
+
+revoke all on function public.board_comments_page(uuid, timestamptz, integer) from public, anon, authenticated, service_role;
+revoke all on function public.create_board_comment(uuid, text) from public, anon, authenticated, service_role;
+revoke all on function public.delete_board_comment(uuid) from public, anon, authenticated, service_role;
+grant execute on function public.board_comments_page(uuid, timestamptz, integer) to authenticated;
+grant execute on function public.create_board_comment(uuid, text) to authenticated;
+grant execute on function public.delete_board_comment(uuid) to authenticated;
