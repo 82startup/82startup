@@ -5,9 +5,9 @@ promote their startups. Later boards (jobs, fundraising, and so on) are added as
 
 ## Scope
 
-In: boards as data; free-form posts (title, text, up to 4 images); comments; delete by the author or an admin; a left-menu entry per
-active board; rate limits; access rules and tests.
-Out (this version): editing a post or comment, likes, reporting, notifications, search, pinning, per-board rules beyond the two
+In: boards as data; free-form posts (title, text, up to 4 images); comments; edit by the author only (a post's title, text and pictures, a comment's text); delete by the author or an admin; a left-menu
+entry per active board; rate limits; access rules and tests.
+Out (this version): likes, reporting, notifications, search, pinning, per-board rules beyond the two
 columns below, a public (signed-out) view, email digests.
 
 ## Decisions (owner, 2026-11-18)
@@ -25,7 +25,8 @@ The new tables, functions, routes and copy all use the `board` prefix so the two
 
 ## Database
 
-One timestamped migration. Every table is closed (`revoke all` from public, anon, authenticated, service_role); all access is through
+Two timestamped migrations: `20261118100000_boards.sql` (everything below) and `20261118110000_board_edit.sql` (editing, see "Editing"
+below). Neither is applied to production until the owner asks. Every table is closed (`revoke all` from public, anon, authenticated, service_role); all access is through
 `security definer` functions with `set search_path = ''`, and each function is granted explicitly to `authenticated` only
 (production has no default grants).
 
@@ -44,24 +45,39 @@ One timestamped migration. Every table is closed (`revoke all` from public, anon
     the author's id, name, job title, company and avatar, and whether the caller may delete it.
   - `board_post(p_id)`: one post with the same author fields.
   - `create_board_post(p_id, p_slug, p_title, p_body, p_images text[])`: checks the board is active, title/body length, that each image path is
-    `<caller id>/<uuid>/<n>.jpg`, `allow_images`, the at-most-4 rule and the per-board limit (`post_limit_per_day` in any 24 hours,
+    `<caller id>/<uuid>/<n or uuid>.jpg`, `allow_images`, the at-most-4 rule and the per-board limit (`post_limit_per_day` in any 24 hours,
     errcode `P0001`); returns the new post id. `p_id` is chosen by the browser because the image paths contain it. It refuses (errcode `22023`) a caller whose profile name is empty.
   - `delete_board_post(p_id)`: the author or an admin (`is_admin`); the storage objects are removed by the application after the row is gone.
   - `board_comments_page(p_post, p_after, p_limit)` (oldest first), `create_board_comment(p_post, p_body)` (at most 30 comments per caller in any hour, `P0001`;
     refuses `22023` a profile with an empty name; refuses `P0002` an unknown post, or one whose author is blocked by or blocking the caller; reading is unchanged),
     `delete_board_comment(p_id)` (author or admin). `comment_count` (never negative) is kept by an after insert/delete trigger on `board_comments`, so cascades keep it right.
 - **Storage**: public bucket `board-images`, JPEG only, 500 KB per file. Policies mirror `avatars`: a member may insert, select and delete
-  only objects whose name matches `^<their id>/<uuid>/<1-4>\.jpg$`; no update rule, so nothing can be overwritten.
+  only objects whose name matches `^<their id>/<uuid>/<1-4 or uuid>\.jpg$` (the uuid file name was added by the second migration); no update rule, so nothing can be overwritten.
 - Admins cannot read anything the members' own screens do not already show.
+
+### Editing (second migration, `20261118110000_board_edit.sql`)
+
+- Only the author edits; an admin cannot edit another member's post or comment (an admin can still delete). Delete stays author or admin.
+  There is no "edited" marker and no rate limit on edits.
+- `update_board_post(p_id, p_title, p_body, p_images text[])`: author only (`P0002` otherwise), same title/body/image checks as create and an
+  active board; refuses `22023` a profile with an empty name. `p_images` is the full ordered list (kept paths plus new ones). It returns the
+  picture paths that are no longer in the post; the application removes those files with the member's own session (the storage delete
+  policy allows own files). A failed removal is logged, not fatal.
+- `update_board_comment(p_id, p_body)`: author only, text 1 to 1,000 after trimming.
+- `board_post` and `board_comments_page` gain a final `can_edit` column (true for the author only); `can_delete` is unchanged.
+- Picture file names: new pictures are stored as `<author id>/<post id>/<uuid>.jpg` with a random lower-case uuid. They are uploaded with a
+  one-year cache lifetime, so a replaced picture must get a new address. Old `1.jpg` to `4.jpg` names stay valid. The `create_board_post`
+  path check and the storage policies (insert, select, delete) accept either form.
+- Deleting a post still removes all its files with the service-role client.
 
 ## Screens and routing
 
-- `/boards/[slug]`: header (board title and description, a **New post** action), then the post list newest first with an **Older posts** link (`?before=<time>`) and a **Newest posts** link back. A post card shows the author (avatar, name, `job · company`; selecting the author opens the existing `/members/[id]` modal),
-  the title, the first lines of the text, the first image, the comment count and the time. An unknown or inactive slug is a 404.
+- `/boards/[slug]`: header (board title and description, a **New post** action), then the post list newest first with an **Older posts** link (`?before=<time>`) and a **Newest posts** link back. The list is one line per post: a small thumbnail (first image), the title with `author · job · company` beneath, the date and the comment count; the whole row is one link to the post. An unknown or inactive slug is a 404.
 - `/boards/[slug]/new`: title, text and an image picker (up to 4; each is resized in the browser to at most 1,600 px on the long side and
-  saved as JPEG, as profile photos are). Errors appear beside their fields; a save result appears as a toast. On success go to the post.
-- `/boards/[slug]/[postId]`: the full post and its images; a delete action for the author or an admin; from phase 2, the comments and
-  the comment box.
+  saved as JPEG, as profile photos are). Errors appear beside their fields; a save result appears as a toast. On success go to the post. The form is always empty on every visit and after saving.
+- `/boards/[slug]/[postId]`: the full post and its images; an **Edit** link for the author only and a delete action for the author or an admin; from phase 2, the comments and
+  the comment box. Each comment shows an edit action for its author (text only, drafts are controlled so a failed save or send keeps the typed text).
+- `/boards/[slug]/[postId]/edit`: the same `PostForm` as the new-post page, filled from the stored post (title, text, pictures; each picture can be removed, new ones added, up to 4). It is keyed on the server data, so it remounts when the data changes. Only the author reaches it.
 - **Menu**: `app-chrome.tsx` shows one entry per active board after Week 2027, labelled with the board title, active on any
   `/boards/<slug>` route. On mobile the entries join the equal-width tab row; if a second board makes the row too tight, group
   the boards into one entry then.
@@ -81,7 +97,7 @@ One timestamped migration. Every table is closed (`revoke all` from public, anon
 
 Deviations and decisions recorded after the build:
 - Text is trimmed with an explicit whitespace class (`\s` plus U+00A0, U+2000-U+200B, U+3000, U+FEFF) in SQL and the matching class in JS (`src/lib/boards/form.ts`).
-- The comment count is shown on post cards; comments on a post are read as at most the oldest 50, with no pagination in this version (known limitation).
+- The comment count is shown on each list row; comments on a post are read as at most the oldest 50, with no pagination in this version (known limitation).
 - Posting is an explicit act of publishing, so an author is shown with name, job, company and picture even when they hid themselves from the member directory (documented decision).
 - If `createBoardPost` fails ambiguously (the call throws), uploaded images are deliberately NOT deleted, since the post may exist.
 - Deleting a post removes its image files with the server-only service-role client, after the database authorised the delete.
