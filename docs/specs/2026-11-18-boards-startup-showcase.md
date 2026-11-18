@@ -43,11 +43,11 @@ One timestamped migration. Every table is closed (`revoke all` from public, anon
   - `board_posts_page(p_slug, p_before timestamptz, p_limit)`: newest first, at most 20 per page; returns post fields, `comment_count`,
     the author's id, name, job title, company and avatar, and whether the caller may delete it.
   - `board_post(p_id)`: one post with the same author fields.
-  - `create_board_post(p_slug, p_title, p_body, p_images text[])`: checks the board is active, title/body length, that each image path is
+  - `create_board_post(p_id, p_slug, p_title, p_body, p_images text[])`: checks the board is active, title/body length, that each image path is
     `<caller id>/<uuid>/<n>.jpg`, `allow_images`, the at-most-4 rule and the per-board limit (`post_limit_per_day` in any 24 hours,
-    errcode `P0001`); returns the new post id.
+    errcode `P0001`); returns the new post id. `p_id` is chosen by the browser because the image paths contain it. It refuses (errcode `22023`) a caller whose profile name is empty.
   - `delete_board_post(p_id)`: the author or an admin (`is_admin`); the storage objects are removed by the application after the row is gone.
-  - `board_comments_page(p_post, p_before, p_limit)`, `create_board_comment(p_post, p_body)` (at most 30 comments per caller in any hour,
+  - `board_comments_page(p_post, p_after, p_limit)` (oldest first), `create_board_comment(p_post, p_body)` (also refuses, `22023`, a profile with an empty name) (at most 30 comments per caller in any hour,
     `P0001`; increments `comment_count` in the same transaction), `delete_board_comment(p_id)` (author or admin; decrements the count).
 - **Storage**: public bucket `board-images`, JPEG only, 500 KB per file. Policies mirror `avatars`: a member may insert, select and delete
   only objects whose name matches `^<their id>/<uuid>/<1-4>\.jpg$`; no update rule, so nothing can be overwritten.
@@ -55,8 +55,7 @@ One timestamped migration. Every table is closed (`revoke all` from public, anon
 
 ## Screens and routing
 
-- `/boards/[slug]`: header (board title and description, a **New post** action), then the post list newest first with a **Load more**
-  action. A post card shows the author (avatar, name, `job · company`; selecting the author opens the existing `/members/[id]` modal),
+- `/boards/[slug]`: header (board title and description, a **New post** action), then the post list newest first with an **Older posts** link (`?before=<time>`) and a **Newest posts** link back. A post card shows the author (avatar, name, `job · company`; selecting the author opens the existing `/members/[id]` modal),
   the title, the first lines of the text, the first image, the comment count and the time. An unknown or inactive slug is a 404.
 - `/boards/[slug]/new`: title, text and an image picker (up to 4; each is resized in the browser to at most 1,600 px on the long side and
   saved as JPEG, as profile photos are). Errors appear beside their fields; a save result appears as a toast. On success go to the post.
@@ -78,6 +77,13 @@ One timestamped migration. Every table is closed (`revoke all` from public, anon
 2. **Phase 2**: the comment UI on the post detail (list, write, delete) and the comment count on cards.
 
 ## Errors and edge cases
+
+Deviations and decisions recorded after the build:
+- Text is trimmed with an explicit whitespace class (`\s` plus U+00A0, U+2000-U+200B, U+3000, U+FEFF) in SQL and the matching class in JS (`src/lib/boards/form.ts`).
+- The comment count is shown on post cards; comments on a post are read as at most the oldest 50, with no pagination in this version (known limitation).
+- Posting is an explicit act of publishing, so an author is shown with name, job, company and picture even when they hid themselves from the member directory (documented decision).
+- If `createBoardPost` fails ambiguously (the call throws), uploaded images are deliberately NOT deleted, since the post may exist.
+- Deleting a post removes its image files with the server-only service-role client, after the database authorised the delete.
 
 - Over the limit: the form shows a message that the daily post limit (or hourly comment limit) was reached; it does not say when posting reopens.
 - A failed image upload leaves no post: images are uploaded first under a client-generated post id, then `create_board_post` is called;
