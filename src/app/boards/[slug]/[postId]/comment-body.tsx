@@ -9,6 +9,8 @@ type Props = { slug: string; postId: string; commentId: string; body: string; ca
 
 export function CommentBody({ slug, postId, commentId, body, canEdit }: Props) {
   const [editing, setEditing] = useState(false);
+  // Controlled, so a failed save does not reset the box to the old body.
+  const [draft, setDraft] = useState(body);
   // A successful save closes the form from the action itself, not from an effect.
   const [state, action, pending] = useActionState<CommentState, FormData>(async (prev, formData) => {
     const result = await updateBoardComment(prev, formData);
@@ -19,12 +21,12 @@ export function CommentBody({ slug, postId, commentId, body, canEdit }: Props) {
   return (
     <>
       {editing ? (
-        // Rendered only while editing, so the box always starts from the current body.
+        // Rendered only while editing; Edit re-initialises the draft from the current body.
         <form className="board-comment-form board-comment-edit" action={action}>
           <input type="hidden" name="slug" value={slug} />
           <input type="hidden" name="postId" value={postId} />
           <input type="hidden" name="commentId" value={commentId} />
-          <textarea name="body" rows={3} maxLength={1000} defaultValue={body} aria-label={copy.boards.comments.edit} />
+          <textarea name="body" rows={3} maxLength={1000} value={draft} onChange={(e) => setDraft(e.target.value)} aria-label={copy.boards.comments.edit} />
           <div className="board-comment-edit-actions">
             <button type="button" className="action-quiet" onClick={() => setEditing(false)} disabled={pending}>
               {copy.boards.comments.cancel}
@@ -38,7 +40,10 @@ export function CommentBody({ slug, postId, commentId, body, canEdit }: Props) {
         <>
           <p>{body}</p>
           {canEdit && (
-            <button type="button" className="action-quiet board-comment-edit-button" onClick={() => setEditing(true)}>
+            <button type="button" className="action-quiet board-comment-edit-button" onClick={() => {
+                setDraft(body);
+                setEditing(true);
+              }}>
               {copy.boards.comments.edit}
             </button>
           )}

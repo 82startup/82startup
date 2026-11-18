@@ -634,3 +634,4 @@ body:has(.login-main-modal) { background: #f6f5ed !important; }
 .board-comment-edit-actions { display: flex; gap: 10px; align-items: center; }
 .board-comment-edit-button { margin-top: 2px; font-size: 12px; }
 @media (max-width: 760px) { .board-comment-form .community-action { width: 100%; min-height: 48px; } }
+@media (max-width: 760px) { .board-comment-edit-actions .community-action { width: auto; min-height: 38px; } }
