@@ -4,15 +4,19 @@ export const BOARD_IMAGE_TARGET_BYTES = 400 * 1024; // what the browser aims for
 export const BOARD_IMAGE_MAX_SIDE = 1600; // pixels, the long side
 
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
-const ANY_PATH = new RegExp(`^${UUID}/${UUID}/[1-4]\\.jpg$`);
+// Old posts use 1-4; new pictures get a random uuid so a replaced picture has a new address.
+const FILE = `(?:[1-4]|${UUID})`;
+const UUID_ONLY = new RegExp(`^${UUID}$`);
+const ANY_PATH = new RegExp(`^${UUID}/${UUID}/${FILE}\\.jpg$`);
 
-export function boardImagePath(userId: string, postId: string, n: number): string {
-  return `${userId}/${postId}/${n}.jpg`;
+export function boardImagePath(userId: string, postId: string, fileId: string): string {
+  return `${userId}/${postId}/${fileId}.jpg`;
 }
 
-// Exactly <own account id>/<this post id>/<1-4>.jpg: the only shape a member may store for a post.
+// Exactly <own account id>/<this post id>/<1-4 or uuid>.jpg: the only shape a member may store for a post.
 export function isOwnBoardImagePath(path: string, userId: string, postId: string): boolean {
-  return new RegExp(`^${userId}/${postId}/[1-4]\\.jpg$`).test(path);
+  if (!UUID_ONLY.test(userId) || !UUID_ONLY.test(postId)) return false;
+  return new RegExp(`^${userId}/${postId}/${FILE}\\.jpg$`).test(path);
 }
 
 export function isBoardImagePath(path: string): boolean {

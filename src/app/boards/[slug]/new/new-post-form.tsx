@@ -107,7 +107,7 @@ export function NewPostForm({ slug, userId }: { slug: string; userId: string }) 
       const paths: string[] = [];
       try {
         for (const [index, image] of picked.entries()) {
-          const path = boardImagePath(userId, postId, index + 1);
+          const path = boardImagePath(userId, postId, crypto.randomUUID());
           const { error } = await supabase.storage.from(BOARD_IMAGE_BUCKET).upload(path, image.blob, { contentType: "image/jpeg", cacheControl: "31536000" });
           if (error) throw new UploadFailed();
           paths.push(path);

@@ -16,6 +16,7 @@ export type BoardPostRow = Author & {
   comment_count: number;
   created_at: string;
   can_delete: boolean;
+  can_edit: boolean;
 };
 
 export type BoardCommentRow = Author & {
@@ -23,4 +24,5 @@ export type BoardCommentRow = Author & {
   body: string;
   created_at: string;
   can_delete: boolean;
+  can_edit: boolean;
 };
