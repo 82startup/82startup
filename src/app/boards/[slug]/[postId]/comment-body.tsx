@@ -1,13 +1,14 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, type ReactNode } from "react";
 import { Toast } from "@/components/toast";
 import { copy } from "@/lib/copy";
+import { RichText } from "@/lib/boards/rich-text";
 import { updateBoardComment, type CommentState } from "../../comment-actions";
 
-type Props = { slug: string; postId: string; commentId: string; body: string; canEdit: boolean };
+type Props = { slug: string; postId: string; commentId: string; body: string; canEdit: boolean; meta: ReactNode; deleteButton: ReactNode };
 
-export function CommentBody({ slug, postId, commentId, body, canEdit }: Props) {
+export function CommentBody({ slug, postId, commentId, body, canEdit, meta, deleteButton }: Props) {
   const [editing, setEditing] = useState(false);
   // Controlled, so a failed save does not reset the box to the old body.
   const [draft, setDraft] = useState(body);
@@ -18,8 +19,25 @@ export function CommentBody({ slug, postId, commentId, body, canEdit }: Props) {
     return result;
   }, {});
 
+  // The name row carries Edit and Delete together at the right; Edit hides while the edit form is open.
   return (
-    <>
+    <div className="board-comment-main">
+      <div className="board-comment-meta">
+        {meta}
+        {((canEdit && !editing) || deleteButton) && (
+          <span className="board-comment-actions">
+            {canEdit && !editing && (
+              <button type="button" className="action-quiet" onClick={() => {
+                  setDraft(body);
+                  setEditing(true);
+                }}>
+                {copy.boards.comments.edit}
+              </button>
+            )}
+            {deleteButton}
+          </span>
+        )}
+      </div>
       {editing ? (
         // Rendered only while editing; Edit re-initialises the draft from the current body.
         <form className="board-comment-form board-comment-edit" action={action}>
@@ -37,19 +55,9 @@ export function CommentBody({ slug, postId, commentId, body, canEdit }: Props) {
           </div>
         </form>
       ) : (
-        <>
-          <p>{body}</p>
-          {canEdit && (
-            <button type="button" className="action-quiet board-comment-edit-button" onClick={() => {
-                setDraft(body);
-                setEditing(true);
-              }}>
-              {copy.boards.comments.edit}
-            </button>
-          )}
-        </>
+        <p><RichText text={body} /></p>
       )}
       <Toast trigger={state} message={state.error} tone="error" />
-    </>
+    </div>
   );
 }

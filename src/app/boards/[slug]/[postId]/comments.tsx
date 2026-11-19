@@ -11,9 +11,9 @@ export async function Comments({ slug, postId }: { slug: string; postId: string 
   const comments = await getBoardComments(postId);
   return (
     <section className="board-comments" aria-label={copy.boards.comments.title}>
-      <h2>{copy.boards.comments.title}</h2>
+      <h2>{copy.boards.comments.title}{comments.length > 0 && <span>{comments.length}</span>}</h2>
       {comments.length === 0 ? (
-        <p className="settings-intro">{copy.boards.comments.none}</p>
+        <p className="board-comments-empty">{copy.boards.comments.none}</p>
       ) : (
         <ul className="board-comment-list">
           {comments.map((comment) => (
@@ -21,14 +21,20 @@ export async function Comments({ slug, postId }: { slug: string; postId: string 
               <Link href={`/members/${comment.author_id}`} className="board-comment-avatar" aria-label={comment.author_name}>
                 <Avatar name={comment.author_name} url={comment.author_avatar} size={36} />
               </Link>
-              <div className="board-comment-main">
-                <div className="board-comment-meta">
-                  <Link href={`/members/${comment.author_id}`}>{comment.author_name}</Link>
-                  <time dateTime={comment.created_at}>{formatPostDate(comment.created_at)}</time>
-                  {comment.can_delete && <DeleteCommentButton slug={slug} postId={postId} commentId={comment.id} />}
-                </div>
-                <CommentBody slug={slug} postId={postId} commentId={comment.id} body={comment.body} canEdit={comment.can_edit} />
-              </div>
+              <CommentBody
+                slug={slug}
+                postId={postId}
+                commentId={comment.id}
+                body={comment.body}
+                canEdit={comment.can_edit}
+                meta={
+                  <>
+                    <Link href={`/members/${comment.author_id}`}>{comment.author_name}</Link>
+                    <time dateTime={comment.created_at}>{formatPostDate(comment.created_at)}</time>
+                  </>
+                }
+                deleteButton={comment.can_delete ? <DeleteCommentButton slug={slug} postId={postId} commentId={comment.id} /> : null}
+              />
             </li>
           ))}
         </ul>

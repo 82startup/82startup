@@ -41,3 +41,13 @@ export async function getBoardComments(postId: string): Promise<BoardCommentRow[
   if (error) throw new Error("comments unavailable");
   return (data ?? []) as BoardCommentRow[];
 }
+
+// Records that the author has seen the comments on their post. Failure only leaves the badge up, so it never breaks the page.
+export async function markBoardPostSeen(postId: string): Promise<void> {
+  try {
+    const supabase = await createClient();
+    await supabase.rpc("mark_board_post_seen", { p_post: postId });
+  } catch {
+    // ignored
+  }
+}

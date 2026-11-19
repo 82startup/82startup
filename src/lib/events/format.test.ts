@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatEventTime, venueDetail, venueLabel } from "./format";
+import { eventDateBadge, formatEventTime, venueDetail, venueLabel } from "./format";
 
 describe("formatEventTime", () => {
   it("shows the day once and a time range in the event's own time zone", () => {
@@ -64,5 +64,24 @@ describe("venueDetail", () => {
   it("says Online for online events and is null when nothing is known", () => {
     expect(venueDetail({ ...base, location_type: "zoom" })).toBe("Online");
     expect(venueDetail({ ...base, location_type: "missing" })).toBeNull();
+  });
+});
+
+
+describe("eventDateBadge", () => {
+  it("gives month, day, weekday and a time range for a single-day event", () => {
+    expect(eventDateBadge("2027-03-17T16:00:00Z", "2027-03-18T01:00:00Z", "America/Los_Angeles")).toEqual({
+      month: "MAR", day: "17", weekday: "WED", time: "9:00 AM – 6:00 PM PDT",
+    });
+  });
+
+  it("spans the days of a multi-day event", () => {
+    expect(eventDateBadge("2027-03-17T17:00:00Z", "2027-03-19T01:00:00Z", "America/Los_Angeles")).toEqual({
+      month: "MAR", day: "17–18", weekday: "WED–THU", time: "10:00 AM – 6:00 PM PDT",
+    });
+  });
+
+  it("shows only the start time when there is no end", () => {
+    expect(eventDateBadge("2027-03-17T16:00:00Z", null, "Not/AZone").time).toBe("4:00 PM UTC");
   });
 });

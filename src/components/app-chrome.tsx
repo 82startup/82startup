@@ -17,6 +17,7 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
   const [requests, setRequests] = useState(0); // connection requests waiting for my answer, shown on Connections
   const [unread, setUnread] = useState(0); // unread messages across conversations, shown on Messages
   const [boards, setBoards] = useState<BoardLink[]>([]); // active boards, one left-menu entry each
+  const [unseenComments, setUnseenComments] = useState<Record<string, number>>({}); // new comments on my posts, by board slug
   const navigation = buildNavigation(boards);
 
   useEffect(() => {
@@ -28,23 +29,26 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
       try {
         const { data: claims, error: claimsError } = await supabase.auth.getClaims();
         if (claimsError || !claims?.claims.sub) {
-          if (current) { setIsAdmin(false); setRequests(0); setUnread(0); }
+          if (current) { setIsAdmin(false); setRequests(0); setUnread(0); setUnseenComments({}); }
           return;
         }
         // Counts only: the same small functions the public header uses, not the full lists.
-        const [admin, waiting, unreadCount, boardList] = await Promise.all([
+        const [admin, waiting, unreadCount, boardList, unseen] = await Promise.all([
           supabase.rpc("is_admin"),
           supabase.rpc("pending_request_count"),
           supabase.rpc("unread_message_count"),
           supabase.rpc("list_boards"),
+          supabase.rpc("unseen_board_comment_counts"),
         ]);
         if (!current) return;
         setBoards(boardList.error ? [] : ((boardList.data ?? []) as BoardLink[]));
         setIsAdmin(!admin.error && admin.data === true);
         setRequests(waiting.error ? 0 : Number(waiting.data) || 0);
         setUnread(unreadCount.error ? 0 : Number(unreadCount.data) || 0);
+        // A database without the function yet simply shows no board badge.
+        setUnseenComments(unseen.error ? {} : Object.fromEntries(((unseen.data ?? []) as Array<{ slug: string; unseen: number }>).map((r) => [r.slug, Number(r.unseen) || 0])));
       } catch {
-        if (current) { setIsAdmin(false); setRequests(0); setUnread(0); }
+        if (current) { setIsAdmin(false); setRequests(0); setUnread(0); setUnseenComments({}); }
       }
     }
 
@@ -58,6 +62,7 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
         setIsAdmin(false);
         setRequests(0);
         setUnread(0);
+        setUnseenComments({});
         return;
       }
       queueMicrotask(() => { void checkAdmin(); });
@@ -99,8 +104,9 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
         <nav className="community-nav">
           {navigation.filter(({ href }) => href !== "/admin/events" || isAdmin).map(({ href, label, marker }) => {
             const active = (pathname === href || pathname.startsWith(`${href}/`)) && !(href === "/events" && pathname.startsWith("/events/submit"));
-            const badge = href === "/connections" ? requests : href === "/messages" ? unread : 0;
-            const badgeLabel = href === "/connections" ? "new connection request" : "unread message";
+            const boardSlug = href.startsWith("/boards/") ? href.slice("/boards/".length) : null;
+            const badge = href === "/connections" ? requests : href === "/messages" ? unread : boardSlug ? unseenComments[boardSlug] ?? 0 : 0;
+            const badgeLabel = href === "/connections" ? "new connection request" : href === "/messages" ? "unread message" : "new comment";
             const iconOnMobile = href === "/profile" || href === "/settings"; // shown as top-right icons on mobile instead
             return (
               <Link key={href} href={href} aria-current={active ? "page" : undefined} className={iconOnMobile ? "community-nav-link community-nav-desktop" : "community-nav-link"} aria-label={badge ? `${label}, ${badge} ${badgeLabel}${badge === 1 ? "" : "s"}` : undefined}>
