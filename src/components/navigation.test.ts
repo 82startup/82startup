@@ -17,4 +17,8 @@ describe("buildNavigation", () => {
       ["/profile", "My profile", "07"], ["/settings", "Settings", "08"], ["/admin/events", "Admin", "09"],
     ]);
   });
+  it("gives Week 2027 and Startup-prefixed boards a short mobile label", () => {
+    const items = buildNavigation([{ slug: "showcase", title: "Startup Showcase" }, { slug: "jobs", title: "Jobs" }]);
+    expect(items.slice(0, 4).map(({ shortLabel }) => shortLabel)).toEqual([undefined, "Week", "Showcase", undefined]);
+  });
 });

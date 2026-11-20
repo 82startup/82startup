@@ -78,6 +78,7 @@ body {
 .community-nav-badge { display: inline-grid; min-width: 20px; height: 20px; place-items: center; margin-left: auto; padding: 0 6px; border-radius: 9999px; background: #e5483a; color: #fff; font-size: 11px; font-weight: 700; line-height: 1; }
 .community-nav-badge + .community-nav-arrow { margin-left: 8px; }
 .community-nav-arrow { margin-left: auto; font-size: 15px; opacity: 0; }
+.community-nav-text-short { display: none; }
 .community-nav-link:hover .community-nav-arrow, .community-nav-link[aria-current="page"] .community-nav-arrow { opacity: 1; }
 .community-signout, .community-back { display: flex; width: 100%; align-items: center; gap: 10px; padding: 13px 10px; border: 1px solid #55564c; background: transparent; color: #deded4; font: inherit; font-size: 12px; text-align: left; text-decoration: none; cursor: pointer; }
 .community-signout:hover, .community-back:hover { border-color: var(--community-yellow); color: var(--community-yellow); }
@@ -108,11 +109,13 @@ body {
 .member-filter-submit { min-height: 44px; padding: 0 16px; }
 .member-filter-clear { grid-column: 1 / -1; justify-self: start; margin-top: -4px; padding: 0; color: #646558 !important; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
 .members-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--members-gap, 14px); margin: 0; padding: 0; list-style: none; }
-.member-card { display: grid; min-height: 112px; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 13px; padding: 16px; border: 1px solid #c8c8ba; background: #fffef8; color: var(--community-charcoal); text-decoration: none; transition: background .16s ease, border-color .16s ease, transform .16s ease; }
+.members-grid > li { display: flex; min-width: 0; }
+/* Every card has the same height: one-line name, two-line job/company, then the relation line. */
+.member-card { display: grid; box-sizing: border-box; width: 100%; height: 112px; overflow: hidden; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 13px; padding: 16px; border: 1px solid #c8c8ba; background: #fffef8; color: var(--community-charcoal); text-decoration: none; transition: background .16s ease, border-color .16s ease, transform .16s ease; }
 .member-card:hover { border-color: var(--community-charcoal); background: var(--community-yellow); transform: translateY(-2px); }
 .member-card > :first-child { width: 52px; height: 52px; }
 .member-card-copy { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
-.member-card-name { overflow: hidden; font-size: 15px; font-weight: 600; line-height: 1.25; text-overflow: ellipsis; }
+.member-card-name { overflow: hidden; white-space: nowrap; font-size: 15px; font-weight: 600; line-height: 1.25; text-overflow: ellipsis; }
 .member-card-detail { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; color: #6f7065; font-size: 12px; line-height: 1.4; text-overflow: ellipsis; }
 .member-type-tag { --tag-bg: #e8e7dc; --tag-ink: #55564c; justify-self: end; padding: 6px 8px; border: 1px solid color-mix(in srgb, var(--tag-ink) 30%, transparent); background: var(--tag-bg); color: var(--tag-ink); font-size: 9px; font-weight: 600; letter-spacing: .055em; line-height: 1; text-transform: uppercase; white-space: nowrap; }
 .member-type-tag[data-type="startup"] { --tag-bg: #f0fa4b; --tag-ink: #24251f; }
@@ -353,6 +356,11 @@ a.connection-row-name:hover { text-decoration: underline; text-underline-offset:
 .settings-switch:checked::after { background: var(--community-yellow); transform: translateX(18px); }
 .settings-footer { display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding-top: 14px; }
 
+.delete-account { border-color: #e2b8ae; }
+.delete-account-form { display: flex; align-items: flex-end; gap: 12px; margin-top: 10px; }
+.delete-account-form label { display: flex; flex: 1; flex-direction: column; gap: 6px; color: #6f7065; font-size: 12px; font-weight: 600; }
+.community-content .delete-account-button, .community-content button.delete-account-button[type="submit"] { min-height: 42px; border-color: #a2301d; background: #a2301d; color: #fff; }
+.community-content button.delete-account-button:disabled { border-color: #c8c8ba; background: #e2e1d4; color: #8a8b80; cursor: not-allowed; }
 .settings-account { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 4px; }
 
 /* My profile */
@@ -403,8 +411,11 @@ a.connection-row-name:hover { text-decoration: underline; text-underline-offset:
   .community-icon-action:hover { background: #33342d; color: var(--community-yellow); }
   .community-icon-action[aria-current="page"] { background: var(--community-yellow); color: var(--community-charcoal); }
   .community-icon-action svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-  .community-nav { grid-column: 1 / -1; grid-row: 2; flex-direction: row; gap: 0; margin: 0 -16px; padding: 0; overflow: hidden; border-top: 1px solid #3d3e36; }
-  .community-nav-link { min-width: 0; min-height: 46px; flex: 1 1 0; justify-content: center; gap: 6px; padding: 0 6px; border-bottom: 2px solid transparent; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .community-nav { grid-column: 1 / -1; grid-row: 2; flex-direction: row; gap: 0; margin: 0 -16px; padding: 0 4px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; border-top: 1px solid #3d3e36; }
+  .community-nav::-webkit-scrollbar { display: none; }
+  .community-nav-link { min-width: auto; min-height: 50px; flex: 1 0 auto; justify-content: center; gap: 5px; padding: 0 5px; border-bottom: 2px solid transparent; font-size: 14.5px; font-weight: 500; white-space: nowrap; }
+  .community-nav-text-full { display: none; }
+  .community-nav-text-short { display: inline; }
   .community-nav-link:hover, .community-nav-link[aria-current="page"] { background: transparent; color: var(--community-yellow); border-bottom-color: var(--community-yellow); }
   .community-nav-badge { min-width: 17px; height: 17px; padding: 0 5px; font-size: 10px; }
   .community-nav-marker, .community-nav-arrow { display: none; }
@@ -433,7 +444,7 @@ a.connection-row-name:hover { text-decoration: underline; text-underline-offset:
   .conversation-composer { margin: 6px 12px max(12px, env(safe-area-inset-bottom)); }
   /* 16px text: iPhone zooms the page in when an input with smaller text is focused. */
   .community-content .conversation-composer textarea { font-size: 16px; }
-  .member-card { min-height: 100px; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; padding: 12px; }
+  .member-card { height: 100px; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; padding: 12px; }
   .member-card > :first-child { width: 44px; height: 44px; }
   .member-type-tag { grid-column: 3; justify-self: end; margin-top: 0; }
   .member-card-name { font-size: 13px; }
@@ -450,7 +461,7 @@ a.connection-row-name:hover { text-decoration: underline; text-underline-offset:
   .member-detail-header > :first-child { width: 68px; height: 68px; }
   .member-detail-identity h1 { font-size: 24px !important; }
   .connections-list { grid-template-columns: 1fr; gap: 10px; }
-  .board-composer-footer, .profile-form-footer, .settings-account { flex-direction: column; align-items: stretch; }
+  .board-composer-footer, .profile-form-footer, .settings-account, .delete-account-form { flex-direction: column; align-items: stretch; }
   .profile-form { grid-template-columns: 1fr; }
 
   .profile-photo-row { align-items: flex-start; gap: 14px; }

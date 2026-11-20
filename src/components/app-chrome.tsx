@@ -102,7 +102,7 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
         </div>
         <div className="community-nav-label">NETWORK</div>
         <nav className="community-nav">
-          {navigation.filter(({ href }) => href !== "/admin/events" || isAdmin).map(({ href, label, marker }) => {
+          {navigation.filter(({ href }) => href !== "/admin/events" || isAdmin).map(({ href, label, marker, shortLabel }) => {
             const active = (pathname === href || pathname.startsWith(`${href}/`)) && !(href === "/events" && pathname.startsWith("/events/submit"));
             const boardSlug = href.startsWith("/boards/") ? href.slice("/boards/".length) : null;
             const badge = href === "/connections" ? requests : href === "/messages" ? unread : boardSlug ? unseenComments[boardSlug] ?? 0 : 0;
@@ -110,7 +110,8 @@ export function AppChrome({ header, signup, children, overlay }: { header: React
             const iconOnMobile = href === "/profile" || href === "/settings"; // shown as top-right icons on mobile instead
             return (
               <Link key={href} href={href} aria-current={active ? "page" : undefined} className={iconOnMobile ? "community-nav-link community-nav-desktop" : "community-nav-link"} aria-label={badge ? `${label}, ${badge} ${badgeLabel}${badge === 1 ? "" : "s"}` : undefined}>
-                <span className="community-nav-marker">{marker}</span>{label}
+                <span className="community-nav-marker">{marker}</span>
+                {shortLabel ? <><span className="community-nav-text-full">{label}</span><span className="community-nav-text-short">{shortLabel}</span></> : label}
                 {badge > 0 && <span className="community-nav-badge" aria-hidden="true">{badge > 99 ? "99+" : badge}</span>}
                 <span className="community-nav-arrow" aria-hidden="true">↗</span>
               </Link>

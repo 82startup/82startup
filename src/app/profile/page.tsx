@@ -5,6 +5,7 @@ import { safeNextPath } from "@/lib/auth/safe-next";
 import { copy } from "@/lib/copy";
 import { isProfileComplete, KAKAO_ENABLED } from "@/lib/profile/schema";
 import { createClient } from "@/lib/supabase/server";
+import { DeleteAccount } from "./delete-account";
 import { PhotoSection } from "./photo-section";
 import { ProfileForm } from "./profile-form";
 
@@ -53,6 +54,7 @@ async function ProfileContent({ searchParams }: { searchParams: PageProps<"/prof
         <>
           {photo}
           <ProfileForm profile={{ ...profile, kakao_url: kakaoUrl }} />
+          <DeleteAccount />
         </>
       )}
     </>

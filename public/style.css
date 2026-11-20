@@ -784,3 +784,6 @@ body{font-weight:500}h1,h2,h3,.hero h1,.footer-word,.stat strong{font-family:'IB
 /* Booth and pitching apply text links replace the announcement banner copy (user request). */.announcement a.announcement-cta{display:inline-flex;align-items:center;gap:6px}@media(max-width:800px){.announcement{flex-wrap:nowrap}.announcement a.announcement-cta{white-space:nowrap}}
 /* Lead text before the banner apply links (user request). */.announcement-lead{font-weight:600}@media(max-width:800px){.announcement{gap:12px}.announcement-lead{display:none}}
 /* Bold banner apply links (user request). */.announcement a.announcement-cta{font-weight:600}
+
+/* Fewer lines (user request, Nov 20 2026): no rule above the sponsor inquiry row. */
+.sponsor-contact:not(.event-request){border-top:0;padding-top:0}

@@ -188,6 +188,19 @@ export const copy = {
       save: "Could not send. Try again.",
     },
   },
+  deleteAccount: {
+    title: "Delete account",
+    text: "This permanently deletes your profile, photo, connections, messages, board posts and comments, and event attendance. It cannot be undone.",
+    confirmLabel: "Type DELETE to confirm",
+    confirmWord: "DELETE",
+    button: "Delete my account",
+    pending: "Deleting…",
+    errors: {
+      confirm: "Type DELETE to confirm.",
+      admin: "Admins cannot delete their own account. Ask another admin to remove your admin role first.",
+      failed: "We could not delete your account. Please try again.",
+    },
+  },
   settings: {
     title: "Settings",
     account: "Account",

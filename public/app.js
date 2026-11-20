@@ -144,16 +144,15 @@ function drawPageGrid(){
  const rows=new Set(),segments=[];
  const row=y=>{if(y>0&&y<height)rows.add(Math.round(y));};
  const vertical=(x,top,bottom)=>segments.push(`<path d="M${snap(x)} ${snap(top)}V${snap(bottom)}"/>`);
- document.querySelectorAll('.header,.hero,.event-strip,.section,.cta,.page-head,.marquee,.section-top,.stats').forEach(e=>{const r=bounds(e);row(r.top);row(r.bottom);});
+ // Only section boundaries get a rule; headings, stats and the photo slider stay unruled (user request: fewer lines).
+ document.querySelectorAll('.header,.hero,.event-strip,.section,.cta,.page-head,.marquee').forEach(e=>{const r=bounds(e);row(r.top);row(r.bottom);});
  // The footer is intentionally outside the structural grid.
  const strip=document.querySelector('.event-strip');
  if(strip){const r=bounds(strip),cells=[...strip.children].filter(e=>e.tagName==='DIV');cells.slice(1).forEach(cell=>{const c=bounds(cell);if(innerWidth<=800)row(c.top);else vertical(c.left,r.top,r.bottom);});}
- document.querySelectorAll('.stats').forEach(e=>{const r=bounds(e);[...e.children].slice(1).forEach(cell=>vertical(bounds(cell).left,r.top,r.bottom));});
  document.querySelectorAll('.program-cards').forEach(e=>{const cards=[...e.children],r=bounds(e);row(r.bottom);cards.forEach(card=>{const art=card.querySelector('.program-art'),action=card.querySelector('.card-bottom');if(art)row(bounds(art).bottom);if(action)row(bounds(action).top);});const columns=new Set();cards.forEach(card=>{const c=bounds(card);if(c.top>r.top+1)row(c.top);if(c.left>r.left+1)columns.add(Math.round(c.left));});columns.forEach(x=>vertical(x,r.top,r.bottom));});
- document.querySelectorAll('.photo-slider').forEach(slider=>{const r=bounds(slider);row(r.top);row(r.bottom);});
  if(innerWidth>800)document.querySelectorAll('.intro-grid,.venue-teaser').forEach(e=>{const children=[...e.children].filter(c=>!c.classList.contains('grid-junctions'));if(children.length>=2){const a=bounds(children[0]),b=bounds(e.matches('.intro-grid')?e.querySelector('.body-copy'):children[1]),r=bounds(e);const stats=e.matches('.intro-grid')?e.querySelector('.stats'):null;vertical((a.right+b.left)/2,r.top,stats?bounds(stats).top:r.bottom);}});
  const rules=[`<path d="M${left} 0V${height}M${right} 0V${height}"/>`,...[...rows].sort((a,b)=>a-b).map(y=>`<path d="M0 ${y+.5}H${width}"/>`),...segments].join('');
- const points=[...rows].flatMap(y=>[left,right].map(x=>`<path d="M${x-4} ${y+.5}h8M${x} ${y-3.5}v8"/>`)).join('');
+ const points=''; // No crosshair markers where rules meet the rails.
  gridSvg.setAttribute('width',String(width));gridSvg.setAttribute('height',String(height));
  gridSvg.innerHTML=`<g class="page-grid-rules" fill="none" stroke-width="1">${rules}</g><g class="page-grid-points" fill="none" stroke-width="1">${points}</g>`;
 }
